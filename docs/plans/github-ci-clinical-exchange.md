@@ -142,7 +142,7 @@ reporting 4.18.0.
 **Spec:** No RSpec coverage — YAML workflows are verified by the run
 itself. Acceptance is a green run on this branch, plus a docs-only
 push that triggers nothing.
-**Status:** in-progress
+**Status:** done
 
 ### Slice 3: Lift dependabot to the repo root
 **Commit:** `chore: move dependabot config to the root`
@@ -150,4 +150,10 @@ push that triggers nothing.
 `apps/clinical_exchange/.github/dependabot.yml`
 **Spec:** No spec — verified by GitHub accepting the config on the
 repository's Dependabot settings page.
-**Status:** pending
+**Status:** in-progress
+
+The generated config assumed a single-app repo and pointed bundler at
+`/`, where there is no Gemfile. The root version uses `directories:`
+to cover the app and both gems, adds the npm ecosystem for the app's
+`package.json`, and keeps github-actions pointed at the root, which is
+now where the workflow actually lives.

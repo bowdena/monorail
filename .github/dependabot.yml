@@ -1,7 +1,15 @@
 version: 2
 updates:
 - package-ecosystem: bundler
-  directory: "/"
+  directories:
+  - "/apps/clinical_exchange"
+  - "/gems/gesso"
+  - "/gems/conduit"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+- package-ecosystem: npm
+  directory: "/apps/clinical_exchange"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
