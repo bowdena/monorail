@@ -170,7 +170,7 @@ database.
 **Spec:** scopes find a saved patient by exact URN, by name fragment
 case-insensitively, and by exact date of birth; blank criteria raise
 rather than returning the whole table.
-**Status:** pending
+**Status:** done
 
 ### Slice 6: Search conduit, fall back locally
 **Commit:** `feat: search patients through conduit`

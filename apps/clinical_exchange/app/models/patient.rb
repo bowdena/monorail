@@ -14,5 +14,52 @@ class Patient < ApplicationRecord
 
       patient
     end
+
+    def by_urn(urn)
+      find_by(urn: urn)
+    end
+
+    def matching(first_name: nil, last_name: nil, date_of_birth: nil)
+      criteria = {
+        first_name: first_name.presence,
+        last_name: last_name.presence,
+        date_of_birth: date_of_birth
+      }.compact
+
+      if criteria.empty?
+        raise ArgumentError, "at least one criterion is required"
+      end
+
+      narrowed_by(criteria)
+    end
+
+    private
+      def narrowed_by(criteria)
+        found = all
+
+        if criteria[:first_name]
+          found = found.where(
+            "first_name ILIKE ?", fragment_of(criteria[:first_name])
+          )
+        end
+
+        if criteria[:last_name]
+          found = found.where(
+            "last_name ILIKE ?", fragment_of(criteria[:last_name])
+          )
+        end
+
+        if criteria[:date_of_birth]
+          found = found.where(date_of_birth: criteria[:date_of_birth])
+        end
+
+        found
+      end
+
+      # ILIKE is Postgres' case-insensitive LIKE. Escaping means a wildcard
+      # the user typed matches as the character they typed.
+      def fragment_of(name)
+        "%#{sanitize_sql_like(name)}%"
+      end
   end
 end
