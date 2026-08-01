@@ -82,6 +82,20 @@ end and every later page has a documented pattern to follow.
 - Exact locals for `render_header` and `render_card` are read from each
   partial's `locals: (...)` signature at implementation time, as the build
   recipe instructs. → Not a blocker.
+- Gesso started the Stimulus application but kept the instance private,
+  so the host's generated bootstrap started a second one. → Resolved in
+  slice 2a: gesso exports the instance and the host re-exports it, which
+  keeps `stimulus:manifest:update` working. Rejected alternatives were a
+  `register` helper (breaks the generated manifest's shape) and inverting
+  control so the host starts Stimulus (breaks `import "gesso"` for every
+  other consumer).
+- The installer copied a precompile hook into an app that already had
+  one. → Resolved in slice 2b: the app owns its hook, the installer skips
+  when one exists, and gesso's own is namespaced. Double invocation was
+  milder than first assumed — `Rake::Task#invoke` no-ops once a task has
+  run — so the real costs were duplicated output and unclear ownership.
+- The installer's `||=` never adds `--preserve-symlinks` to a `build`
+  script an app already has. → Slice 2c.
 
 ## Slices
 
@@ -96,6 +110,39 @@ end and every later page has a documented pattern to follow.
 - `apps/clinical_exchange/Procfile.dev`
 **Spec:** No new spec. The existing suite and `bin/rails lint` must stay
 green, and `bin/rails tailwindcss:build` must produce a stylesheet.
+**Status:** done
+
+### Slice 2a: Export gesso's Stimulus application
+**Commit:** `feat: export the stimulus application`
+**Files:**
+- `gems/gesso/app/javascript/package.json`
+- `gems/gesso/app/javascript/controllers/application.js`
+- `gems/gesso/spec/javascript/package_spec.rb`
+**Spec:** The published package exports `./application` and marks that
+module as having side effects, so a host can re-export the instance and a
+bundler cannot drop the `Application.start()` call.
+**Status:** done
+
+### Slice 2b: Keep the host's asset precompile hook
+**Commit:** `fix: keep the host's asset precompile hook`
+**Files:**
+- `gems/gesso/lib/generators/gesso/install/install_generator.rb`
+- `gems/gesso/lib/generators/gesso/install/templates/precompile_assets.rb`
+- `gems/gesso/spec/support/precompile_assets.rb`
+- `gems/gesso/spec/generators/install_generator_spec.rb`
+**Spec:** The installer copies its hook into an app that has none, and
+leaves an app that already has one at any `spec/**/precompile_assets.rb`
+untouched.
+**Status:** pending
+
+### Slice 2c: Install the build flag into existing apps
+**Commit:** `fix: add the build flag to an existing script`
+**Files:**
+- `gems/gesso/lib/generators/gesso/install/install_generator.rb`
+- `gems/gesso/spec/generators/install_generator_spec.rb`
+**Spec:** An app whose `package.json` already declares a `build` script
+without `--preserve-symlinks` gains the flag, with the rest of the
+command left alone.
 **Status:** pending
 
 ### Slice 2: Consume the gesso engine
@@ -105,10 +152,12 @@ green, and `bin/rails tailwindcss:build` must produce a stylesheet.
 - `apps/clinical_exchange/package.json`, `yarn.lock`
 - `apps/clinical_exchange/app/assets/tailwind/application.css`
 - `apps/clinical_exchange/app/javascript/application.js`
-- `apps/clinical_exchange/spec/support/precompile_assets.rb` (only if the
-  generator adds one the app does not already have)
-**Spec:** No new spec. Asset build succeeds and the gesso theme reaches
-`app/assets/builds`.
+- `apps/clinical_exchange/app/javascript/controllers/application.js`
+  (re-exports gesso's instance), `controllers/index.js`
+- `apps/clinical_exchange/spec/support/precompile_assets.rb` (the app's
+  own hook, moved from `spec/system/support/` so request specs get assets)
+**Spec:** No new spec. Asset build succeeds, the gesso theme reaches
+`app/assets/builds`, and the bundle holds exactly one `Application.start()`.
 **Status:** pending
 
 ### Slice 3: Home page at root
