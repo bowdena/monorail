@@ -1,6 +1,21 @@
 require "rails_helper"
 
 RSpec.describe Patient do
+  # Conduit is stubbed at its public boundary: the app suite never reaches
+  # MSSQL, and the gem's own specs cover the SQL.
+  def stub_ipm(patients)
+    allow(Conduit).to receive(:ipm)
+      .and_return(instance_double(Conduit::IPM::Repos, patients: patients))
+  end
+
+  def ipm_patient(urn: "0700003", first_name: "Tori", last_name: "Judd")
+    Conduit::IPM::Patient.new(
+      urn: urn, first_name: first_name, last_name: last_name,
+      date_of_birth: Date.new(1957, 9, 29), gender: "Female",
+      atsi_status: nil, merged_from: nil
+    )
+  end
+
   describe ".remember" do
     it "keeps the patient conduit returned" do
       found = Conduit::IPM::Patient.new(
@@ -119,6 +134,121 @@ RSpec.describe Patient do
         create(:patient, last_name: "Judd")
 
         expect { described_class.matching(first_name: " ", last_name: nil) }
+          .to raise_error(ArgumentError)
+      end
+    end
+  end
+
+  describe ".search" do
+    it "answers from iPM, and says so" do
+      patients = instance_double(Conduit::IPM::Repositories::Patients,
+        by_urn: ipm_patient)
+      stub_ipm(patients)
+
+      results = described_class.search(urn: "0700003")
+
+      expect(results.records.map(&:urn)).to eq([ "0700003" ])
+      expect(results.source).to eq(:ipm)
+      expect(results).not_to be_local
+    end
+
+    it "pads a short urn to seven digits" do
+      patients = instance_double(Conduit::IPM::Repositories::Patients,
+        by_urn: ipm_patient)
+      stub_ipm(patients)
+
+      described_class.search(urn: "700003")
+
+      expect(patients).to have_received(:by_urn).with("0700003")
+    end
+
+    it "finds nobody when iPM has no such urn" do
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        by_urn: nil))
+
+      results = described_class.search(urn: "0700003")
+
+      expect(results.records).to be_empty
+      expect(results.source).to eq(:ipm)
+    end
+
+    it "asks iPM to match the name criteria given" do
+      patients = instance_double(Conduit::IPM::Repositories::Patients,
+        matching: [ ipm_patient ])
+      stub_ipm(patients)
+
+      described_class.search(last_name: "jud",
+        date_of_birth: Date.new(1957, 9, 29))
+
+      expect(patients).to have_received(:matching).with(
+        first_name: nil, last_name: "jud",
+        date_of_birth: Date.new(1957, 9, 29)
+      )
+    end
+
+    context "when iPM is unreachable" do
+      it "answers from local records instead" do
+        create(:patient, urn: "0700003", last_name: "Judd")
+        patients = instance_double(Conduit::IPM::Repositories::Patients)
+        allow(patients).to receive(:by_urn).and_raise(
+          Conduit::Error::ConnectionFailed.new("down", source: :ipm)
+        )
+        stub_ipm(patients)
+
+        results = described_class.search(urn: "0700003")
+
+        expect(results.records.map(&:urn)).to eq([ "0700003" ])
+        expect(results).to be_local
+      end
+
+      it "matches names against local records" do
+        create(:patient, last_name: "Judd")
+        patients = instance_double(Conduit::IPM::Repositories::Patients)
+        allow(patients).to receive(:matching).and_raise(
+          Conduit::Error::Timeout.new("slow", source: :ipm)
+        )
+        stub_ipm(patients)
+
+        results = described_class.search(last_name: "jud")
+
+        expect(results.records.map(&:last_name)).to eq([ "Judd" ])
+        expect(results).to be_local
+      end
+    end
+
+    context "when iPM is misconfigured" do
+      it "raises rather than answering from local records" do
+        create(:patient, urn: "0700003")
+        patients = instance_double(Conduit::IPM::Repositories::Patients)
+        allow(patients).to receive(:by_urn).and_raise(
+          Conduit::Error::PermissionDenied.new("no grant", source: :ipm)
+        )
+        stub_ipm(patients)
+
+        expect { described_class.search(urn: "0700003") }
+          .to raise_error(Conduit::Error::PermissionDenied)
+      end
+    end
+
+    context "when the query itself fails" do
+      it "raises rather than answering from local records" do
+        patients = instance_double(Conduit::IPM::Repositories::Patients)
+        allow(patients).to receive(:matching).and_raise(
+          Conduit::Error::QueryError.new("bad sql", source: :ipm)
+        )
+        stub_ipm(patients)
+
+        expect { described_class.search(last_name: "jud") }
+          .to raise_error(Conduit::Error::QueryError)
+      end
+    end
+
+    context "when every criterion is blank" do
+      it "raises without asking iPM" do
+        patients = instance_double(Conduit::IPM::Repositories::Patients)
+        stub_ipm(patients)
+
+        expect { described_class.search(urn: " ", last_name: nil) }
           .to raise_error(ArgumentError)
       end
     end

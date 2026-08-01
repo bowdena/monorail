@@ -174,13 +174,14 @@ rather than returning the whole table.
 
 ### Slice 6: Search conduit, fall back locally
 **Commit:** `feat: search patients through conduit`
-**Files:** `app/models/patient.rb`, `spec/models/patient_spec.rb`
+**Files:** `app/models/patient.rb`, `app/models/patient/results.rb`,
+`spec/models/patient_spec.rb`
 **Spec:** `Patient.search` returns conduit records and reports iPM as
 the source; a URN shorter than 7 digits is zero-padded; a transient
 conduit error falls back to local records and reports the local source;
-a configuration error and a `QueryError` propagate; `NotFound` returns
-no records without falling back.
-**Status:** pending
+a configuration error and a `QueryError` propagate; an unknown URN
+returns no records without falling back.
+**Status:** done
 
 ### Slice 7: The patients page with URN search
 **Commit:** `feat: add the patients page with URN search`
