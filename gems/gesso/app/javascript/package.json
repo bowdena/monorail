@@ -6,12 +6,14 @@
   "description": "Gesso design system — basecoat behaviour and Stimulus controllers for the Rails engine.",
   "exports": {
     ".": "./index.js",
-    "./controllers": "./controllers/index.js"
+    "./controllers": "./controllers/index.js",
+    "./application": "./controllers/application.js"
   },
   "sideEffects": [
     "./index.js",
     "./basecoat.js",
-    "./controllers/index.js"
+    "./controllers/index.js",
+    "./controllers/application.js"
   ],
   "peerDependencies": {
     "@hotwired/stimulus": "^3.2.2",
