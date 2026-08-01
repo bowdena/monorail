@@ -105,7 +105,8 @@ without one `herb-format` reads stdin when there is no TTY
 **Spec:** throwaway model and system specs proving factory_bot,
 shoulda-matchers, database_cleaner and cuprite all work — deleted before
 handover, not committed
-**Status:** pending
+**Status:** done — throwaway model, factory and system spec proved the
+stack, then were deleted along with the migration and schema
 
 ### Slice 4: bin/ci runs specs and signs off
 **Commit:** `chore: run rspec and signoff from bin/ci`
