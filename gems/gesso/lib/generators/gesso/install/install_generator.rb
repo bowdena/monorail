@@ -45,7 +45,7 @@ module Gesso
 
         (pkg["dependencies"] ||= {}).tap do |deps|
           deps["gesso"] ||= gesso_js_link
-          deps["basecoat-css"] ||= "^0.3.11"
+          deps["basecoat-css"] ||= "^1.0.1"
           deps["@hotwired/stimulus"] ||= "^3.2.2"
           deps["@hotwired/turbo-rails"] ||= "^8.0.23"
         end

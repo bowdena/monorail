@@ -74,6 +74,18 @@ RSpec.describe Gesso::Generators::InstallGenerator do
     expect(pkg.dig("scripts", "build")).to include("--preserve-symlinks")
   end
 
+  # The engine's markup targets one basecoat major, so what the installer
+  # writes into a host has to match what the engine itself declares.
+  it "installs the basecoat version the engine package declares" do
+    run_generator
+
+    engine_package = JSON.parse(
+      Gesso::Engine.root.join("app/javascript/package.json").read
+    )
+    expect(JSON.parse(read("package.json")).dig("dependencies", "basecoat-css"))
+      .to eq(engine_package.dig("peerDependencies", "basecoat-css"))
+  end
+
   # The link:-installed gesso package only resolves when esbuild preserves
   # symlinks, so an app that already bundles has to gain the flag too.
   it "adds the flag to a build script that predates gesso" do
