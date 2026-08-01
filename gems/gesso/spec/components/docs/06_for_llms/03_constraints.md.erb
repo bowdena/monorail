@@ -14,9 +14,9 @@ violates one of these is wrong even if it renders correctly.
   (CSS + JS from the `basecoat-css` npm package), Tailwind.
 - Never write raw markup for something a partial covers — check the
   [decision table](decision_table) first.
-- Never make a partial that only aliases a class string onto one
-  element. If its whole body is one tag plus a `variant`-to-class
-  map, the class is the API — write the markup inline.
+- Never make a partial that only aliases basecoat markup onto one
+  element. If its whole body is one tag plus a `variant`-to-attribute
+  map, the markup is the API — write it inline.
 - Never pre-extract a component for UI that exists on one page. Inline
   it; extract on the third instance, or sooner only if it bundles
   behaviour, state, or an accessibility contract a caller could get
@@ -42,9 +42,10 @@ violates one of these is wrong even if it renders correctly.
   partial when a third page needs the same thing, or immediately when
   it carries behaviour or an a11y contract worth bundling — a
   component groups markup, styling and behaviour, not styling alone.
-- Always use basecoat's shipped classes before writing CSS; new CSS
-  goes in `app/assets/tailwind/components/<name>.css`, registered in
-  `application.css`.
+- Always use basecoat's shipped classes and `data-*` attributes
+  before writing CSS; new CSS goes in
+  `app/assets/tailwind/components/<name>.css`, registered in
+  `application.css`, and selects variants the same way basecoat does.
 - Always use colour tokens by meaning (`--critical` for harm,
   `--destructive` for delete actions) and verify both themes.
 - Always keep navigation state in the URL and validation on the

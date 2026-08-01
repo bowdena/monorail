@@ -33,7 +33,8 @@ Three files per component:
 - Allowed enum values as frozen constants (`VARIANTS`, `SIZES`).
 - **Validation:** raise `ArgumentError` naming the allowed values for
   an unknown enum option — fail fast at the call site.
-- Class composition, defaults, and any value objects.
+- Class composition, resolving options to the values basecoat
+  expects, defaults, and any value objects.
 - Build markup with **Rails tag helpers** (`button_tag`), not
   hand-written HTML; suppress unwanted defaults (`name: nil`) and join
   classes with `class_names`.
