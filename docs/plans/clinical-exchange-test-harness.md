@@ -84,7 +84,8 @@ machine that runs `bin/ci`. Not automated by this work.
 `.pnp.cjs` and `.pnp.loader.mjs`
 **Spec:** none — verified by `yarn install` succeeding and `yarn build`
 plus `yarn build:css` producing output in `app/assets/builds`
-**Status:** pending
+**Status:** done — `yarn.lock` was unchanged; `.yarn/install-state.gz`
+needed untracking as well
 
 ### Slice 2: Herb linting and rails lint task
 **Commit:** `chore: add herb linting and rails lint task`

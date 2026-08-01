@@ -1,0 +1,19 @@
+# Herb lints and formats HTML+ERB templates.
+# https://herb-tools.dev/configuration
+version: 0.10.2
+
+files:
+  exclude:
+    - 'tmp/**/*'
+    - 'vendor/**/*'
+
+linter:
+  enabled: true
+
+formatter:
+  enabled: true
+  indentWidth: 2
+  maxLineLength: 80
+  exclude:
+    - 'public/**/*'
+    - 'tmp/**/*'

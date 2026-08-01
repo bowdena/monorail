@@ -116,6 +116,12 @@ GEM
       raabro (~> 1.4)
     globalid (1.4.0)
       activesupport (>= 6.1)
+    herb (0.10.2-aarch64-linux-gnu)
+    herb (0.10.2-aarch64-linux-musl)
+    herb (0.10.2-arm-linux-gnu)
+    herb (0.10.2-arm-linux-musl)
+    herb (0.10.2-x86_64-linux-gnu)
+    herb (0.10.2-x86_64-linux-musl)
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
     image_processing (1.14.0)
@@ -379,6 +385,7 @@ DEPENDENCIES
   bundler-audit
   cssbundling-rails
   debug
+  herb (~> 0.10.2)
   image_processing (~> 1.2)
   jsbundling-rails
   kamal
@@ -440,6 +447,12 @@ CHECKSUMS
   ffi (1.17.4-x86_64-linux-musl) sha256=3fdf9888483de005f8ef8d1cf2d3b20d86626af206cbf780f6a6a12439a9c49e
   fugit (1.13.0) sha256=a4f093fce740da52f216740a5041e2a594ea763cdb89e8b2754ca4399634ab18
   globalid (1.4.0) sha256=037f12fbf1d9d7a014d501c2d5c77356fd4ddd96d7a7991d6700bba96706f427
+  herb (0.10.2-aarch64-linux-gnu) sha256=7888e560a9eaede00db65475981858b0d7be287ea72686360a3a11a86d6a8011
+  herb (0.10.2-aarch64-linux-musl) sha256=23b546d207b813879373a439a39cf2de233e04b65671e436c59fd8644b173632
+  herb (0.10.2-arm-linux-gnu) sha256=d716692557de6d0441e9b1053f1a953b7025d7555de0e9fd2458e7f2382f0211
+  herb (0.10.2-arm-linux-musl) sha256=09de8e03d686ee32585fafde618ae25f62e5556c1afe3afdb5b55cb2c9f6a151
+  herb (0.10.2-x86_64-linux-gnu) sha256=7042322268a83c62bed32a5be4b64e0f4716c88d45a6ac372e839d646711a863
+  herb (0.10.2-x86_64-linux-musl) sha256=c91182c8b75431fe6a77c7a776f8be7db4b9a245ee95821f943e8d3725242664
   i18n (1.15.2) sha256=00f9eb62412fe593b2a65a97daa75300d37abb8f7202ec748e94b6d46a9dd1b5
   image_processing (1.14.0) sha256=754cc169c9c262980889bec6bfd325ed1dafad34f85242b5a07b60af004742fb
   io-console (0.8.2) sha256=d6e3ae7a7cc7574f4b8893b4fca2162e57a825b223a177b7afa236c5ef9814cc
