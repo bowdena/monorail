@@ -8,8 +8,13 @@
 # clean checkout with no manual build. assets:precompile is enhanced by
 # tailwindcss-rails and jsbundling-rails, so it drives the real build
 # pipeline. Skipped for helper-unit runs and when a dev server is running.
-RSpec.configure do |config|
-  def needs_assets?
+#
+# This file belongs to the app, not to gesso — edit it freely. The
+# installer will not replace it or add a second hook alongside it.
+module AssetPrecompilation
+  extend self
+
+  def needed?
     RSpec.world.filtered_examples.values.flatten.any? do |example|
       %i[ system request ].include?(example.metadata[:type])
     end
@@ -29,36 +34,43 @@ RSpec.configure do |config|
     false
   end
 
-  config.before(:suite) do
-    next unless needs_assets?
+  def invoke(task_name)
+    require "rake"
+    Rails.application.load_tasks unless Rake::Task.task_defined?(task_name)
+    # jsbundling runs `yarn build` from the process CWD, which is not
+    # guaranteed to be where package.json lives.
+    Dir.chdir(Rails.root) { Rake::Task[task_name].invoke }
+  end
 
-    if dev_server_running?
+  def quietly
+    original_stdout = $stdout.clone
+    $stdout.reopen(File.new(File::NULL, "w"))
+    yield
+  ensure
+    $stdout.reopen(original_stdout)
+  end
+end
+
+RSpec.configure do |config|
+  config.before(:suite) do
+    next unless AssetPrecompilation.needed?
+
+    if AssetPrecompilation.dev_server_running?
       $stdout.puts "\n⚠️  Development server detected. Skipping asset precompilation.\n"
       next
     end
 
     $stdout.puts "\n🐢  Precompiling assets.\n"
-    original_stdout = $stdout.clone
-    start = Time.current
-    begin
-      $stdout.reopen(File.new(File::NULL, "w"))
-
-      require "rake"
-      Rails.application.load_tasks unless Rake::Task.task_defined?("assets:precompile")
-      Dir.chdir(Rails.root) { Rake::Task["assets:precompile"].invoke }
-    ensure
-      $stdout.reopen(original_stdout)
-      $stdout.puts "Finished in #{(Time.current - start).round(2)} seconds"
-    end
+    started_at = Time.current
+    AssetPrecompilation.quietly { AssetPrecompilation.invoke("assets:precompile") }
+    $stdout.puts "Finished in #{(Time.current - started_at).round(2)} seconds"
   end
 
   config.after(:suite) do
-    next unless needs_assets?
-    next if dev_server_running?
+    next unless AssetPrecompilation.needed?
+    next if AssetPrecompilation.dev_server_running?
 
     $stdout.puts "\n🗑️  Clobbering assets.\n"
-    require "rake"
-    Rails.application.load_tasks unless Rake::Task.task_defined?("assets:clobber")
-    Rake::Task["assets:clobber"].invoke
+    AssetPrecompilation.invoke("assets:clobber")
   end
 end
