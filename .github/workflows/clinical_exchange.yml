@@ -37,7 +37,7 @@ jobs:
         run: echo "path=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
 
       - name: Restore the Yarn cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ steps.yarn-cache.outputs.path }}
           key: yarn-${{ runner.os }}-${{ hashFiles('apps/clinical_exchange/yarn.lock') }}
@@ -70,7 +70,7 @@ jobs:
           bundler-cache: true
 
       - name: Prepare RuboCop cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         env:
           DEPENDENCIES_HASH: ${{ hashFiles('apps/clinical_exchange/.ruby-version', 'apps/clinical_exchange/**/.rubocop.yml', 'apps/clinical_exchange/Gemfile.lock') }}
         with:
@@ -148,7 +148,7 @@ jobs:
         run: echo "path=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
 
       - name: Restore the Yarn cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ steps.yarn-cache.outputs.path }}
           key: yarn-${{ runner.os }}-${{ hashFiles('apps/clinical_exchange/yarn.lock') }}
