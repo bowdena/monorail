@@ -22,7 +22,11 @@ React, no build-time component compiler.
   `app/assets/tailwind/theme.css`. Where a component needs styling
   basecoat does not ship, it gets its own file in
   `app/assets/tailwind/components/<name>.css`, registered in
-  `application.css`.
+  `application.css`. The host layout links the compiled stylesheets by
+  name (`stylesheet_link_tag "application", "tailwind"`), not Propshaft's
+  `:app` — that would also link the build input tailwindcss-rails
+  generates for the engine, whose `@import` is an absolute filesystem
+  path the browser 404s on.
 - **Behaviour** comes from basecoat's bundle, imported from the
   `basecoat-css` npm package (select, command, toast) and small
   Stimulus controllers in `app/javascript/controllers`. Native browser behaviour is preferred
