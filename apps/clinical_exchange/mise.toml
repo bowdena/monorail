@@ -9,29 +9,21 @@
 # inside it — create them with bin/rails db:prepare.
 
 [env]
-PGDATA = "{{config_root}}/tmp/.postgres/data"
+PGDATA = "./tmp/.postgres/data"
 PGPORT = "5510"
 PGUSER = "postgres"
 PGPASSWORD = "postgres"
 
-[tasks."db:init"]
+[tasks."db:_init"]
 description = "Create the Postgres data directory (first run only)"
 run = """
-set -euo pipefail
-
-# initdb can only take the superuser password from a file, so write one
-# and remove it however the task exits.
-password_file="$MISE_PROJECT_ROOT/tmp/.pgpass_tmp"
-trap 'rm -f "$password_file"' EXIT
-
-mkdir -p "$(dirname "$PGDATA")"
-echo "$PGPASSWORD" > "$password_file"
-initdb --locale=en_US.UTF-8 --username="$PGUSER" --pwfile="$password_file"
+echo "postgres" > ./tmp/.pgpass_tmp
+initdb --locale=en_US.UTF-8 --username=postgres --pwfile=./tmp/.pgpass_tmp
 """
 
 [tasks."db:start"]
 description = "Start Postgres"
-run = "pg_ctl start --log=$PGDATA/server.log"
+run = "pg_ctl start -l ./tmp/postgres.log -o '-c log_min_messages=error'"
 
 [tasks."db:stop"]
 description = "Stop Postgres"
