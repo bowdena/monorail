@@ -1,24 +1,26 @@
-<%# locals: (alert_class:, icon: nil, title: nil, classes: nil) %>
+<%# locals: (variant:, icon: nil, title: nil, classes: nil) %>
 <%#
   Alert component.
 
   Rendered via render_alert (Gesso::Components::AlertHelper), which validates
-  the variant and computes alert_class. This partial only renders
-  markup — it does no class composition itself.
+  the variant. This partial only renders markup — it does no class
+  composition itself.
 
   Basecoat styles the alert from semantic HTML: an optional leading icon
   (a direct-child <svg>), a title, and a <section> for the body.
 
   Params:
-    alert_class - ready-made basecoat alert class(es)
-    icon        - optional logical icon path, e.g. "icons/info"
-    title       - optional alert title
-    classes     - additional CSS classes
+    variant - basecoat variant, rendered as data-variant; nil for the
+              default variant (destructive, warning, critical, info)
+    icon    - optional logical icon path, e.g. "icons/info"
+    title   - optional alert title
+    classes - additional CSS classes
 
   The alert body is provided as a block.
 %>
 
-<%= tag.div class: class_names(alert_class, classes), role: "alert" do %>
+<%= tag.div class: class_names("alert", classes), role: "alert",
+      data: { variant: } do %>
   <% if icon %>
     <%= inline_svg_tag "#{icon}.svg" %>
   <% end %>
