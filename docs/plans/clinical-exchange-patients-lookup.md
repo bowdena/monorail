@@ -159,10 +159,10 @@ Patients item arrives with the route in slice 7.
 **Files:** `db/migrate/<ts>_create_patients.rb`, `db/schema.rb`,
 `app/models/patient.rb`, `spec/models/patient_spec.rb`,
 `spec/factories/patients.rb`
-**Spec:** `Patient.record` saves a `Conduit::IPM::Patient`, upserting on
+**Spec:** `Patient.remember` keeps a `Conduit::IPM::Patient`, upserting on
 URN so a second selection refreshes the snapshot; URN is unique in the
 database.
-**Status:** pending
+**Status:** done
 
 ### Slice 5: Local patient search
 **Commit:** `feat: add local patient search`
