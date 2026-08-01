@@ -8,7 +8,7 @@ class ButtonPreview < Lookbook::Preview
   # Usage rules: [Button design guidance](/lookbook/pages/components/button)
   #
   # @param variant select [default, primary, secondary, outline, ghost, link, destructive, warning, info]
-  # @param size select [default, sm, lg, icon]
+  # @param size select [default, xs, sm, lg, icon, icon-xs, icon-sm, icon-lg]
   # @param loading toggle
   # @param disabled toggle
   # @param label text
@@ -54,12 +54,21 @@ class ButtonPreview < Lookbook::Preview
     preview(variant: "info", label: "Info")
   end
 
+  def extra_small
+    preview(size: "xs", label: "Extra small")
+  end
+
   def small
     preview(size: "sm", label: "Small")
   end
 
   def large
     preview(size: "lg", label: "Large")
+  end
+
+  def icon
+    preview(variant: "ghost", size: "icon", label: "★",
+            aria: { label: "Add to favourites" })
   end
 
   def loading
@@ -72,8 +81,8 @@ class ButtonPreview < Lookbook::Preview
 
   private
     def preview(variant: "primary", size: "default", loading: false,
-                disabled: false, label: "Button")
+                disabled: false, label: "Button", aria: nil)
       render_with_template(template: "button_preview/preview",
-        locals: { variant:, size:, loading:, disabled:, label: })
+        locals: { variant:, size:, loading:, disabled:, label:, aria: })
     end
 end

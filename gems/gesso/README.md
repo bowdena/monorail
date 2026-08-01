@@ -38,11 +38,23 @@ separate library to publish or version.
    ```
 
    This writes the Tailwind entry (`app/assets/tailwind/application.css`),
+   points the layout's `stylesheet_link_tag` at the compiled stylesheets,
    adds `import "gesso"` to `app/javascript/application.js`,
    adds the `gesso`, `basecoat-css`, Stimulus, and Turbo packages
    (plus a `--preserve-symlinks` esbuild build script) to `package.json`,
    installs the asset precompile hook for browser specs, and ships the
    foreman `Procfile.dev` + `bin/dev` dev workflow.
+
+   That last rewrite matters: Rails' default `stylesheet_link_tag :app`
+   links every CSS under `app/assets`, including the build input
+   tailwindcss-rails generates for the engine — its `@import` is an
+   absolute filesystem path, so the browser 404s on it on every page. A
+   layout that does not use `:app` is left alone, so link the compiled
+   stylesheets yourself:
+
+   ```erb
+   <%= stylesheet_link_tag "application", "tailwind", "data-turbo-track": "reload" %>
+   ```
 
 3. Install JS deps and start the app:
 

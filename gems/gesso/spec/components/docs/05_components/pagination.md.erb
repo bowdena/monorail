@@ -50,8 +50,10 @@ which numbers and gaps to show and hands the window in.
 | `previous` | `{ path: }`, or nil to omit (first page) |
 | `next_page` | `{ path: }`, or nil to omit (last page). Named to avoid the `next` keyword |
 
-Current page renders `btn-icon-outline` with `aria-current`; others
-`btn-icon-ghost`.
+Current page renders the `outline` button variant at `icon` size with
+`aria-current`; others use `ghost`. The previous and next links mark
+their chevron `data-icon="inline-start"` / `"inline-end"` so basecoat
+adjusts the padding.
 
 ## Do and don't
 

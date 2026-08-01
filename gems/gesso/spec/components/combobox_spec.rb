@@ -10,25 +10,25 @@ RSpec.describe "Combobox component", type: :request do
     Capybara.string(response.body)
   end
 
-  it "renders a trigger button with the selected option's label" do
-    page = render_preview("default")
+  it "renders the combobox input with the placeholder" do
+    page = render_preview("no_selection")
     expect(page).to have_css(
-      "div.select > button[aria-haspopup='listbox']",
-      text: "Ruby on Rails"
+      "div.combobox > input[role='combobox'][placeholder='Select framework…']"
     )
   end
 
-  it "renders the trigger with placeholder when nothing is selected" do
-    page = render_preview("no_selection")
+  it "points the input at the listbox it controls" do
+    page = render_preview("default")
+    listbox_id = page.find("[role='listbox']")[:id]
     expect(page).to have_css(
-      "div.select > button", text: "Select framework…"
+      "input[role='combobox'][aria-controls='#{listbox_id}']"
     )
   end
 
   it "renders options in a listbox popover" do
     page = render_preview("default")
     expect(page).to have_css(
-      "div[data-popover] [role='listbox'] [role='option']",
+      "div[data-popover] [role='listbox'] [role='option'][data-value='django']",
       text: "Django"
     )
   end
@@ -47,17 +47,11 @@ RSpec.describe "Combobox component", type: :request do
     )
   end
 
-  it "renders a search filter by default" do
+  it "tracks the selection in a hidden input" do
     page = render_preview("default")
     expect(page).to have_css(
-      "div[data-popover] header input[role='combobox']"
-    )
-  end
-
-  it "omits the search filter when searchable is false" do
-    page = render_preview("not_searchable")
-    expect(page).to have_no_css(
-      "div[data-popover] header input[role='combobox']"
+      "div.combobox > input[type='hidden'][name='framework'][value='rails']",
+      visible: :all
     )
   end
 end

@@ -1,12 +1,12 @@
 <%#
   locals: (title: nil, value: nil, change: nil,
-  badge_class:, icon: nil, classes: nil)
+  badge_variant:, icon: nil, classes: nil)
 %>
 <%#
   Stat card component.
 
   Rendered via render_stat_card (Gesso::Components::StatCardHelper), which
-  validates change_type and computes badge_class. This partial only
+  validates change_type and computes badge_variant. This partial only
   renders markup.
 
   A metric tile: a muted title, a large value, an optional change badge,
@@ -17,7 +17,8 @@
     title       - metric label
     value       - the metric value (rendered large)
     change      - optional change text (e.g. "+12%"); omitted if nil
-    badge_class - ready-made badge class(es) for the change badge
+    badge_variant - basecoat badge variant for the change badge,
+                    rendered as data-variant
     icon        - optional icon name (an svg in icons/)
     classes     - additional CSS classes on the card
 %>
@@ -29,7 +30,7 @@
       <%= tag.p value, class: "stat-card-value text-2xl font-semibold font-mono" %>
 
       <% if change %>
-        <%= tag.span change, class: badge_class %>
+        <%= tag.span change, class: "badge", data: { variant: badge_variant } %>
       <% end %>
     <% end %>
 

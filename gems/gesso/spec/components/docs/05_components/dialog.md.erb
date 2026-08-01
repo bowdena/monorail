@@ -50,8 +50,8 @@ alongside the trigger that opens it.
     <%% end %>
 
     <%%= tag.footer do %>
-      <%%= button_tag "Cancel", class: "btn-ghost",
-            data: { action: "click->drawer#close" } %>
+      <%%= button_tag "Cancel", class: "btn",
+            data: { variant: "ghost", action: "click->drawer#close" } %>
       <%%= button_tag "Publish", class: "btn" %>
     <%% end %>
   <%% end %>

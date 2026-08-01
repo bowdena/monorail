@@ -337,16 +337,16 @@ __metadata:
     "@herb-tools/linter": "npm:^0.10.2"
     "@hotwired/stimulus": "npm:^3.2.2"
     "@hotwired/turbo-rails": "npm:^8.0.23"
-    basecoat-css: "npm:^0.3.11"
+    basecoat-css: "npm:^1.0.1"
     esbuild: "npm:^0.28.1"
     gesso: "link:../../gems/gesso/app/javascript"
   languageName: unknown
   linkType: soft
 
-"basecoat-css@npm:^0.3.11":
-  version: 0.3.11
-  resolution: "basecoat-css@npm:0.3.11"
-  checksum: 10c0/df19b4f1f00c869f4cbad1c122b55439c497fb35c7e8bc10eb17487cd24effacc6a21b3e93fbbffe56dfa20f1baf97def04739180f6e64d8f9ab93a2659ae203
+"basecoat-css@npm:^1.0.1":
+  version: 1.0.2
+  resolution: "basecoat-css@npm:1.0.2"
+  checksum: 10c0/4f3b59829f0a0f2ca2db25c228ab702f316f52900f7a17b1aa559a40a053de8c48af72a0c631a4b573b304629e7a82c88c5b68f1b42d90eabf1df44279b2b391
   languageName: node
   linkType: hard
 

@@ -22,10 +22,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: apps/clinical_exchange/.node-version
 
@@ -37,7 +37,7 @@ jobs:
         run: echo "path=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
 
       - name: Restore the Yarn cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ steps.yarn-cache.outputs.path }}
           key: yarn-${{ runner.os }}-${{ hashFiles('apps/clinical_exchange/yarn.lock') }}
@@ -61,7 +61,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -70,7 +70,7 @@ jobs:
           bundler-cache: true
 
       - name: Prepare RuboCop cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         env:
           DEPENDENCIES_HASH: ${{ hashFiles('apps/clinical_exchange/.ruby-version', 'apps/clinical_exchange/**/.rubocop.yml', 'apps/clinical_exchange/Gemfile.lock') }}
         with:
@@ -88,7 +88,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -127,7 +127,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+
+      # ruby-vips loads libvips through FFI on boot, so the library has to
+      # be on the runner before Rails starts. The Dockerfile installs the
+      # same package for production.
+      - name: Install libvips
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y libvips
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -136,7 +144,7 @@ jobs:
           bundler-cache: true
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: apps/clinical_exchange/.node-version
 
@@ -148,7 +156,7 @@ jobs:
         run: echo "path=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
 
       - name: Restore the Yarn cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ steps.yarn-cache.outputs.path }}
           key: yarn-${{ runner.os }}-${{ hashFiles('apps/clinical_exchange/yarn.lock') }}

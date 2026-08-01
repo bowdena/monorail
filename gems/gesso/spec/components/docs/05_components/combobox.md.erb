@@ -4,7 +4,7 @@ title: Combobox
 
 # Combobox
 
-A searchable select: a trigger button opening a filterable listbox,
+A searchable select: an input that filters its listbox as you type,
 with the choice submitted via a hidden input.
 
 <%= embed :combobox, :default %>
@@ -24,10 +24,11 @@ with the choice submitted via a hidden input.
 
 ## Usage
 
-`render_combobox` (`Gesso::Components::ComboboxHelper`) resolves the selected
-label and renders the searchable select; behaviour comes from basecoat's
-vendored `select.js`, and the selection is tracked in a hidden input for
-normal form submission.
+`render_combobox` (`Gesso::Components::ComboboxHelper`) normalises the
+selected value and renders the searchable select; behaviour comes from
+basecoat's bundled `combobox.js`, and the selection is tracked in a
+hidden input for normal form submission. basecoat fills the visible
+input with the selected option's label on init.
 
 ```erb
 <%%= render_combobox(
@@ -43,9 +44,8 @@ normal form submission.
 | `name` | — | hidden input name |
 | `options` | `[]` | `{ value:, label: }` hashes |
 | `selected` | — | pre-selected value |
-| `placeholder` | `"Select…"` | trigger label when empty |
-| `searchable` | `true` | `false` drops the filter for short lists |
-| `id` | — | id for the hidden input |
+| `placeholder` | `"Select…"` | input placeholder when nothing is selected |
+| `id` | — | id for the combobox root; defaults from `name` |
 
 The check mark on the selected option is CSS-driven from
 `aria-selected` — no extra markup.
@@ -54,9 +54,9 @@ The check mark on the selected option is CSS-driven from
 
 - Do give `placeholder` the field's noun ("Select clinician"), not
   generic "Select…", when the label alone is ambiguous.
-- Do use `searchable: false` for a short list that still wants the
-  combobox visual — but first ask whether `select` or `radio_group`
-  fits better.
+- Do reach for a native `<select class="select">` when the list is
+  short enough not to need filtering — the combobox is always
+  searchable.
 - Don't load enormous option lists into the page for client-side
   filtering; past a few hundred options the lookup belongs
   server-side (the patient search pattern).
@@ -65,9 +65,9 @@ The check mark on the selected option is CSS-driven from
 
 ## Accessibility and content
 
-- Trigger is a real `<button>`; the popover list is
-  `role="listbox"` with `aria-selected` on options and the filter
-  input wired as `role="combobox"` — keyboard and screen-reader
-  flows come from the basecoat pattern.
+- The control is a real `<input role="combobox">` wired to its
+  listbox with `aria-controls`; the popover list is `role="listbox"`
+  with `aria-selected` on options — keyboard and screen-reader flows
+  come from the basecoat pattern.
 - Option labels match what users would type — search filters on the
   visible label.

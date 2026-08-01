@@ -6,8 +6,8 @@
     border and icon with the matching clinical state token (see
     theme.css) — the Rails equivalent of Sonner's richColors in the
     React boilerplate. Title and body text stay at the default
-    foreground colour. error maps to the critical token, matching
-    .alert-critical.
+    foreground colour. error maps to the critical token, matching the
+    critical alert.
   */
   .toaster .toast {
     &[data-category="success"] .toast-content {

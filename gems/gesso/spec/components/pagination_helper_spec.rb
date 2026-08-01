@@ -10,18 +10,22 @@ RSpec.describe Gesso::Components::PaginationHelper, type: :helper do
     expect(Capybara.string(html)).to have_css("nav[aria-label='Pagination'] ul li")
   end
 
-  it "marks the current page with btn-icon-outline and aria-current" do
+  it "marks the current page with the outline variant and aria-current" do
     html = helper.render_pagination(
       pages: [ { number: 3, path: "?page=3", current: true } ])
     expect(Capybara.string(html))
-      .to have_css("a.btn-icon-outline[aria-current='page']", text: "3")
+      .to have_css(
+        "a.btn[data-variant='outline'][data-size='icon'][aria-current='page']",
+        text: "3"
+      )
   end
 
-  it "renders non-current pages with btn-icon-ghost and no aria-current" do
+  it "renders non-current pages with the ghost variant and no aria-current" do
     html = helper.render_pagination(
       pages: [ { number: 4, path: "?page=4", current: false } ])
     page = Capybara.string(html)
-    expect(page).to have_css("a.btn-icon-ghost", text: "4")
+    expect(page)
+      .to have_css("a.btn[data-variant='ghost'][data-size='icon']", text: "4")
     expect(page).to have_no_css("a[aria-current]")
   end
 

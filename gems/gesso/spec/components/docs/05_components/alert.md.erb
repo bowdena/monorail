@@ -58,12 +58,13 @@ Pass a `variant`, an `icon`, and any option below in the same call:
 
 | Param | Default | Notes |
 | ----- | ------- | ----- |
-| `variant` | `default` | see **Variants** above |
+| `variant` | `default` | see **Variants** above; maps to basecoat `data-variant` |
 | `icon` | — | logical icon path, e.g. `"icons/info"` |
 | `title` | — | the state, stated plainly |
 | `classes` | — | extra CSS classes |
 
-Clinical variants layer token colour onto basecoat's alert layout
+Clinical variants layer token colour onto basecoat's alert layout,
+selected by `data-variant` exactly as basecoat selects its own
 (`alert.css`).
 
 ## Do and don't

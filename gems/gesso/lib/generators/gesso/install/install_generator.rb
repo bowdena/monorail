@@ -4,9 +4,9 @@ require "pathname"
 module Gesso
   module Generators
     # Wires a host Rails app to consume the gesso design system: the
-    # Tailwind entry, the Stimulus controllers import, and the JS package
-    # dependencies. Run after adding `gem "gesso", path: ...` and
-    # bundling:
+    # Tailwind entry, the layout's stylesheet links, the Stimulus
+    # controllers import, and the JS package dependencies. Run after
+    # adding `gem "gesso", path: ...` and bundling:
     #
     #   bin/rails generate gesso:install
     class InstallGenerator < Rails::Generators::Base
@@ -32,6 +32,19 @@ module Gesso
         end
       end
 
+      # Propshaft's :app links every CSS under app/assets, which includes
+      # the build input tailwindcss-rails generates for the engine — its
+      # @import is an absolute filesystem path, so the browser 404s on it
+      # on every page. The compiled tailwind.css already carries those
+      # styles, so the layout names what it needs.
+      def link_compiled_stylesheets
+        path = "app/views/layouts/application.html.erb"
+        return unless file_exists?(path)
+
+        gsub_file path, /stylesheet_link_tag :app\b/,
+          %(stylesheet_link_tag "application", "tailwind"), verbose: false
+      end
+
       def add_javascript_import
         path = "app/javascript/application.js"
         create_file path, %(import "@hotwired/turbo-rails"\n) unless file_exists?(path)
@@ -45,7 +58,7 @@ module Gesso
 
         (pkg["dependencies"] ||= {}).tap do |deps|
           deps["gesso"] ||= gesso_js_link
-          deps["basecoat-css"] ||= "^0.3.11"
+          deps["basecoat-css"] ||= "^1.0.1"
           deps["@hotwired/stimulus"] ||= "^3.2.2"
           deps["@hotwired/turbo-rails"] ||= "^8.0.23"
         end

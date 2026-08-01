@@ -42,8 +42,9 @@
     <%# Notification drawer %>
     <%= tag.div data: { controller: "drawer" } do %>
       <%= button_tag type: "button", name: nil, aria: { label: "Notifications" },
-            data: { action: "click->drawer#open" },
-            class: "btn-icon-ghost relative text-sidebar-foreground/80 " \
+            data: { action: "click->drawer#open",
+                    variant: "ghost", size: "icon" },
+            class: "btn relative text-sidebar-foreground/80 " \
                    "hover:text-sidebar-foreground hover:bg-sidebar-accent" do %>
         <%= inline_svg_tag "icons/bell.svg", class: "size-5" %>
 
@@ -75,8 +76,9 @@
 
             <%= button_tag type: "button", name: nil,
                   aria: { label: "Close notifications" },
-                  data: { action: "click->drawer#close" },
-                  class: "btn-icon-ghost" do %>
+                  data: { action: "click->drawer#close",
+                          variant: "ghost", size: "icon" },
+                  class: "btn" do %>
               <%= inline_svg_tag "icons/x.svg", class: "size-5" %>
             <% end %>
           <% end %>

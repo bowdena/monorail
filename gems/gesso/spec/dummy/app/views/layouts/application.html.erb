@@ -44,7 +44,14 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%#
+      :app would also link the tailwindcss-rails build input for the
+      gesso engine, whose generated @import is an absolute path.
+    %>
+
+    <%= stylesheet_link_tag "application", "tailwind",
+          "data-turbo-track": "reload" %>
+
     <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
   </head>
 

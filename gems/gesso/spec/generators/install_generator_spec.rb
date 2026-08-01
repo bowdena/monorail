@@ -35,6 +35,22 @@ RSpec.describe Gesso::Generators::InstallGenerator do
     File.write(File.join(@dir, "package.json"), JSON.pretty_generate(contents))
   end
 
+  def write_layout(body)
+    path = File.join(@dir, "app/views/layouts/application.html.erb")
+    FileUtils.mkdir_p(File.dirname(path))
+    File.write(path, body)
+  end
+
+  LAYOUT_WITH_APP = <<~ERB.freeze
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+      </head>
+      <body><%= yield %></body>
+    </html>
+  ERB
+
   it "writes the Tailwind entry importing gesso" do
     run_generator
 
@@ -72,6 +88,48 @@ RSpec.describe Gesso::Generators::InstallGenerator do
     expect(resolved).to eq(Gesso::Engine.root.join("app/javascript").to_s)
     expect(pkg["dependencies"]).to include("basecoat-css")
     expect(pkg.dig("scripts", "build")).to include("--preserve-symlinks")
+  end
+
+  # Propshaft's :app links every CSS under app/assets, including the
+  # build input tailwindcss-rails generates for the engine, whose
+  # @import is an absolute filesystem path the browser 404s on.
+  it "links the compiled stylesheets by name instead of :app" do
+    write_layout(LAYOUT_WITH_APP)
+    run_generator
+
+    layout = read("app/views/layouts/application.html.erb")
+    expect(layout).to include('stylesheet_link_tag "application", "tailwind"')
+    expect(layout).not_to include("stylesheet_link_tag :app")
+  end
+
+  it "leaves a layout that already links the compiled stylesheets" do
+    write_layout(<<~ERB)
+      <head>
+        <%= stylesheet_link_tag "application", "tailwind" %>
+      </head>
+    ERB
+
+    expect { run_generator }
+      .not_to change { read("app/views/layouts/application.html.erb") }
+  end
+
+  it "says nothing about a layout it cannot find" do
+    run_generator
+
+    expect(File.exist?(File.join(@dir, "app/views/layouts/application.html.erb")))
+      .to be(false)
+  end
+
+  # The engine's markup targets one basecoat major, so what the installer
+  # writes into a host has to match what the engine itself declares.
+  it "installs the basecoat version the engine package declares" do
+    run_generator
+
+    engine_package = JSON.parse(
+      Gesso::Engine.root.join("app/javascript/package.json").read
+    )
+    expect(JSON.parse(read("package.json")).dig("dependencies", "basecoat-css"))
+      .to eq(engine_package.dig("peerDependencies", "basecoat-css"))
   end
 
   # The link:-installed gesso package only resolves when esbuild preserves

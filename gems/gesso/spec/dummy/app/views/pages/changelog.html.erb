@@ -45,19 +45,19 @@
   categories = [
     {
       key: :new_features, label: "New Features",
-      icon: "sparkles", css: "badge-success"
+      icon: "sparkles", variant: "success"
     },
     {
       key: :improvements, label: "Improvements",
-      icon: "zap", css: "badge-info"
+      icon: "zap", variant: "info"
     },
     {
       key: :ui_changes, label: "UI Changes",
-      icon: "palette", css: "badge-warning"
+      icon: "palette", variant: "warning"
     },
     {
       key: :bug_fixes, label: "Bug Fixes",
-      icon: "bug", css: "badge-destructive"
+      icon: "bug", variant: "destructive"
     }
   ] %>
 
@@ -80,7 +80,7 @@
 
   <div class="flex items-center gap-2">
     <span class="text-sm text-muted-foreground">Current version:</span>
-    <span class="badge badge-secondary">v<%= entries.first[:version] %></span>
+    <span class="badge" data-variant="secondary">v<%= entries.first[:version] %></span>
   </div>
 
   <div class="space-y-4">
@@ -91,7 +91,7 @@
             <h2 class="text-xl">v<%= entry[:version] %></h2>
 
             <% if entry[:latest] %>
-              <span class="badge badge-primary">Latest</span>
+              <span class="badge" data-variant="primary">Latest</span>
             <% end %>
           </div>
 
@@ -113,7 +113,7 @@
 
           <div class="mt-4">
             <div class="flex items-center gap-2 mb-2">
-              <span class="badge <%= cat[:css] %> flex items-center gap-1">
+              <span class="badge flex items-center gap-1" data-variant="<%= cat[:variant] %>">
                 <%= inline_svg_tag "icons/#{cat[:icon]}.svg", class: "size-3" %>
 
                 <%= cat[:label] %>

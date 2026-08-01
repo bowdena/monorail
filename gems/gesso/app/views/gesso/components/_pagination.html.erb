@@ -7,8 +7,8 @@
 
   Renders a handed-in page window — it does no page-window maths itself.
   The caller computes which pages to show (and where the ellipses fall)
-  and hands the window in. The current page is styled with
-  btn-icon-outline and carries aria-current; the rest use btn-icon-ghost.
+  and hands the window in. The current page is the outline button
+  variant and carries aria-current; the rest are ghost.
 
   Params:
     pages    - array of the window to render. Each entry is either a hash
@@ -26,9 +26,12 @@
   <%= tag.ul class: "flex flex-row items-center gap-1" do %>
     <% if previous %>
       <%= tag.li do %>
-        <%= link_to previous[:path], class: "btn-ghost gap-1 pl-2.5",
+        <%= link_to previous[:path], class: "btn",
+              data: { variant: "ghost" },
               aria: { label: "Go to previous page" } do %>
-          <%= inline_svg_tag "icons/chevron-left.svg", class: "size-4" %>
+          <%= inline_svg_tag "icons/chevron-left.svg", class: "size-4",
+                data: { icon: "inline-start" } %>
+
           <%= tag.span "Previous" %>
         <% end %>
       <% end %>
@@ -43,8 +46,9 @@
             <%= tag.span "More pages", class: "sr-only" %>
           <% end %>
         <% else %>
-          <%= link_to entry[:number], entry[:path],
-                class: entry[:current] ? "btn-icon-outline" : "btn-icon-ghost",
+          <%= link_to entry[:number], entry[:path], class: "btn",
+                data: { variant: entry[:current] ? "outline" : "ghost",
+                        size: "icon" },
                 aria: { current: entry[:current] ? "page" : nil } %>
         <% end %>
       <% end %>
@@ -52,10 +56,13 @@
 
     <% if next_page %>
       <%= tag.li do %>
-        <%= link_to next_page[:path], class: "btn-ghost gap-1 pr-2.5",
+        <%= link_to next_page[:path], class: "btn",
+              data: { variant: "ghost" },
               aria: { label: "Go to next page" } do %>
           <%= tag.span "Next" %>
-          <%= inline_svg_tag "icons/chevron-right.svg", class: "size-4" %>
+
+          <%= inline_svg_tag "icons/chevron-right.svg", class: "size-4",
+                data: { icon: "inline-end" } %>
         <% end %>
       <% end %>
     <% end %>

@@ -31,8 +31,8 @@ Consuming apps are pointed at the same documents by
 ## Adding or changing a component
 
 A component is markup, styling and behaviour together. Something that
-only maps a variant onto a class string is not a component — the class is
-the API, and the markup belongs inline in the page that needs it.
+only maps a variant onto a basecoat attribute is not a component — the
+markup is the API, and it belongs inline in the page that needs it.
 
 Nothing ships as a component without its preview, its guidance page and
 its specs. Those are not follow-up work: they land in the same commit.
@@ -48,8 +48,9 @@ its specs. Those are not follow-up work: they land in the same commit.
 3. Partial — `app/views/gesso/components/_<name>.html.erb`. Pure markup,
    opening with a strict `locals: (...)` signature and a doc comment
    describing each param. Accept `classes`, yield a block for content.
-4. Styling — basecoat's shipped classes first. Only if basecoat has no
-   styling for it, add `app/assets/tailwind/components/<name>.css` and
+4. Styling — basecoat's shipped classes and `data-*` variant
+   attributes first. Only if basecoat has no styling for it, add
+   `app/assets/tailwind/components/<name>.css` and
    import it from `app/assets/tailwind/gesso/engine.css`.
 5. Preview — `spec/components/previews/<name>_preview.rb` and its
    template directory, with a scenario per variant. For a component with

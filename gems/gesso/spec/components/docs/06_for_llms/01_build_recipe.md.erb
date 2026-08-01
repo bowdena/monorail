@@ -47,7 +47,8 @@ page exists:
    locals without a default, optional ones with — then a `<%%# %>`
    doc comment describing each; accept `classes`; yield a block for
    content.
-3. Use native elements and basecoat classes. Only if basecoat lacks
+3. Use native elements, basecoat classes and its `data-*` variant
+   attributes. Only if basecoat lacks
    styling: add `app/assets/tailwind/components/<name>.css` and
    register it in `app/assets/tailwind/application.css`.
 4. Create `spec/components/previews/<name>_preview.rb`: `@label`, a

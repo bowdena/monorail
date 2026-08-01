@@ -55,8 +55,9 @@ The standard side panel — details, record peeks, filter panels.
       <%%= tag.div class: "flex items-center justify-between px-6 py-4 border-b" do %>
         <h2 class="text-lg font-semibold">Sheet title</h2>
 
-        <%%= button_tag aria: { label: "Close sheet" }, class: "btn-icon-ghost",
-              data: { action: "click->drawer#close" } do %>
+        <%%= button_tag aria: { label: "Close sheet" }, class: "btn",
+              data: { variant: "ghost", size: "icon",
+                      action: "click->drawer#close" } do %>
           <%%= inline_svg_tag "icons/x.svg", class: "size-5" %>
         <%% end %>
       <%% end %>

@@ -1,55 +1,60 @@
 <%#
-  locals: (name: nil, options: [], selected: "",
-  current_label: "Select…", searchable: true, id: nil)
+  locals: (id:, name: nil, options: [], selected: "",
+  placeholder: "Select…")
 %>
 <%#
   Combobox component.
 
   Rendered via render_combobox (Gesso::Components::ComboboxHelper), which
-  normalises the selected value and resolves the trigger label. This
-  partial only renders markup.
+  normalises the selected value and resolves the id. This partial only
+  renders markup.
 
-  A searchable select using basecoat select.js. Opens a filterable
-  listbox popover on click; the selected value is tracked in a hidden
-  input for form submission. The check indicator on the selected item
-  is CSS-driven via aria-selected — no extra markup is required.
+  A searchable select using basecoat combobox.js: the input is the
+  control, filtering its listbox as you type. The selected value is
+  tracked in a hidden input for form submission, and basecoat fills the
+  visible input with the selected option's label on init. The check
+  indicator on the selected item is CSS-driven via aria-selected — no
+  extra markup is required.
+
+  The combobox Stimulus controller puts the input back to the current
+  selection when focus leaves, so an abandoned search cannot leave the
+  field showing one value while it submits another.
+
+  For a short list that does not need filtering, write a native
+  <select class="select"> inline instead (see the form fields page).
 
   Params:
-    name          - hidden input name (for form submission)
-    options       - array of { value:, label: } hashes
-    selected      - the selected value, stringified
-    current_label - label shown on the trigger (selected label or
-                    placeholder)
-    searchable    - show the search filter in the popover (default: true)
-    id            - optional id for the hidden input
+    id          - id for the combobox root; the popover and listbox
+                  derive theirs from it
+    name        - hidden input name (for form submission)
+    options     - array of { value:, label: } hashes
+    selected    - the selected value, stringified
+    placeholder - placeholder shown on the input when nothing is selected
 %>
 
-<%= tag.div class: "select" do %>
-  <%= hidden_field_tag name, selected, id: id %>
+<%= tag.div class: "combobox", id: id,
+      data: { controller: "combobox",
+              action: "focusout->combobox#restore change->combobox#remember" } do %>
+  <%= tag.input type: "text", role: "combobox", placeholder: placeholder,
+        autocomplete: "off", autocorrect: "off", spellcheck: "false",
+        aria: { autocomplete: "list", expanded: "false",
+                controls: "#{id}-listbox" } %>
 
-  <%= button_tag type: "button", name: nil, class: "btn-outline",
-        aria: { expanded: "false", haspopup: "listbox" } do %>
-    <%= tag.span current_label %>
-    <%= inline_svg_tag "icons/chevron-down.svg", class: "size-4 opacity-50" %>
-  <% end %>
+  <%= inline_svg_tag "icons/chevron-down.svg",
+        class: "combobox-trigger-icon", aria: { hidden: true } %>
 
-  <%= tag.div data: { popover: "" }, aria: { hidden: true } do %>
-    <% if searchable %>
-      <%= tag.header do %>
-        <%= inline_svg_tag "icons/search.svg" %>
-
-        <%= tag.input type: "text", role: "combobox",
-              placeholder: "Search…", autocomplete: "off" %>
-      <% end %>
-    <% end %>
-
-    <%= tag.ul role: "listbox", data: { empty: "No results found." } do %>
+  <%= tag.div id: "#{id}-popover", data: { popover: "" },
+        aria: { hidden: true } do %>
+    <%= tag.div role: "listbox", id: "#{id}-listbox",
+          aria: { orientation: "vertical" } do %>
       <% options.each do |option| %>
-        <%= tag.li option[:label],
+        <%= tag.div option[:label],
               role: "option",
               data: { value: option[:value] },
               aria: { selected: (option[:value].to_s == selected) ? true : nil } %>
       <% end %>
     <% end %>
   <% end %>
+
+  <%= hidden_field_tag name, selected, id: nil %>
 <% end %>

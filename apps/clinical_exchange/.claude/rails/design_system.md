@@ -54,17 +54,18 @@ deliberately not namespace-isolated, so `render_card`, `render_header`,
 
 1. **Gesso first.** If the decision table names a partial for the need,
    use it. Never hand-write markup a partial already covers.
-2. **Basecoat second.** Gesso is built on basecoat, so basecoat's classes
-   and patterns (https://basecoatui.com/) are the source for anything
-   gesso has not styled yet.
+2. **Basecoat second.** Gesso is built on basecoat, so basecoat's
+   classes, `data-*` variant attributes and patterns
+   (https://basecoatui.com/) are the source for anything gesso has not
+   styled yet.
 3. **Where the two differ, gesso wins.** Its theme tokens and component
    styles are the house style; basecoat is the substrate.
 
 ## When gesso has no component for it
 
 Start inline, in the page that needs it. Most UI never needs to be a
-component, and a partial that only maps a variant onto a class string is
-worse than the class.
+component, and a partial that only maps a variant onto a basecoat
+attribute is worse than writing the markup.
 
 Promote it into `gems/gesso` — never into this app — when a third page
 needs the same thing, or immediately when it bundles behaviour, state or

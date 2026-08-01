@@ -3,8 +3,8 @@ module Gesso::Components
     CHANGE_TYPES = %w[ positive negative neutral ].freeze
 
     # Renders the stat card component. This is the public entry point: it
-    # validates change_type and hands the partial a ready-made badge_class
-    # so the partial stays pure markup.
+    # validates change_type and hands the partial a ready-made
+    # badge_variant so the partial stays pure markup.
     #
     #   render_stat_card(title: "Open referrals", value: 42,
     #                    change: "+12%", change_type: "positive")
@@ -17,18 +17,18 @@ module Gesso::Components
 
       render("gesso/components/stat_card",
         title:, value:, change:,
-        badge_class: badge_class(change_type:),
+        badge_variant: badge_variant(change_type:),
         icon:, classes:)
     end
 
     private
-      # change_type maps to a badge variant: positive -> success,
+      # change_type maps to a basecoat badge variant: positive -> success,
       # negative -> destructive, neutral -> secondary.
-      def badge_class(change_type:)
+      def badge_variant(change_type:)
         case change_type
-        when "positive" then "badge badge-success"
-        when "negative" then "badge badge-destructive"
-        else "badge badge-secondary"
+        when "positive" then "success"
+        when "negative" then "destructive"
+        else "secondary"
         end
       end
   end

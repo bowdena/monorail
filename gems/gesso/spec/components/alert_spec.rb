@@ -17,13 +17,10 @@ RSpec.describe "Alert component", type: :request do
     expect(page).to have_text("Something you should know about.")
   end
 
-  it "renders the destructive variant" do
-    expect(render_preview("destructive")).to have_css("div.alert-destructive")
-  end
-
-  it "renders clinical variants on the base alert class" do
-    %w[warning critical info].each do |variant|
-      expect(render_preview(variant)).to have_css("div.alert.alert-#{variant}")
+  it "renders every variant as data-variant on the base alert class" do
+    %w[destructive warning critical info].each do |variant|
+      expect(render_preview(variant))
+        .to have_css("div.alert[data-variant='#{variant}']")
     end
   end
 

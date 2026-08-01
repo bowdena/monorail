@@ -20,14 +20,16 @@ RSpec.describe "Home page", type: :system do
     expect(warning.strip).not_to be_empty
   end
 
+  # basecoat outlines a card with a ring rather than a border, and a ring
+  # is drawn as a box shadow.
   it "styles components from the design system's stylesheet" do
     visit root_path
 
-    border = evaluate_script(
-      "getComputedStyle(document.querySelector('.card')).borderTopWidth"
+    outline = evaluate_script(
+      "getComputedStyle(document.querySelector('.card')).boxShadow"
     )
 
-    expect(border).not_to eq("0px")
+    expect(outline).not_to eq("none")
   end
 
   it "runs the design system's Stimulus controllers" do
