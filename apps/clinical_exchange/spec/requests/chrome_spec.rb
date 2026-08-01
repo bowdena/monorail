@@ -12,6 +12,13 @@ RSpec.describe "App chrome", type: :request do
     expect(page).to have_link("Dashboard", href: root_path)
   end
 
+  it "links the sidebar to patient lookup" do
+    get root_path
+
+    expect(Capybara.string(response.body))
+      .to have_link("Patients", href: patients_path)
+  end
+
   it "marks the current section in the sidebar" do
     get root_path
 

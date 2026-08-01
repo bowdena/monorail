@@ -188,10 +188,13 @@ returns no records without falling back.
 **Files:** `config/routes.rb`, `app/controllers/patients_controller.rb`,
 `app/views/patients/index.html.erb`,
 `app/views/layouts/application.html.erb` (nav item),
-`spec/requests/patients_spec.rb`
-**Spec:** the page renders the search tabs; a URN search lists the
-matching patient; an unknown URN reports that nothing was found.
-**Status:** pending
+`app/helpers/patients_helper.rb`, `spec/requests/patients_spec.rb`,
+`spec/requests/chrome_spec.rb`
+**Spec:** the page renders the URN search; a URN search lists the
+matching patient; an unknown URN reports that nothing was found; the
+sidebar links to the page. The search tabs arrive with slice 8, when
+there is a second search to switch to.
+**Status:** done
 
 ### Slice 8: Advanced search
 **Commit:** `feat: add advanced patient search`
