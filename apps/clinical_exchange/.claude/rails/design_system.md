@@ -77,14 +77,15 @@ covers that work; do not start it from this file.
 
 ## Seeing the components
 
-Lookbook is mounted by the engine's own dummy host, not by this app:
+Lookbook is mounted by the engine's own dummy host, not by this app.
+From the repository root:
 
 ```sh
-cd gems/gesso/spec/dummy && bin/dev   # previews and docs at :3000/lookbook
+bin/lookbook   # previews and docs at :3000/lookbook
 ```
 
-The gesso README refers to a `bin/lookbook` shortcut at the repository
-root. It does not exist — use the command above.
+Everything in *Where the answers live* is readable there as a rendered
+page, with the component previews embedded live.
 
 ## Stimulus
 
