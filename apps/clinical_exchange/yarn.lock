@@ -337,9 +337,18 @@ __metadata:
     "@herb-tools/linter": "npm:^0.10.2"
     "@hotwired/stimulus": "npm:^3.2.2"
     "@hotwired/turbo-rails": "npm:^8.0.23"
+    basecoat-css: "npm:^0.3.11"
     esbuild: "npm:^0.28.1"
+    gesso: "link:../../gems/gesso/app/javascript"
   languageName: unknown
   linkType: soft
+
+"basecoat-css@npm:^0.3.11":
+  version: 0.3.11
+  resolution: "basecoat-css@npm:0.3.11"
+  checksum: 10c0/df19b4f1f00c869f4cbad1c122b55439c497fb35c7e8bc10eb17487cd24effacc6a21b3e93fbbffe56dfa20f1baf97def04739180f6e64d8f9ab93a2659ae203
+  languageName: node
+  linkType: hard
 
 "callsites@npm:^3.1.0":
   version: 3.1.0
@@ -479,6 +488,12 @@ __metadata:
   checksum: 10c0/d8680ee1e5fcd4c197e4ac33b2b4dce03c71f4d91717292785703db200f5c21f977c568d28061226f9b5900cbcd2c84463646134fd5337e7925e0942bc3f46d5
   languageName: node
   linkType: hard
+
+"gesso@link:../../gems/gesso/app/javascript::locator=app%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "gesso@link:../../gems/gesso/app/javascript::locator=app%40workspace%3A."
+  languageName: node
+  linkType: soft
 
 "hasown@npm:^2.0.3":
   version: 2.0.4

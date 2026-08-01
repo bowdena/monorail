@@ -16,6 +16,8 @@ gem "turbo-rails"
 gem "stimulus-rails"
 # Tailwind CSS for the shared theme and component styles
 gem "tailwindcss-rails", "~> 4.4"
+# The shared design system: component helpers, theme, Stimulus behaviour
+gem "gesso", path: "../../gems/gesso"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
