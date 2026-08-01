@@ -19,4 +19,4 @@
 
 # Node / yarn (build wiring lands in Slice 2).
 node_modules/
-.yarn/install-state.gz
+**/.yarn/install-state.gz
