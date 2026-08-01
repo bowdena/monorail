@@ -143,7 +143,7 @@ source; a `query.conduit` event is written to the Rails log.
 **Note:** the README documents the conduit variables a deployed
 environment must supply — `CONDUIT_MSSQL_HOST`, `CONDUIT_MSSQL_PORT`,
 `CONDUIT_IPM_DATABASE`.
-**Status:** pending
+**Status:** done
 
 ### Slice 3: Put the chrome in the layout
 **Commit:** `feat: add sidebar and header to the layout`
@@ -152,7 +152,7 @@ environment must supply — `CONDUIT_MSSQL_HOST`, `CONDUIT_MSSQL_PORT`,
 **Spec:** every page renders the sidebar and header; the home page no
 longer renders a header of its own. Nav holds Dashboard only — the
 Patients item arrives with the route in slice 7.
-**Status:** pending
+**Status:** done
 
 ### Slice 4: Local patient records
 **Commit:** `feat: add local patient records`

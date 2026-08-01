@@ -1,27 +1,55 @@
-# README
+## iPM access through conduit
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Patient data is read from the iPM replica through the `conduit` gem. The
+application supplies only its identity — its own login for each source
+it reads. The login must be SELECT-only.
 
-Things you may want to cover:
+### Credentials
 
-* Ruby version
+Each environment has its own encrypted file and its own key, so a test
+run can never hold production's login. Both live under
+`config/credentials/`:
 
-* System dependencies
+| Environment | File                    | Key                |
+|-------------|-------------------------|--------------------|
+| development | `development.yml.enc`   | `development.key`  |
+| test        | `test.yml.enc`          | `test.key`         |
+| production  | `production.yml.enc`    | `production.key`   |
 
-* Configuration
+The `.key` files are gitignored and never committed. Edit a file with:
 
-* Database creation
+```sh
+bin/rails credentials:edit --environment development
+bin/rails credentials:edit --environment test
+bin/rails credentials:edit --environment production
+```
 
-* Database initialization
+Each one holds the same shape. Development and test point at the local
+MSSQL container, production at the real replica:
 
-* How to run the test suite
+```yaml
+conduit:
+  ipm:
+    username: clinical_exchange
+    password: <the password for that login>
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+`config/initializers/conduit.rb` reads exactly those two values, so a
+missing or misspelled key fails at boot rather than at the first query.
 
-* Deployment instructions
+### The CI key
 
-* ...
+CI checks out the encrypted files but not the keys, so it decrypts the
+test credentials with the `RAILS_MASTER_KEY` variable — Rails' fallback
+for whichever environment file is active. Add it once:
+
+1. Copy the contents of `config/credentials/test.key`.
+2. On GitHub, open the repository's **Settings** → **Secrets and
+   variables** → **Actions**.
+3. **New repository secret**, named `RAILS_MASTER_KEY`, with that value.
+
+The test workflow passes it through as an environment variable. It
+protects dummy credentials only — never put the production key there.
 
 ## Coding conventions for Claude Code
 
