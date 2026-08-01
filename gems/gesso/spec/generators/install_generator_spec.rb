@@ -63,6 +63,22 @@ RSpec.describe Gesso::Generators::InstallGenerator do
 
     hook = read("spec/support/precompile_assets.rb")
     expect(hook).to include("assets:precompile")
+    expect(hook).to include("module AssetPrecompilation")
+  end
+
+  # An app that already precompiles owns that setup — a second hook would
+  # add a duplicate before(:suite) and leave it ambiguous which one runs.
+  it "leaves an app that already precompiles alone" do
+    FileUtils.mkdir_p(File.join(@dir, "spec/system/support"))
+    File.write(File.join(@dir, "spec/system/support/precompile_assets.rb"),
+      "# the app's own assets:precompile hook\n")
+
+    run_generator
+
+    expect(File.exist?(File.join(@dir, "spec/support/precompile_assets.rb")))
+      .to be(false)
+    expect(read("spec/system/support/precompile_assets.rb"))
+      .to eq("# the app's own assets:precompile hook\n")
   end
 
   it "installs the foreman dev workflow" do

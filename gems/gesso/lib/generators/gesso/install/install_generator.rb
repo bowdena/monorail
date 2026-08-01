@@ -53,8 +53,11 @@ module Gesso
         create_file "package.json", JSON.pretty_generate(pkg) + "\n", force: true
       end
 
+      # An app that already precompiles owns that setup, wherever it keeps
+      # it. Installing a second hook would add a duplicate before(:suite)
+      # and leave it ambiguous which one the suite is running.
       def add_precompile_hook
-        return if file_exists?("spec/support/precompile_assets.rb")
+        return if already_precompiles?
 
         copy_file "precompile_assets.rb", "spec/support/precompile_assets.rb"
       end
@@ -83,6 +86,10 @@ module Gesso
       private
         def file_exists?(relative)
           File.exist?(File.join(destination_root, relative))
+        end
+
+        def already_precompiles?
+          Dir.glob(File.join(destination_root, "spec/**/precompile_assets.rb")).any?
         end
 
         def read(relative)
