@@ -1,36 +1,33 @@
 @layer components {
   /*
-    Badge variants not provided by basecoat-css. Each uses a 15% tint of
-    its clinical state token (see theme.css) for the background and the
-    full-strength token for text, matching the React boilerplate. The
-    tokens are theme-aware, so dark mode needs no separate rules.
+    Badge variants not provided by basecoat-css, selected the same way
+    basecoat selects its own: the .badge class plus a data-variant. Each
+    uses a 15% tint of its clinical state token (see theme.css) for the
+    background and the full-strength token for text, matching the React
+    boilerplate. The tokens are theme-aware, so dark mode needs no
+    separate rules.
   */
-  .badge-success {
-    border-color: transparent;
+  .badge[data-variant="success"] {
     background-color: color-mix(in oklch, var(--success) 15%, transparent);
     color: var(--success);
   }
 
-  .badge-warning {
-    border-color: transparent;
+  .badge[data-variant="warning"] {
     background-color: color-mix(in oklch, var(--warning) 15%, transparent);
     color: var(--warning);
   }
 
-  .badge-info {
-    border-color: transparent;
+  .badge[data-variant="info"] {
     background-color: color-mix(in oklch, var(--info) 15%, transparent);
     color: var(--info);
   }
 
-  .badge-critical {
-    border-color: transparent;
+  .badge[data-variant="critical"] {
     background-color: color-mix(in oklch, var(--critical) 15%, transparent);
     color: var(--critical);
   }
 
-  .badge-stale {
-    border-color: transparent;
+  .badge[data-variant="stale"] {
     background-color: color-mix(in oklch, var(--stale) 15%, transparent);
     color: var(--stale);
   }

@@ -8,23 +8,14 @@
       </tr>
     </thead>
     <tbody>
-      <% {
-        "default"     => "badge-primary",
-        "secondary"   => "badge-secondary",
-        "outline"     => "badge-outline",
-        "destructive" => "badge-destructive",
-        "success"     => "badge-success",
-        "warning"     => "badge-warning",
-        "info"        => "badge-info",
-        "critical"    => "badge-critical",
-        "stale"       => "badge-stale"
-      }.each do |variant, klass| %>
+      <% %w[ primary secondary outline destructive success warning info
+             critical stale ].each do |variant| %>
         <tr>
           <td class="py-1 pr-4"><%= variant %></td>
           <td class="py-1 pr-4">
-            <span class="badge <%= klass %>"><%= variant.capitalize %></span>
+            <span class="badge" data-variant="<%= variant %>"><%= variant.capitalize %></span>
           </td>
-          <td class="py-1"><code><%= klass %></code></td>
+          <td class="py-1"><code>data-variant="<%= variant %>"</code></td>
         </tr>
       <% end %>
     </tbody>

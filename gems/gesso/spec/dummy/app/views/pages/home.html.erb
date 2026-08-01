@@ -81,13 +81,11 @@
                  icon: "file-text",
                  text: "Referral submitted for Patient #3456789",
                  time: "2 hours ago",
-                 variant: "default"
+                 variant: "primary"
                }
              ].each do |item| %>
-          <% badge_class = "badge badge-#{item[:variant]} mt-0.5 flex-shrink-0" %>
-
           <div class="flex items-start gap-3">
-            <span class="<%= badge_class %>">
+            <span class="badge mt-0.5 flex-shrink-0" data-variant="<%= item[:variant] %>">
               <%= inline_svg_tag "icons/#{item[:icon]}.svg",
                       class: "size-3" %>
             </span>

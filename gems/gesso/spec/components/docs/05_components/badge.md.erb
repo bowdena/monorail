@@ -26,11 +26,12 @@ sits next to.
 A badge is one element — write it inline; there is no partial.
 
 ```erb
-<span class="badge badge-secondary">Active</span>
+<span class="badge" data-variant="secondary">Active</span>
 ```
 
-The class is the whole API: `badge` plus one variant modifier. Add any
-extra utility classes or HTML attributes directly on the `<span>`.
+The markup is the whole API: the `badge` class plus a `data-variant`.
+Omit `data-variant` for the default (primary) badge. Add any extra
+utility classes or HTML attributes directly on the `<span>`.
 
 <%= embed :badge, :variants %>
 

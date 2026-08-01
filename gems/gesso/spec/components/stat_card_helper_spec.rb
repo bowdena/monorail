@@ -1,7 +1,7 @@
 require "rails_helper"
 
 # Unit spec for the stat card view helper. render_stat_card validates
-# change_type and owns the badge-class composition, then renders the
+# change_type and owns the badge-variant composition, then renders the
 # gesso/components/stat_card partial; here we call it directly and assert on
 # the HTML it returns.
 RSpec.describe Gesso::Components::StatCardHelper, type: :helper do
@@ -17,21 +17,21 @@ RSpec.describe Gesso::Components::StatCardHelper, type: :helper do
     html = helper.render_stat_card(value: "1", change: "+12%",
                                    change_type: "positive")
     expect(Capybara.string(html))
-      .to have_css("span.badge.badge-success", text: "+12%")
+      .to have_css("span.badge[data-variant='success']", text: "+12%")
   end
 
   it "maps a negative change to a destructive badge" do
     html = helper.render_stat_card(value: "1", change: "-4%",
                                    change_type: "negative")
     expect(Capybara.string(html))
-      .to have_css("span.badge.badge-destructive", text: "-4%")
+      .to have_css("span.badge[data-variant='destructive']", text: "-4%")
   end
 
   it "maps a neutral change to a secondary badge" do
     html = helper.render_stat_card(value: "1", change: "0%",
                                    change_type: "neutral")
     expect(Capybara.string(html))
-      .to have_css("span.badge.badge-secondary", text: "0%")
+      .to have_css("span.badge[data-variant='secondary']", text: "0%")
   end
 
   it "omits the change badge when no change is given" do

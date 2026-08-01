@@ -19,17 +19,17 @@ RSpec.describe "Stat card component", type: :request do
 
   it "maps a positive change to a success badge" do
     page = render_preview("positive")
-    expect(page).to have_css("span.badge.badge-success", text: "+12%")
+    expect(page).to have_css("span.badge[data-variant='success']", text: "+12%")
   end
 
   it "maps a negative change to a destructive badge" do
     page = render_preview("negative")
-    expect(page).to have_css("span.badge.badge-destructive", text: "-4%")
+    expect(page).to have_css("span.badge[data-variant='destructive']", text: "-4%")
   end
 
   it "maps a neutral change to a secondary badge" do
     page = render_preview("neutral")
-    expect(page).to have_css("span.badge.badge-secondary", text: "0%")
+    expect(page).to have_css("span.badge[data-variant='secondary']", text: "0%")
   end
 
   it "renders a leading icon when given" do

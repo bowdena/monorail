@@ -16,10 +16,10 @@ RSpec.describe "Dashboard", type: :system do
   it "colours each trend by its meaning" do
     # A rise in patients reads as positive (success), a backlog of
     # high-priority reviews as negative (destructive), the rest neutral.
-    expect(page).to have_css(".stat-card .badge-success", text: "+12 this week")
+    expect(page).to have_css(".stat-card .badge[data-variant='success']", text: "+12 this week")
     expect(page).to have_css(
-      ".stat-card .badge-destructive", text: "2 high priority"
+      ".stat-card .badge[data-variant='destructive']", text: "2 high priority"
     )
-    expect(page).to have_css(".stat-card .badge-secondary", count: 2)
+    expect(page).to have_css(".stat-card .badge[data-variant='secondary']", count: 2)
   end
 end
