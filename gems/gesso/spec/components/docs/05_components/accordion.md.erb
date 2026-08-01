@@ -1,0 +1,72 @@
+---
+title: Accordion
+---
+
+# Accordion
+
+Stacked disclosure sections on native `<details>`/`<summary>` —
+zero JavaScript, single-open by default.
+
+<%= embed :accordion, :playground %>
+
+## When to use
+
+- Long content whose sections are consulted independently: help
+  guides, FAQs, policy detail.
+- Secondary detail worth keeping on the page but not worth its
+  vertical space when closed.
+
+## When not to use
+
+- Parallel views of the same record — `tabs` (see the *Navigation*
+  pattern page: sections read in place → accordion; views switched
+  between → tabs).
+- Content users must see — don't make critical information cost a
+  click; put it in the page.
+- A single section — one `<details>` is fine, but if it's the whole
+  pattern, ask whether the content should just be visible.
+
+## Usage
+
+`render_accordion` (`Gesso::Components::AccordionHelper`) renders the stack of
+`<details>` sections.
+
+```erb
+<%%= render_accordion(
+  id: "faq",
+  items: [
+    { label: "What is an NHS number?",
+      body: "A unique 10-digit number.", open: true },
+    { label: "Is my data secure?", body: "Yes — access is logged." }
+  ]
+) %>
+```
+
+| Param | Default | Notes |
+| ----- | ------- | ----- |
+| `items` | `[]` | `{ label:, body:, open: }` hashes |
+| `multiple` | `false` | `true` lets several stay open; default shares a native `name` so the browser keeps one open |
+| `id` | `"accordion"` | the shared group name |
+| `classes` | — | extra classes on the wrapper |
+
+The chevron rotation on `[open]` and the body animation are CSS
+(basecoat + `accordion.css`).
+
+## Do and don't
+
+- Do use `multiple: true` when users genuinely compare sections
+  side by side; the single-open default is for one-at-a-time
+  reading.
+- Do pass `open: true` on the section most users came for, so the
+  component never renders fully shut against its content.
+- Don't bury actions in accordion bodies — disclosure hides them
+  from scanning; actions live at page or card level.
+- Don't nest accordions; restructure the content.
+
+## Accessibility and content
+
+- Native `<details>`/`<summary>`: Enter/Space toggles, state is
+  announced, in-page find can open sections — platform behaviour,
+  no ARIA to maintain.
+- Labels are the question or topic, short enough to scan as a list
+  — the labels together are the table of contents.

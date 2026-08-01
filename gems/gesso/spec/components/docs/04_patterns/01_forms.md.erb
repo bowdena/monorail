@@ -1,0 +1,63 @@
+---
+title: Forms
+---
+
+# Forms
+
+Forms use the field partials (`input`, `label`, `textarea`, `select`,
+`checkbox`, `radio_group`, `switch`, `combobox`) composed by the page.
+Markup is native form elements styled by basecoat; submission is a
+normal Rails form with Turbo — no client-side form framework.
+
+## Choosing a control
+
+| The user needs to… | Use |
+| ------------------- | --- |
+| Enter short free text | `input` |
+| Enter long free text | `textarea` |
+| Pick one of ≤5 known options | `radio_group` — all options visible |
+| Pick one of many options | `select` |
+| Pick one from a long or unfamiliar list | `combobox` — searchable |
+| Pick several from a list | one `checkbox` per option |
+| Turn something on or off, applied with the form | `checkbox` |
+| Turn something on or off, applied immediately | `switch` |
+| Find a patient | `patient_search` composite |
+
+Two controls to avoid misusing: a `select` with two options should be
+a `radio_group` (both visible beats hidden behind a click); a `switch`
+inside a form that still needs a submit button should be a `checkbox`
+(a switch implies the change already happened).
+
+## Field layout
+
+- Single column, labels above fields, `gap-4` between fields. Pair
+  fields side by side only for genuinely linked values (date ranges).
+- Group related fields into sections with a section heading; long
+  forms become cards per section rather than one wall of fields.
+- Mark the exception, not the rule: in a mostly-required form, mark
+  optional fields "(optional)" in the label; never asterisk every
+  field.
+- Help text sits under the field in `text-sm text-muted-foreground`,
+  present before the user gets it wrong — format examples belong in
+  placeholders, rules belong in help text.
+
+## Validation and errors
+
+- Validation is server-side; the form re-renders with errors. Do not
+  duplicate rules in JavaScript — browser-native `required` and
+  `type=` attributes are the only client-side layer.
+- On error: a summary alert at the top of the form states that saving
+  failed, and each failing field shows its message below the field in
+  `text-critical`. Field messages name the rule (see the *Content*
+  foundations page).
+- Keep the user's input on re-render. Never clear a failed form.
+
+## Actions
+
+- One primary button per form, labelled with the outcome ("Save
+  referral"), placed first in the action row, with "Cancel" as a
+  ghost button beside it.
+- Disable-and-spin on submit via the button's `loading` param —
+  double submission is prevented at the button, not with alerts.
+- Destructive actions never sit directly beside the primary action:
+  separate them visually and confirm via dialog.

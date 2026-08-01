@@ -1,0 +1,65 @@
+/*
+  Clinical state colour tokens.
+
+  basecoat-css ships the base palette (primary, card, destructive, …);
+  these are the additional semantic colours the NHS UI uses — warning,
+  critical, stale, info, success — ported from the React boilerplate.
+  Values are OKLCH and theme-aware (light in :root, dark in .dark).
+
+  The @theme inline block maps each token to a --color-* entry so
+  Tailwind generates the matching utilities (bg-warning, text-info, …)
+  that the per-component variant classes rely on.
+*/
+:root {
+  /* Sidebar accent — the React boilerplate sets this blue-violet in
+     both themes; basecoat only does so in dark. Override light to
+     match. Dark needs no override (basecoat ships this value). */
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+
+  /* basecoat ships --destructive but not its foreground; the React
+     boilerplate defines it near-white in both themes. Without it,
+     destructive-on-colour text (e.g. the header notification badge)
+     falls back to inherited dark text with poor contrast. */
+  --destructive-foreground: oklch(0.985 0 0);
+
+  --warning: oklch(0.75 0.183 55.934);
+  --warning-foreground: oklch(0.985 0 0);
+  --critical: oklch(0.577 0.245 27.325);
+  --critical-foreground: oklch(0.985 0 0);
+  --stale: oklch(0.556 0.015 250);
+  --stale-foreground: oklch(0.985 0 0);
+  --info: oklch(0.55 0.2 255);
+  --info-foreground: oklch(0.985 0 0);
+  --success: oklch(0.55 0.178 155);
+  --success-foreground: oklch(0.985 0 0);
+}
+
+.dark {
+  --destructive-foreground: oklch(0.985 0 0);
+
+  --warning: oklch(0.75 0.183 55.934);
+  --warning-foreground: oklch(0.985 0 0);
+  --critical: oklch(0.704 0.191 22.216);
+  --critical-foreground: oklch(0.985 0 0);
+  --stale: oklch(0.65 0.015 250);
+  --stale-foreground: oklch(0.985 0 0);
+  --info: oklch(0.65 0.196 255);
+  --info-foreground: oklch(0.985 0 0);
+  --success: oklch(0.65 0.178 155);
+  --success-foreground: oklch(0.985 0 0);
+}
+
+@theme inline {
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-critical: var(--critical);
+  --color-critical-foreground: var(--critical-foreground);
+  --color-stale: var(--stale);
+  --color-stale-foreground: var(--stale-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+}

@@ -1,0 +1,33 @@
+<%# locals: (id:, aria_label:, side: "right", classes: nil) %>
+<%#
+  Sheet component.
+
+  Rendered via render_sheet (Gesso::Components::SheetHelper), which validates
+  the side. This partial only renders markup.
+
+  A side panel built on a native <dialog>, opened with the drawer
+  Stimulus controller's showModal and dismissed by a backdrop click,
+  Escape, or any close control inside it. Render it inside a
+  [data-controller="drawer"] element alongside the trigger that opens
+  it, and pass the panel contents as a block.
+
+  This is the positioned dialog shell only — the panel header and body
+  are supplied by the caller's block, so each sheet composes its own
+  chrome.
+
+  Params:
+    id         - dialog id
+    aria_label - accessible name for the dialog
+    side       - "right" (default) or "left"
+    classes    - extra CSS classes on the <dialog>
+%>
+
+<%= tag.dialog id: id,
+      class: ["sheet", "sheet-#{side}", classes],
+      aria: { label: aria_label },
+      data: {
+        drawer_target: "panel",
+        action: "click->drawer#backdropClick"
+      } do %>
+  <%= yield %>
+<% end %>

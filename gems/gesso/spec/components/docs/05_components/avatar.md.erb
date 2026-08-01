@@ -1,0 +1,52 @@
+---
+title: Avatar
+---
+
+# Avatar
+
+A circular identity marker. Basecoat ships no component — an avatar is
+an `<img>` styled with utilities, written inline: `rounded-full` for the
+circle, `object-cover` to fill it, `size-*` for the dimensions.
+
+<%= embed :avatar, :default %>
+
+```html
+<img class="size-10 shrink-0 object-cover rounded-full"
+     alt="Jane Smith" src="/avatars/jane-smith.jpg">
+```
+
+## When to use
+
+- Marking a person in lists, headers and menus — patients, users,
+  clinicians.
+- Anywhere a row of person-records needs a fast visual anchor.
+
+## When not to use
+
+- Organisations, teams or systems — use the entity's lucide icon
+  (`building`, `users`), not a fake person marker.
+- Decoration — an avatar always stands for a specific identity.
+- Initials when there is no image — that is the shell's `user-avatar`
+  treatment (header user menu, patient info header), not this `<img>`.
+
+## Anatomy and options
+
+Just an `<img>` plus utilities: `rounded-full` (or `rounded-lg` for a
+squared avatar), `object-cover`, and a `size-*` for the dimensions
+(`size-8` in dense rows, `size-14` in a profile header). Overlap a row
+with `flex -space-x-2` and a ring per image.
+
+## Do and don't
+
+- Do set `alt` to the person's name when the avatar isn't directly
+  beside the visible name — it is the accessible identity.
+- Do keep one size per context (small in dense rows, large in profile
+  headers); don't vary size for emphasis.
+- Don't stack avatars into overlapping piles as a count — say the
+  number; piles hide identities, which is the avatar's one job.
+
+## Accessibility and content
+
+- `alt` carries the identity. When the adjacent text already names the
+  person (the patient header pattern), the avatar is decorative — use
+  `alt=""` so assistive tech skips it.

@@ -1,0 +1,87 @@
+---
+title: Getting started
+---
+
+# Getting started
+
+This Lookbook documents the component library for NHS Rails pages:
+what each component is for, when to reach for it, and the rules to
+follow when composing pages — for human developers and LLM agents
+alike. Previews show every component live; these docs pages carry the
+guidance.
+
+## How this library works
+
+The library is plain Rails view code on top of
+[basecoat](https://basecoatui.com) — no view-component framework, no
+React, no build-time component compiler.
+
+- **Styling** comes from `basecoat-css` plus Tailwind, imported in
+  `app/assets/tailwind/application.css`. Clinical state colour tokens
+  (warning, critical, stale, info, success) live in
+  `app/assets/tailwind/theme.css`. Where a component needs styling
+  basecoat does not ship, it gets its own file in
+  `app/assets/tailwind/components/<name>.css`, registered in
+  `application.css`.
+- **Behaviour** comes from basecoat's bundle, imported from the
+  `basecoat-css` npm package (select, command, toast) and small
+  Stimulus controllers in `app/javascript/controllers`. Native browser behaviour is preferred
+  over custom JavaScript: `<details>` for disclosure, `<dialog>` for
+  overlays, native form controls throughout.
+- **Markup** is ERB partials in `app/views/gesso/components/`, one component
+  per partial.
+
+## Partials and locals
+
+Each component is rendered through a `render_<component>` view helper
+(`Gesso::Components::<Name>Helper`) that owns its logic and validation and
+renders a partial named `_<component>.html.erb`. Conventions for those
+partials:
+
+- A strict `locals: (...)` signature on the first line declares
+  every accepted local. Locals without a default are required; optional
+  ones carry their default in the signature. Passing an unknown local —
+  or omitting a required one — raises, so the contract is enforced.
+- A `<%%# ... %>` doc comment below the signature describes each param
+  and its accepted values.
+- A `classes` local lets callers append extra CSS classes; partials
+  never accept raw style attributes.
+- Components that wrap content take a block and `yield` it (for
+  example the button label, card body, dialog body).
+
+```erb
+<%%= render_card(title: "Patient") do %>
+  Card body content
+<%% end %>
+```
+
+## Previews
+
+Every component has a Lookbook preview in
+`spec/components/previews/<name>_preview.rb`, a `Lookbook::Preview`
+subclass with:
+
+- a `@label` annotation naming the component in the sidebar,
+- a `playground` scenario with `@param` annotations so every param can
+  be exercised interactively,
+- one named scenario per variant or notable state.
+
+Open a preview alongside a component's guidance page (under
+*Components* in the sidebar) to see the rules applied to live
+rendering.
+
+## Specs
+
+Each component carries a request spec in `spec/components/<name>_spec.rb`
+(`type: :request`) that renders scenarios through the mounted preview
+route and asserts on the DOM:
+
+```ruby
+get "/lookbook/preview/button/primary"
+page = Capybara.string(response.body)
+expect(page).to have_css("button.btn-primary")
+```
+
+Docs pages follow the same pattern from `spec/docs/`, asserting each
+page renders with its key headings. Any change to a component ships
+with its preview and spec in the same commit.

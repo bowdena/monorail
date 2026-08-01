@@ -1,0 +1,17 @@
+<% header = capture do %>
+  <div class="flex items-center gap-3">
+    <span class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+      <%= inline_svg_tag "icons/users.svg", class: "size-5" %>
+    </span>
+
+    <div>
+      <h2 class="text-lg">Patient details</h2>
+      <p>NHS number 943 476 5919</p>
+    </div>
+  </div>
+<% end %>
+
+<%= render_card(id: "patient-1234567", header: header) do %>
+  A card with a custom header — an icon beside the title, passed as the
+  header slot instead of title/description.
+<% end %>

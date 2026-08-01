@@ -1,0 +1,19 @@
+@layer components {
+  /*
+    The dialog itself uses basecoat-css's .dialog — a CSS-only component
+    (native <dialog> + @starting-style open animation, no JS), driven by
+    the drawer Stimulus controller's showModal/close. This file adds the
+    one piece basecoat leaves out: native scrolling for an overflowing
+    body.
+
+    ScrollArea note: the React UI wrapped long dialog bodies in a Radix
+    ScrollArea with a custom scrollbar. Native overflow scrolling on the
+    <section> is the Rails equivalent — no JS and no custom scrollbar
+    component — so ScrollArea ships as this utility rather than its own
+    partial. basecoat already bounds the content box height, so the
+    section just needs to scroll.
+  */
+  .dialog > * > section {
+    overflow-y: auto;
+  }
+}

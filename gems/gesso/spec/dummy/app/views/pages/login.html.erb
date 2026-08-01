@@ -1,0 +1,79 @@
+<% content_for :title, "Sign in" %>
+
+<% login_header = capture do %>
+  <div class="text-center">
+    <div class="mb-4 text-primary">
+      <%= inline_svg_tag "icons/stethoscope.svg", class: "size-12 mx-auto" %>
+    </div>
+
+    <h2>NHS App</h2>
+
+    <p>Clinical management system</p>
+  </div>
+<% end %>
+
+<% login_footer = capture do %>
+  <p class="text-xs text-center text-muted-foreground">
+    By signing in, you agree to the organisation's policies.
+  </p>
+<% end %>
+
+<div
+  class="
+    min-h-screen flex items-center justify-center
+    bg-gradient-to-br from-background via-background
+    to-muted/30 p-4 relative
+  "
+>
+  <div class="fixed top-4 right-4 z-50">
+    <%= render_theme_toggle %>
+  </div>
+
+  <div class="w-full max-w-md">
+    <%= render_card(classes: "shadow-lg", header: login_header,
+          footer: login_footer) do %>
+      <hr>
+
+      <div class="space-y-4">
+        <p class="text-sm text-muted-foreground text-center">
+          Sign in with your organisation account
+        </p>
+
+        <%= render_button(classes: "w-full") do %>
+          <svg
+            width="21"
+            height="21"
+            viewBox="0 0 21 21"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect width="10" height="10" fill="#F25022" />
+
+            <rect
+              x="11"
+              width="10"
+              height="10"
+              fill="#7FBA00"
+            />
+
+            <rect
+              y="11"
+              width="10"
+              height="10"
+              fill="#00A4EF"
+            />
+
+            <rect
+              x="11"
+              y="11"
+              width="10"
+              height="10"
+              fill="#FFB900"
+            />
+          </svg>
+          Sign in with Microsoft
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

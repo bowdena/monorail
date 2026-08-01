@@ -1,0 +1,69 @@
+---
+title: Tabs
+---
+
+# Tabs
+
+Parallel views of the same thing, switched in place — ARIA tab
+markup auto-wired by basecoat's bundled JS.
+
+<%= embed :tabs, :default %>
+
+## When to use
+
+- Views of one record the user switches between: summary /
+  timeline / documents.
+- Dense pages where parallel groupings genuinely compete for the
+  same space.
+
+## When not to use
+
+- Stacked sections read in place — `accordion` (see the
+  *Navigation* pattern page for the rule).
+- Sequential steps — tabs imply free order; a wizard is a different
+  pattern.
+- Two tabs of which one is nearly empty — merge them.
+
+## Usage
+
+`render_tabs` (`Gesso::Components::TabsHelper`) renders the ARIA tab markup;
+switching is auto-wired by basecoat's bundled JS.
+
+```erb
+<%%= render_tabs(
+  id: "episode",
+  tabs: [
+    { label: "Summary",  content: "Episode summary." },
+    { label: "Timeline", content: "What happened, when." }
+  ]
+) %>
+```
+
+| Param | Default | Notes |
+| ----- | ------- | ----- |
+| `id` | `"tabs"` | base for generated per-tab/panel ids |
+| `tabs` | `[]` | `{ label:, content: }` hashes; the first tab starts selected |
+
+Switching is handled by basecoat's bundled JS (self-registers on
+`.tabs`, drives `aria-selected`/`aria-controls`) — no Stimulus
+controller.
+
+## Do and don't
+
+- Do keep the set to ~5 tabs with one-or-two-word labels; tabs that
+  wrap have stopped being tabs.
+- Do put the most-used view first — it is the default.
+- Don't make the active tab's content depend on another tab having
+  been visited; every tab stands alone.
+- Don't use tabs to hide required content — anything the user must
+  see lives on the default tab or outside the tabs.
+- Persisting the active tab in the URL (see *Navigation*: state in
+  the URL) needs page-level wiring; raise it when a consuming page
+  needs deep-linking rather than rebuilding the component.
+
+## Accessibility and content
+
+- Full ARIA tab pattern out of the box: `role="tablist"` /
+  `tab` / `tabpanel`, arrow-key movement, roving tabindex — from
+  the basecoat markup this partial renders.
+- Labels are nouns naming the view ("Timeline"), never verbs.

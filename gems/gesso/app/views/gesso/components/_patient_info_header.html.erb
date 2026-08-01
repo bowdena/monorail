@@ -1,0 +1,38 @@
+<%# locals: (patient:, initials:, name:) %>
+<%#
+  Patient info header component.
+
+  Rendered via render_patient_info_header (Gesso::Components::
+  PatientInfoHeaderHelper), which derives the initials and the name +
+  gender display. This partial only renders markup.
+
+  Params:
+    patient  - patient hash; urn, dob and address are read directly for
+               the identifier row
+    initials - avatar initials
+    name     - display name, with a gender suffix where known
+%>
+
+<%= tag.div class: "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-muted/50 rounded-lg border" do %>
+  <%= tag.div class: "flex items-center gap-3 min-w-0" do %>
+    <%= tag.div initials, class: "user-avatar flex-shrink-0", aria: { hidden: true } %>
+
+    <%= tag.div class: "min-w-0" do %>
+      <%= tag.p name, class: "font-semibold text-foreground truncate" %>
+
+      <%= tag.div class: "flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground" do %>
+        <%= tag.span "UR: #{patient[:urn]}" %>
+
+        <% if patient[:dob].present? %>
+          <%= tag.span "·", aria: { hidden: true } %>
+          <%= tag.span "DOB: #{patient[:dob]}" %>
+        <% end %>
+
+        <% if patient[:address].present? %>
+          <%= tag.span "·", aria: { hidden: true }, class: "hidden sm:inline" %>
+          <%= tag.span patient[:address], class: "truncate max-w-[300px] hidden sm:inline" %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

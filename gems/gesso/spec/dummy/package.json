@@ -1,0 +1,20 @@
+{
+  "name": "app",
+  "private": true,
+  "packageManager": "yarn@4.14.0",
+  "devDependencies": {
+    "@herb-tools/formatter": "^0.10.1",
+    "@herb-tools/linter": "^0.10.1",
+    "esbuild": "^0.28.1"
+  },
+  "scripts": {
+    "build": "esbuild app/javascript/*.* --bundle --preserve-symlinks --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets"
+  },
+  "dependencies": {
+    "@hotwired/stimulus": "^3.2.2",
+    "@hotwired/turbo-rails": "^8.0.23",
+    "basecoat-css": "^0.3.11",
+    "gesso": "link:../../app/javascript",
+    "lucide-static": "^1.17.0"
+  }
+}

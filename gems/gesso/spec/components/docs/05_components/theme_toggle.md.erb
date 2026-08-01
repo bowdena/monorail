@@ -1,0 +1,47 @@
+---
+title: Theme toggle
+---
+
+# Theme toggle
+
+An icon button cycling the colour theme: system → light → dark.
+
+<%= embed :theme_toggle, :default %>
+
+## When to use
+
+- Once, in the header — it ships there already. Pages never need to
+  render it themselves.
+
+## When not to use
+
+- Anywhere a second instance would appear; one global control.
+- For any other cycling control — its Stimulus controller is
+  theme-specific, not a generic toggle.
+
+## Usage
+
+`render_theme_toggle` (`Gesso::Components::ThemeToggleHelper`) — no params. A
+`btn-icon-ghost` button whose Stimulus `theme` controller swaps the
+monitor / sun / moon icon to match the active mode and persists the
+choice. This atomic component is built inline in the helper; it has no
+partial.
+
+```erb
+<%%= render_theme_toggle %>
+```
+
+## Do and don't
+
+- Do leave "system" as the default experience; the toggle is an
+  override, not a setting users must find.
+- Do test state-colour-heavy pages in both themes — the toggle is
+  the quickest way (see the *Colour* foundations page).
+- Don't add theme-conditional markup to pages; theming is tokens in
+  CSS, never logic in views.
+
+## Accessibility and content
+
+- Carries `aria-label="Toggle theme"` — the icon-only button stays
+  named for assistive tech.
+- Keyboard operable as a plain `<button>`; one press per cycle step.

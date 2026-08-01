@@ -1,0 +1,55 @@
+---
+title: Hard constraints
+---
+
+# Hard constraints
+
+Non-negotiable rules for any change in this codebase. A build that
+violates one of these is wrong even if it renders correctly.
+
+## Never
+
+- Never add a runtime dependency — no new gems, no npm packages, no
+  CDN scripts. The set is closed: Rails, Turbo, Stimulus, basecoat
+  (CSS + JS from the `basecoat-css` npm package), Tailwind.
+- Never write raw markup for something a partial covers — check the
+  [decision table](decision_table) first.
+- Never make a partial that only aliases a class string onto one
+  element. If its whole body is one tag plus a `variant`-to-class
+  map, the class is the API — write the markup inline.
+- Never pre-extract a component for UI that exists on one page. Inline
+  it; extract on the third instance, or sooner only if it bundles
+  behaviour, state, or an accessibility contract a caller could get
+  wrong.
+- Never hard-code a colour, inline a `style=` attribute, or invent a
+  spacing value off the scale.
+- Never re-implement behaviour the platform ships: no JS focus
+  traps (`<dialog>`), no JS accordions (`<details>`), no custom
+  form controls over native inputs.
+- Never stack overlays, open one on page load, or put critical
+  information only in a toast.
+- Never disable a control to communicate unavailability outside a
+  form; omit it.
+- Never commit a component change without its preview and spec, and
+  never delete or skip an existing test.
+- Never add params, variants or options no current page consumes.
+
+## Always
+
+- Always read a partial's `<%%# %>` doc comment before rendering it;
+  pass locals by name, take defaults unless there is a reason.
+- Always start a new piece of UI inline in its page. Promote it to a
+  partial when a third page needs the same thing, or immediately when
+  it carries behaviour or an a11y contract worth bundling — a
+  component groups markup, styling and behaviour, not styling alone.
+- Always use basecoat's shipped classes before writing CSS; new CSS
+  goes in `app/assets/tailwind/components/<name>.css`, registered in
+  `application.css`.
+- Always use colour tokens by meaning (`--critical` for harm,
+  `--destructive` for delete actions) and verify both themes.
+- Always keep navigation state in the URL and validation on the
+  server.
+- Always write interface text per the *Content* page: sentence case,
+  verb-first buttons, what-happened + what-to-do errors.
+- Always run the relevant specs, then `bin/rails lint`, before
+  declaring work done — both must pass, in that order.

@@ -1,0 +1,58 @@
+<%#
+  locals: (id:, title:, description: nil, close_label: "Close",
+  classes: nil)
+%>
+<%#
+  Dialog component.
+
+  Rendered via render_dialog (Gesso::Components::DialogHelper). This partial only
+  renders markup.
+
+  A centred, blocking modal built on a native <dialog>, opened with the
+  drawer Stimulus controller's showModal and dismissed by the close
+  button, a backdrop click or Escape. Render it inside a
+  [data-controller="drawer"] element alongside the trigger that opens
+  it. This is the standard chrome — the dialog shell, close button and
+  title/description header; pass the body and footer as a block, as
+  basecoat styles a <section> body and <footer> actions that are direct
+  children of the content box.
+
+  Styling comes from basecoat-css's CSS-only .dialog (native <dialog> +
+  @starting-style animation); dialog.css adds native body scrolling.
+
+  Params:
+    id          - dialog id
+    title       - heading shown in the dialog header
+    description - optional supporting text under the title
+    close_label - accessible label for the close button (default:
+                  "Close")
+    classes     - extra CSS classes on the <dialog>
+%>
+
+<%= tag.dialog id: id,
+      class: ["dialog", classes],
+      aria: {
+        labelledby: "#{id}-title",
+        describedby: description ? "#{id}-description" : nil
+      },
+      data: {
+        drawer_target: "panel",
+        action: "click->drawer#backdropClick"
+      } do %>
+  <%= tag.article do %>
+    <%= button_tag type: "button", name: nil, aria: { label: close_label },
+          data: { action: "click->drawer#close" } do %>
+      <%= inline_svg_tag "icons/x.svg" %>
+    <% end %>
+
+    <%= tag.header do %>
+      <%= tag.h2 title, id: "#{id}-title" %>
+
+      <% if description %>
+        <%= tag.p description, id: "#{id}-description" %>
+      <% end %>
+    <% end %>
+
+    <%= yield %>
+  <% end %>
+<% end %>

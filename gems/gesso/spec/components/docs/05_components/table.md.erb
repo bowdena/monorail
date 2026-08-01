@@ -1,0 +1,91 @@
+---
+title: Table
+---
+
+# Table
+
+Rows and columns for structured, comparable records. Basecoat styles a
+semantic `<table>` from the single `table` class; everything else —
+caption, header, footer, cell alignment — is the platform's table
+markup.
+
+<%= embed :table, :default %>
+
+```html
+<div class="overflow-x-auto">
+  <table class="table">
+    <caption>A list of your recent invoices.</caption>
+    <thead>
+      <tr>
+        <th>Invoice</th>
+        <th>Status</th>
+        <th class="text-right">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="font-medium">INV001</td>
+        <td>Paid</td>
+        <td class="text-right">$250.00</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2">Total</td>
+        <td class="text-right">$2,500.00</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+```
+
+## When to use
+
+- Collections where users compare fields across records: referral
+  lists, episode histories, audit trails.
+- Anything users scan by column (who, when, status).
+
+## When not to use
+
+- A handful of heterogeneous records where each is read alone —
+  cards in a grid read better than a 3-row table.
+- Key-value pairs of a single record — a definition-style layout in
+  a `card`, not a two-column table.
+- Layout — never use a table to position things.
+
+## Anatomy and options
+
+A semantic `<table class="table">` inside basecoat's documented
+`overflow-x-auto` wrapper. The markup is the API:
+
+- `caption` names the collection; `thead`/`tbody`/`tfoot` as usual.
+- Cells take any content — links, `badge` spans, buttons — and any
+  utility: `text-right tabular-nums` for numerics, `font-medium` for
+  identity columns, `<th scope="row">` for row headers.
+- For long scrolling tables, pin the header with
+  `<thead class="sticky top-0 z-10 bg-background">`.
+
+Long collections paginate via `pagination` — the table renders the
+current page only.
+
+## Do and don't
+
+- Do order columns by scan priority: identity first, then status,
+  then detail; timestamps usually last.
+- Do right-align numeric columns and use `tabular-nums`.
+- Do render an empty collection as the table's empty state copy
+  ("No contacts match the selected date range."), not a bare header
+  row.
+- Don't let one verbose column destroy row scanning — truncate
+  detail text and let the row link carry users to it.
+- Don't put state colour on whole rows; a `badge` in a status cell
+  marks state without painting the table.
+
+## Accessibility and content
+
+- Real `<table>`/`<thead>`/`<th>` semantics — column association is
+  announced; the sticky header is CSS only.
+- Use `<caption>` to name the collection when the table isn't
+  directly under a heading.
+- Header labels are short nouns, sentence case, no units in cells
+  that the header can carry ("Wait (days)").

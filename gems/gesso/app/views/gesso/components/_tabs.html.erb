@@ -1,0 +1,32 @@
+<%# locals: (id: "tabs", tabs: []) %>
+<%#
+  Tabs component.
+
+  Rendered via render_tabs (Gesso::Components::TabsHelper). This partial only
+  renders markup.
+
+  Renders the ARIA tab markup that basecoat-css's bundled JS auto-wires
+  (it self-registers on ".tabs" and handles switching via aria-controls).
+  No Stimulus controller is needed.
+
+  Params:
+    id   - base id, used to build per-tab/panel ids (default: "tabs")
+    tabs - array of { label:, content: } hashes, one per tab. The first
+           tab is selected initially.
+%>
+
+<%= tag.div class: "tabs" do %>
+  <%= tag.div role: "tablist" do %>
+    <% tabs.each_with_index do |tab, i| %>
+      <%= button_tag tab[:label], type: "button", name: nil, role: "tab",
+            id: "#{id}-tab-#{i}",
+            aria: { controls: "#{id}-panel-#{i}", selected: i.zero? },
+            tabindex: i.zero? ? "0" : "-1" %>
+    <% end %>
+  <% end %>
+
+  <% tabs.each_with_index do |tab, i| %>
+    <%= tag.div tab[:content], role: "tabpanel", id: "#{id}-panel-#{i}",
+          aria: { labelledby: "#{id}-tab-#{i}" }, hidden: !i.zero? %>
+  <% end %>
+<% end %>

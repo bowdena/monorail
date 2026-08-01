@@ -1,0 +1,47 @@
+---
+title: Spacing and layout
+---
+
+# Spacing and layout
+
+Spacing uses Tailwind's 4px-based scale through utilities on page
+markup. Components carry their own internal padding; pages are
+responsible only for the space *between* components.
+
+## Spacing scale
+
+A deliberately small set of steps covers almost every gap:
+
+| Step | Size | Use |
+| ---- | ---- | --- |
+| `gap-1` / `p-1` | 4px | Icon-to-label inside a control |
+| `gap-2` / `p-2` | 8px | Related controls in a row (button groups) |
+| `gap-4` / `p-4` | 16px | Between fields in a form, cards in a grid |
+| `gap-6` / `p-6` | 24px | Between page sections; card internal padding |
+| `gap-8` | 32px | Major page regions |
+
+If a gap is not one of these, round to the nearest step rather than
+inventing an in-between value.
+
+## Page structure
+
+- The app shell is the sidebar plus header; page content sits in the
+  remaining region with consistent edge padding (`p-6`).
+- Lay pages out with flex/grid `gap-*` utilities rather than margins
+  on children — spacing belongs to the container, so components stay
+  reusable anywhere.
+- Cards are the unit of page composition: group related content into
+  cards, then grid the cards (`grid gap-4 md:grid-cols-2` and
+  similar).
+- Forms are single-column by default; side-by-side fields only for
+  genuinely paired values (date ranges, structured names).
+
+## Rules
+
+- Never add margin inside a component partial to position it on a
+  page; pass nothing — the page's container gap does the positioning.
+- Prefer `gap-*` over `space-y-*`, and either over child margins.
+- Breakpoint prefixes (`md:`, `lg:`) adjust column counts, not
+  spacing steps — gaps stay the same across screen sizes.
+- Width constraints (`max-w-*`) live on the page region, not on
+  components.

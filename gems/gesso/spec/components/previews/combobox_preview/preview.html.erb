@@ -1,0 +1,8 @@
+<%#
+  Reserve height so the listbox popover (which opens downward on the down
+  arrow / click) is not clipped by the embedded preview's auto-sized
+  iframe, which otherwise fits only the closed trigger.
+%>
+<div class="p-4" style="min-height: 22rem;">
+  <%= render_combobox(name:, options:, selected:, placeholder:, searchable:, id:) %>
+</div>

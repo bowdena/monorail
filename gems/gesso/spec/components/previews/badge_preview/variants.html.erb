@@ -1,0 +1,32 @@
+<div class="flex flex-col gap-4 p-4">
+  <table class="w-full text-left text-sm">
+    <thead>
+      <tr>
+        <th class="pb-2 font-medium">Variant</th>
+        <th class="pb-2 font-medium">Rendered</th>
+        <th class="pb-2 font-medium">Class</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% {
+        "default"     => "badge-primary",
+        "secondary"   => "badge-secondary",
+        "outline"     => "badge-outline",
+        "destructive" => "badge-destructive",
+        "success"     => "badge-success",
+        "warning"     => "badge-warning",
+        "info"        => "badge-info",
+        "critical"    => "badge-critical",
+        "stale"       => "badge-stale"
+      }.each do |variant, klass| %>
+        <tr>
+          <td class="py-1 pr-4"><%= variant %></td>
+          <td class="py-1 pr-4">
+            <span class="badge <%= klass %>"><%= variant.capitalize %></span>
+          </td>
+          <td class="py-1"><code><%= klass %></code></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

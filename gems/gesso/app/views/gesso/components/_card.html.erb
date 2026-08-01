@@ -1,0 +1,42 @@
+<%# locals: (title: nil, description: nil, footer: nil, classes: nil, id: nil, header: nil) %>
+<%#
+  Card component.
+
+  Rendered via render_card (Gesso::Components::CardHelper). This partial only
+  renders markup.
+
+  Basecoat styles the card from semantic HTML: <header> (with an <h2>
+  title and <p> description), <section> for the body, and <footer>.
+
+  Params:
+    title       - optional header heading (default header)
+    description - optional header sub-text (default header)
+    footer      - optional footer content (text or pre-rendered markup)
+    classes     - additional CSS classes
+    id          - optional id on the card element
+    header      - optional pre-rendered header markup; replaces the
+                  default title/description header for richer headers
+
+  The card body is provided as a block.
+%>
+
+<%= tag.div class: class_names("card", classes), id: id do %>
+  <% if header %>
+    <%= tag.header do %>
+      <%= header %>
+    <% end %>
+  <% elsif title || description %>
+    <%= tag.header do %>
+      <%= tag.h2 title if title %>
+      <%= tag.p description if description %>
+    <% end %>
+  <% end %>
+
+  <%= tag.section do %>
+    <%= yield %>
+  <% end %>
+
+  <% if footer %>
+    <%= tag.footer footer %>
+  <% end %>
+<% end %>

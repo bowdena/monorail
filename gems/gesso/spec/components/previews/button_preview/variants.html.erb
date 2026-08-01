@@ -1,0 +1,5 @@
+<div class="flex flex-wrap items-center gap-3 p-4">
+  <% %w[primary secondary outline ghost link destructive warning info default].each do |variant| %>
+    <%= render_button(variant:) { variant.capitalize } %>
+  <% end %>
+</div>

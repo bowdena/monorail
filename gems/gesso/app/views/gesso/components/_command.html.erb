@@ -1,0 +1,44 @@
+<%# locals: (groups: [], placeholder: "Search…", empty: nil) %>
+<%#
+  Command component.
+
+  Rendered via render_command (Gesso::Components::CommandHelper). This partial
+  only renders markup.
+
+  A searchable command menu using basecoat command.js. Renders a search
+  input and a grouped list of menu items. Items are filtered client-side
+  as the user types. The empty state is shown by CSS via the data-empty
+  attribute on the menu element — no extra markup is needed.
+
+  Params:
+    groups      - array of { label:, items: [{ label:, href:, icon: }] }
+                  hashes. icon is an optional svg icon name under icons/.
+    placeholder - search input placeholder (default: "Search…")
+    empty       - empty state text when no items match (optional;
+                  defaults to "No results found." via basecoat CSS)
+%>
+
+<%= tag.div class: "command" do %>
+  <%= tag.header do %>
+    <%= inline_svg_tag "icons/search.svg" %>
+    <%= tag.input type: "text", placeholder: placeholder, autocomplete: "off" %>
+  <% end %>
+
+  <%= tag.div role: "menu", data: { empty: empty }.compact do %>
+    <% groups.each do |group| %>
+      <%= tag.div role: "group" do %>
+        <%= tag.div group[:label], role: "heading", aria: { level: 2 } %>
+
+        <% group[:items].each do |item| %>
+          <%= link_to item[:href], role: "menuitem" do %>
+            <% if item[:icon] %>
+              <%= inline_svg_tag "icons/#{item[:icon]}.svg" %>
+            <% end %>
+
+            <%= item[:label] %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

@@ -1,0 +1,72 @@
+---
+title: Notification item
+---
+
+# Notification item
+
+A single entry in the notification drawer: a type icon, a title, a
+relative time and a clamped message, muted once read.
+
+## When to use
+
+- One row inside the header's notification drawer — `render_header`
+  renders a list of these from its `notifications`.
+
+## When not to use
+
+- Page or data state — `alert` (persistent, in the page).
+- Action outcomes — `toast` (transient, after a redirect).
+- A standalone callout — this is a list row, not a card.
+
+## Usage
+
+`render_notification_item` (`Gesso::Components::NotificationItemHelper`) maps
+the notification `type` to an icon and colour, and the `read` state to
+its muting, then renders the row.
+
+```erb
+<%%= render_notification_item(notification: {
+  title: "Report generated",
+  message: "Your monthly report is ready for download.",
+  type: "success",
+  time: "30m ago",
+  read: false
+}) %>
+```
+
+| Key | Notes |
+| --- | ----- |
+| `title` | the headline |
+| `message` | supporting text, clamped to two lines |
+| `type` | see **Types** below |
+| `time` | relative time label, e.g. `"5m ago"` |
+| `read` | `true` mutes the row (read notifications recede) |
+
+## Types
+
+The `type` sets the leading icon and its colour; an unknown or missing
+type falls back to `info`.
+
+<%= embed :notification_item, :variants %>
+
+| Type | When to use |
+| ---- | ----------- |
+| `info` (default) | Neutral, incidental news — a new version, a tip. |
+| `success` | Something the user set in motion has completed — a report is ready. |
+| `warning` | Something needs the user's attention but isn't an error. |
+
+## Do and don't
+
+- Do write the title as the outcome or event, with the detail in the
+  message — the title is what's scanned.
+- Do pick `type` by meaning, matching the alert/toast colour rules.
+- Don't put actions in a notification item; it announces, it doesn't
+  act. A notification that needs a decision belongs in the page.
+- Don't rely on colour alone — the title carries the meaning, the icon
+  and colour reinforce it.
+
+## Accessibility and content
+
+- The icon is decorative beside the title; meaning is in the text.
+- Read state is conveyed by muting *and* stays in the DOM, so the
+  history is available to assistive tech.

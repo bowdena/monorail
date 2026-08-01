@@ -1,0 +1,75 @@
+---
+title: Patient search
+---
+
+# Patient search
+
+The patient lookup flow's result surface: the patient info header
+that confirms *which patient* before any clinical content renders.
+
+<%= embed :patient_search, :default %>
+
+## When to use
+
+- At the top of any page scoped to a single patient — the constant
+  banner answering "am I looking at the right record?".
+- As the landing surface after a patient lookup.
+
+## When not to use
+
+- Listing multiple patients — that is a `table` of results; this
+  header presents exactly one confirmed patient.
+- Non-patient entities (teams, clinics) — compose the same
+  primitives into a purpose-built header instead of borrowing this
+  one.
+
+## Composition
+
+A domain composite, not a primitive — it builds on:
+
+- the avatar treatment (initials fallback) for the patient marker,
+- the muted card surface (`bg-muted/50`, border, radius) from the
+  card pattern,
+- the *Typography* supporting-text step for identifiers (UR number,
+  DOB) under the patient name.
+
+Build new domain composites this way: assemble existing primitives
+in a partial, document the data contract, never fork component
+styles.
+
+## Usage
+
+`render_patient_info_header` (`Gesso::Components::PatientInfoHeaderHelper`)
+takes a single `patient` hash and renders the identity banner; it
+derives the avatar initials and the name + gender display.
+
+```erb
+<%%= render_patient_info_header(patient: {
+  first_name: "Jane", last_name: "Smith", gender: "F",
+  urn: "1234567", dob: "15 Mar 1985",
+  address: "123 Main St, Sydney NSW 2000"
+}) %>
+```
+
+The `patient` hash: `first_name`, `last_name`, `gender`, `urn`, plus the
+identifier fields shown in the metadata row (`dob`, `address`).
+
+## Do and don't
+
+- Do render it before any clinical data on patient-scoped pages —
+  wrong-patient errors are the failure mode this component exists to
+  prevent.
+- Do keep the identifier row to identifiers (UR, DOB) — it is for
+  confirming identity, not summarising the record.
+- Don't truncate identifiers; the name truncates on narrow screens,
+  the UR number never does.
+- Don't add actions into the header; it is a confirmation surface,
+  not a toolbar.
+
+## Accessibility and content
+
+- The initials avatar is `aria-hidden` — the patient's name
+  immediately beside it is the accessible identity.
+- Identifiers are labelled ("UR: 123456"), not bare numbers.
+- Name display is "First Last (G)" with gender shown only when
+  known — absence of data renders as absence, not "Unknown".

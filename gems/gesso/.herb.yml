@@ -1,0 +1,16 @@
+version: 0.10.1
+
+framework: actionview
+template_engine: erubi
+
+files:
+  exclude:
+    - "public/**/*"
+
+linter:
+  enabled: true
+
+formatter:
+  enabled: true
+  indentWidth: 2
+  maxLineLength: 120

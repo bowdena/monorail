@@ -1,0 +1,79 @@
+@layer components {
+  /*
+    Coloured toast variants not provided by basecoat-css, which renders
+    every toast on the neutral popover surface. Keyed off the
+    data-category the toast partial emits, these tint the toast surface,
+    border and icon with the matching clinical state token (see
+    theme.css) — the Rails equivalent of Sonner's richColors in the
+    React boilerplate. Title and body text stay at the default
+    foreground colour. error maps to the critical token, matching
+    .alert-critical.
+  */
+  .toaster .toast {
+    &[data-category="success"] .toast-content {
+      border-color: color-mix(in oklch, var(--success) 50%, transparent);
+      background-color: color-mix(in oklch, var(--success) 10%, transparent);
+
+      & > svg {
+        color: var(--success);
+      }
+    }
+
+    &[data-category="error"] .toast-content {
+      border-color: color-mix(in oklch, var(--critical) 50%, transparent);
+      background-color: color-mix(in oklch, var(--critical) 10%, transparent);
+
+      & > svg {
+        color: var(--critical);
+      }
+    }
+
+    &[data-category="info"] .toast-content {
+      border-color: color-mix(in oklch, var(--info) 50%, transparent);
+      background-color: color-mix(in oklch, var(--info) 10%, transparent);
+
+      & > svg {
+        color: var(--info);
+      }
+    }
+
+    &[data-category="warning"] .toast-content {
+      border-color: color-mix(in oklch, var(--warning) 50%, transparent);
+      background-color: color-mix(in oklch, var(--warning) 10%, transparent);
+
+      & > svg {
+        color: var(--warning);
+      }
+    }
+  }
+
+  /*
+    Dismiss button. The vendored toast.js closes a toast on a click of a
+    button inside its <footer>; this is the only affordance for toasts
+    that do not auto-dismiss (errors by default). Pushed to the trailing
+    edge of the toast and kept neutral, so it never reads as the leading
+    state icon.
+  */
+  .toaster .toast footer {
+    margin-left: auto;
+    align-self: flex-start;
+  }
+
+  .toaster .toast footer button {
+    display: inline-flex;
+    padding: 0.125rem;
+    border-radius: var(--radius);
+    color: var(--muted-foreground);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--foreground);
+      background-color: color-mix(in oklch, var(--foreground) 8%, transparent);
+    }
+
+    & svg {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+}

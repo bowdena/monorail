@@ -1,0 +1,88 @@
+---
+title: Card
+---
+
+# Card
+
+The unit of page composition: a bordered surface grouping related
+content under an optional title.
+
+<%= embed :card, :playground %>
+
+## When to use
+
+- Grouping related content into a titled section: a record's
+  details, a settings group, a chart with its caption.
+- Building page grids — cards in a `grid gap-4` are the standard
+  page layout (see *Spacing and layout*).
+
+## When not to use
+
+- Around a whole page — the page region is the container; cards
+  group within it.
+- Nesting — a card inside a card adds border noise without grouping
+  anything new; use headings or separators inside one card.
+- A single metric — `stat_card` is the purpose-built variant.
+
+## Usage
+
+`render_card` (`Gesso::Components::CardHelper`) renders the bordered surface —
+semantic HTML (`<header>` with `<h2>` + description, `<section>` body,
+`<footer>`) that basecoat styles directly. The block is the card body.
+
+```erb
+<%%= render_card(title: "Patient", description: "NHS number 943 476 5919") do %>
+  Card body content
+<%% end %>
+```
+
+For a richer header — an icon, a badge, a custom layout — pass
+pre-rendered markup as `header:` instead of `title`/`description`. Use
+`id:` to set the card's id (e.g. for anchor links).
+
+```erb
+<%% header = capture do %>
+  <div class="flex items-center gap-3">
+    <%%= inline_svg_tag "icons/users.svg", class: "size-5 text-primary" %>
+    <h2 class="text-lg">Patient details</h2>
+  </div>
+<%% end %>
+
+<%%= render_card(id: "patient-1234567", header: header) do %>
+  Card body content
+<%% end %>
+```
+
+<%= embed :card, :custom_header %>
+
+| Param | Notes |
+| ----- | ----- |
+| `title` | optional header heading (default header) |
+| `description` | optional sub-text under the title (default header) |
+| `header` | pre-rendered header markup; replaces the default title/description header |
+| `footer` | optional footer content (text or pre-rendered markup) |
+| `id` | optional id on the card element |
+| `classes` | extra CSS classes |
+
+## Do and don't
+
+- Do one topic per card; if a card needs two titles, it is two
+  cards.
+- Do use `description` for the card's one-line purpose rather than a
+  paragraph at the top of the body.
+- Do prefer `title`/`description` for ordinary cards; reach for the
+  `header:` slot only when the header genuinely needs more (an icon, a
+  badge, a custom layout).
+- Don't reach for `footer` as a button bar by habit — actions
+  belong with the content they act on; the footer suits metadata
+  and links.
+- Don't style card borders/shadows per page — uniform card chrome
+  is what makes grids scan.
+
+## Accessibility and content
+
+- The title renders as an `<h2>` inside `<header>` — keep the
+  page's heading order in mind (one `<h1>` above, see
+  *Typography*).
+- Card titles are nouns, sentence case: "Recent contacts", not
+  "View your recent contacts here".

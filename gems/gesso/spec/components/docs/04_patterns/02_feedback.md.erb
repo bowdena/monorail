@@ -1,0 +1,52 @@
+---
+title: Feedback
+---
+
+# Feedback
+
+Every wait, outcome and absence gets exactly one feedback treatment.
+The choice is mechanical — pick by situation, not by taste.
+
+## Loading
+
+| Situation | Use |
+| --------- | --- |
+| A page region is loading and its layout is known | `skeleton` shaped like the content |
+| A button's action is in flight | the button's `loading` param (inline spinner, disabled) |
+| An inline wait with no known shape or duration | `spinner` |
+| A multi-step operation with measurable progress | `progress` |
+
+Rules:
+
+- Skeletons mirror the real layout (same card, same rows) so nothing
+  jumps when content lands. Never show a skeleton for content that
+  might be empty — resolve to the empty state directly.
+- One loading signal at a time: a loading button does not also get a
+  page spinner; a skeleton region does not also get a progress bar.
+- `progress` only when progress is real. A bar that crawls to 90% and
+  waits is worse than a spinner.
+
+## Toast or alert
+
+| | Toast | Alert |
+| - | ----- | ----- |
+| Answers | "Did my action work?" | "What state is this page in?" |
+| Lifetime | Auto-dismisses (3 s; errors 5 s) | Stays until the state resolves |
+| Placement | Overlay corner, via flash | In the page flow, where it applies |
+| Examples | "Referral saved", "Merge failed" | "Results are more than 24 hours old" |
+
+The rule: outcome of *the user's own action* → toast (rendered from
+Rails flash by the `toast` partial). Ongoing *state of the data or
+system* → alert, coloured by severity token. Anything the user must
+not miss — critical clinical states above all — is an alert; a toast
+can expire unseen. Confirmation of an action that needs a decision is
+neither: that is a dialog.
+
+## Empty states
+
+Absence is content, not an error: plain body text following the
+empty-state copy rules on the *Content* foundations page — what would
+be here, how it gets here, with the action offered when one exists.
+No alert styling, no state colour, no skeleton standing in for
+nothing. Distinguish truly empty from filtered-to-nothing so the user
+knows whether to add data or widen the filter.

@@ -1,0 +1,136 @@
+<% content_for :title, "Changelog" %>
+
+<% entries = [
+    {
+      version: "0.4.0",
+      date: "5 June 2025",
+      latest: true,
+      description: "Current version of the application",
+      new_features: [
+        "Dashboard with patient stats, activity feed, and quick links",
+        "Main application layout with collapsible sidebar",
+        "Login page with Microsoft sign-in button",
+        "Settings page with Profile and Preferences tabs",
+        "Changelog page with version history",
+        "Support page with pre-filled email contact card",
+        "Patient search page with URN and advanced search tabs"
+      ],
+      improvements: [],
+      ui_changes: [
+        "Theme toggle cycling light, dark, and system modes",
+        "Notification drawer in application header",
+        "User account dropdown with sign-out option"
+      ],
+      bug_fixes: []
+    },
+    {
+      version: "0.3.0",
+      date: "3 May 2025",
+      latest: false,
+      description: nil,
+      new_features: [
+        "Spinner component",
+        "Tabs component with ARIA keyboard navigation"
+      ],
+      improvements: [
+        "Button variants aligned to Basecoat compound class names"
+      ],
+      ui_changes: [],
+      bug_fixes: [
+        "Corrected btn-icon-ghost class usage throughout"
+      ]
+    }
+  ]
+
+  categories = [
+    {
+      key: :new_features, label: "New Features",
+      icon: "sparkles", css: "badge-success"
+    },
+    {
+      key: :improvements, label: "Improvements",
+      icon: "zap", css: "badge-info"
+    },
+    {
+      key: :ui_changes, label: "UI Changes",
+      icon: "palette", css: "badge-warning"
+    },
+    {
+      key: :bug_fixes, label: "Bug Fixes",
+      icon: "bug", css: "badge-destructive"
+    }
+  ] %>
+
+<div class="max-w-4xl space-y-6">
+  <div class="flex items-center gap-3">
+    <div class="p-2 rounded-lg bg-primary/10 text-primary">
+      <%= inline_svg_tag "icons/history.svg", class: "size-6" %>
+    </div>
+
+    <div>
+      <h1 class="text-2xl font-bold">Changelog</h1>
+
+      <p class="mt-1 text-sm text-muted-foreground">
+        Complete version history of all changes to the application.
+      </p>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="flex items-center gap-2">
+    <span class="text-sm text-muted-foreground">Current version:</span>
+    <span class="badge badge-secondary">v<%= entries.first[:version] %></span>
+  </div>
+
+  <div class="space-y-4">
+    <% entries.each do |entry| %>
+      <% version_header = capture do %>
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <h2 class="text-xl">v<%= entry[:version] %></h2>
+
+            <% if entry[:latest] %>
+              <span class="badge badge-primary">Latest</span>
+            <% end %>
+          </div>
+
+          <span class="text-sm text-muted-foreground flex-shrink-0"><%= entry[:date] %></span>
+        </div>
+
+        <% if entry[:description] %>
+          <p><%= entry[:description] %></p>
+        <% end %>
+      <% end %>
+
+      <%= render_card(
+            id: "version-#{entry[:version].tr('.', '-')}",
+            classes: entry[:latest] ? "border-primary/30 bg-primary/5" : nil,
+            header: version_header) do %>
+        <% categories.each do |cat| %>
+          <% items = entry[cat[:key]] %>
+          <% next if items.empty? %>
+
+          <div class="mt-4">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="badge <%= cat[:css] %> flex items-center gap-1">
+                <%= inline_svg_tag "icons/#{cat[:icon]}.svg", class: "size-3" %>
+
+                <%= cat[:label] %>
+              </span>
+            </div>
+
+            <ul class="space-y-2 ml-4">
+              <% items.each do |item| %>
+                <li class="text-sm text-muted-foreground flex items-start gap-2">
+                  <span class="mt-1.5 size-1.5 rounded-full bg-current flex-shrink-0"></span>
+                  <%= item %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

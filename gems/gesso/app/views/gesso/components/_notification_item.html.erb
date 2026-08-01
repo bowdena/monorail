@@ -1,0 +1,37 @@
+<%# locals: (notification:, icon:, icon_class:, container_class:, title_class: nil) %>
+<%#
+  Notification item component.
+
+  Rendered via render_notification_item (Gesso::Components::
+  NotificationItemHelper), which maps the type to an icon + colour and
+  the read state to the container/title classes. This partial only
+  renders markup.
+
+  Params:
+    notification    - { title:, message:, type:, read:, time: } hash
+    icon            - leading icon name (svg under icons/)
+    icon_class      - colour class for the icon
+    container_class - read-state classes on the wrapper
+    title_class     - read-state class on the title (or nil)
+%>
+
+<%= tag.div class: class_names("group relative p-4 rounded-lg border", container_class) do %>
+  <%= tag.div class: "flex gap-3" do %>
+    <%= tag.div class: "shrink-0 mt-0.5" do %>
+      <%= inline_svg_tag "icons/#{icon}.svg", class: class_names("size-5", icon_class) %>
+    <% end %>
+
+    <%= tag.div class: "flex-1 min-w-0" do %>
+      <%= tag.div class: "flex items-start justify-between gap-2" do %>
+        <%= tag.p notification[:title],
+              class: class_names("text-sm font-medium", title_class) %>
+
+        <%= tag.span notification[:time],
+              class: "text-[10px] text-muted-foreground whitespace-nowrap" %>
+      <% end %>
+
+      <%= tag.p notification[:message],
+            class: "text-xs text-muted-foreground mt-1 line-clamp-2" %>
+    <% end %>
+  <% end %>
+<% end %>

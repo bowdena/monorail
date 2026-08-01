@@ -1,0 +1,93 @@
+---
+title: Toast
+---
+
+# Toast
+
+A corner notification answering one question: did my action work?
+Rendered from the Rails flash. Each toast carries a dismiss button;
+success, info and warning toasts also auto-dismiss after 3 s, while
+error toasts stay until the reader closes them.
+
+<%= embed :toast, :variants %>
+
+## When to use
+
+- Reporting the outcome of the user's own action after a redirect:
+  saved, added, removed, merge failed.
+- Set the flash in the controller; the layout's `toast` partial does
+  the rest.
+
+## When not to use
+
+- Ongoing page or data state — `alert`, which persists (see the
+  *Feedback* pattern page: a toast can expire unseen).
+- Anything the user must not miss — critical clinical information is
+  never a toast.
+- Asking a question — toasts carry no actions; a decision is a
+  `dialog`.
+
+## Usage
+
+`render_toast` (`Gesso::Components::ToastHelper`) maps each flash entry to a
+toast category, role and icon, then renders the toaster — one toast per
+entry, nothing when the flash is empty. Set the flash in the controller;
+render it once in the layout.
+
+```erb
+<%%= render_toast(flash: flash) %>
+```
+
+## Flash types
+
+The flash type drives the category, colour, icon and dismiss behaviour.
+Use `notice` for success and `alert` for failure in controllers — the
+mapping does the categorising. Unknown types fall back to `info`.
+
+| Flash type | Category | When to use | Dismisses |
+| ---------- | -------- | ----------- | --------- |
+| `notice` | success | Confirm an action succeeded. | after 3 s |
+| `info` | info | Neutral, incidental information. | after 3 s |
+| `warning` | warning | Caution about the outcome. | after 3 s |
+| `alert` / `error` | error | An action failed. | on dismiss only |
+
+## Dismissing
+
+Every toast has a dismiss button (the vendored `toast.js` closes a toast
+on a click inside its `<footer>`). By default **error toasts do not
+auto-dismiss** — a failed clinical action should not vanish unseen — so
+the button is their only way to close. The per-category colour
+(`toast.css`) keys off the clinical tokens, mirroring the alert variants.
+
+`auto_dismiss` overrides the default for the whole render:
+
+| `auto_dismiss` | Behaviour |
+| -------------- | --------- |
+| omitted (default) | Errors persist; everything else auto-dismisses (3 s). |
+| `true` | Everything auto-dismisses (errors 5 s, else 3 s). |
+| `false` | Everything persists until dismissed. |
+
+```erb
+<%%= render_toast(flash: flash, auto_dismiss: true) %>
+```
+
+## Do and don't
+
+- Do write the outcome, past tense, naming the object: "Referral
+  saved", "Patient records merged" (see *Content*).
+- Do use `notice` for success and `alert` for failure in
+  controllers — the mapping does the categorising.
+- Don't queue several toasts for one action; one action, one
+  outcome.
+- Don't restate the obvious page change ("Page loaded") — toast
+  only what the user can't already see.
+
+## Accessibility and content
+
+- One line, no period needed, no actions besides dismiss — anything
+  needing a response belongs in the page or a dialog.
+- The dismiss button is icon-only; its `aria-label` ("Dismiss") gives
+  it an accessible name.
+- Even though error toasts persist until dismissed, pair an error toast
+  with the page showing the failure state — never make the toast the
+  only record of it.

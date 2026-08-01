@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+
+<%#
+  Lookbook's theme display option (the dropdown in the preview
+  inspector and embeds) picks the theme for preview renders; it
+  overrides the visitor preference, so the FOUC script is skipped.
+%>
+<% display_theme = params.dig(:lookbook, :display, :theme) %>
+
+<html class="<%= "dark" if display_theme == "dark" %>">
+  <head>
+    <%#
+      Runs before first paint to prevent a flash of unstyled content (FOUC)
+      when a dark theme preference is stored. Stimulus alone cannot do this
+      because it runs after the page has already been painted.
+    %>
+
+    <% if display_theme.blank? %>
+      <script nonce="<%= content_security_policy_nonce %>">
+        (function() {
+          var t = localStorage.getItem("theme-preference") || "system";
+          if (t === "dark" ||
+              (t === "system" &&
+               window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+            document.documentElement.classList.add("dark");
+          }
+        })();
+      </script>
+    <% end %>
+
+    <title><%= content_for(:title) || "Rails Components" %></title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Rails Components">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+  </head>
+
+  <body>
+    <%= yield %>
+  </body>
+</html>

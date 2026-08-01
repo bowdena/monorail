@@ -1,0 +1,60 @@
+---
+title: Spinner
+---
+
+# Spinner
+
+An indeterminate loading indicator for an inline wait with no known
+shape or duration. Basecoat ships no component — it is the
+`loader-circle` lucide icon with `animate-spin`, `role="status"` and an
+`aria-label`, written inline. Size with `size-*`.
+
+<%= embed :spinner, :default %>
+
+```html
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="2" stroke-linecap="round"
+     stroke-linejoin="round"
+     role="status" aria-label="Loading" class="animate-spin size-6">
+  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+</svg>
+```
+
+## When to use
+
+- An inline region is fetching and its eventual layout is unknown.
+- A small, short wait where a skeleton would be heavier than the
+  content it stands in for.
+
+## When not to use
+
+- A loading page region whose layout is known — use `skeleton`
+  shaped like the content (see the *Feedback* pattern page).
+- An in-flight button action — use the button's own `loading` param,
+  not a spinner next to the button.
+- Measurable progress — use `progress`.
+
+## Anatomy and options
+
+The `loader-circle` SVG with `animate-spin` for the rotation and a
+`size-*` for the dimensions (`size-4` inline, `size-6`/`size-8`
+standalone). Colour follows `currentColor`, so it inherits the text
+colour of its context.
+
+## Do and don't
+
+- Do set a specific `aria-label` when the context isn't obvious:
+  `aria-label="Searching patients"`.
+- Do remove the spinner the moment content (or its empty state)
+  arrives — never alongside it.
+- Don't show more than one loading signal for the same wait (see
+  *Feedback*: one signal at a time).
+- Don't use a spinner for waits the user didn't initiate — content
+  that loads with the page just appears.
+
+## Accessibility and content
+
+- `role="status"` with `aria-label` lets assistive tech announce the
+  wait without any extra markup.
+- The label names what is loading, not the mechanism: "Searching
+  patients", not "Please wait".

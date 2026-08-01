@@ -1,0 +1,72 @@
+---
+title: Radio group
+---
+
+# Radio group
+
+A set of native radios sharing one name — pick exactly one of a few
+visible options. Basecoat styles each input with the `input` class; a
+`fieldset` carries the group semantics and its `legend` names the
+group, with no extra wiring.
+
+<%= embed :radio_group, :default %>
+
+```html
+<fieldset class="grid gap-3">
+  <legend class="label">Site</legend>
+  <label class="label">
+    <input type="radio" class="input" name="site" value="leeds">
+    Leeds
+  </label>
+  <label class="label">
+    <input type="radio" class="input" name="site" value="bradford" checked>
+    Bradford
+  </label>
+  <label class="label">
+    <input type="radio" class="input" name="site" value="sheffield">
+    Sheffield
+  </label>
+</fieldset>
+```
+
+## When to use
+
+- One choice from ≤5 known options, all worth seeing at once:
+  site, priority, gender.
+- Anywhere a two- or three-option `select` was about to be used.
+
+## When not to use
+
+- Many options — `select` (known list) or `combobox` (searchable).
+- Several independent picks — checkboxes.
+- On/off — `checkbox` or `switch`.
+
+## Anatomy and options
+
+A `fieldset` of label-wrapped native radios. `class="input"` does the
+styling; everything else is the platform's radio API:
+
+- One `name` shared across the group makes the radios exclusive.
+- `value` per option; `checked` on the pre-selected one, if any.
+- `disabled` per input — on each one to disable the whole group.
+- `legend` names the group for everyone; add `sr-only` when the
+  surrounding copy already provides a visible caption.
+
+## Do and don't
+
+- Do order options by likelihood or natural order, not
+  alphabetically by accident.
+- Do leave every option unchecked when the form genuinely has no
+  default — forcing the user to choose is sometimes the point.
+- Don't use a radio group for an optional choice without an explicit
+  "None" option — once picked, a radio can't be un-picked.
+- Don't stack more than ~5 options; the scan cost outgrows the
+  benefit of visibility.
+
+## Accessibility and content
+
+- Native radios in a `fieldset`: arrow keys move within the group,
+  Tab moves past it, the `legend` is announced with each option —
+  platform behaviour, no JS and no `role`/`aria` to add.
+- Option labels are short noun phrases, parallel in form ("Royal
+  Children's", "Monash", not a mix of names and sentences).

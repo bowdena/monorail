@@ -1,0 +1,86 @@
+<% content_for :title, "Settings" %>
+
+<% profile_panel = capture do %>
+  <%= render_card(title: "Profile",
+        description: "Your account information from Active Directory") do %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="space-y-2">
+        <%= label_tag :display_name, "Display Name", class: "label" %>
+
+        <%= text_field_tag :display_name, "Jane Smith",
+              disabled: true, class: "input" %>
+      </div>
+
+      <div class="space-y-2">
+        <%= label_tag :email, "Email", class: "label" %>
+
+        <%= text_field_tag :email, "jane.smith@nhs.net",
+              disabled: true, class: "input" %>
+      </div>
+
+      <div class="space-y-2">
+        <%= label_tag :username, "Username", class: "label" %>
+
+        <%= text_field_tag :username, "jsmith",
+              disabled: true, class: "input" %>
+      </div>
+
+      <div class="space-y-2">
+        <%= label_tag :business_phone, "Business Phone", class: "label" %>
+
+        <%= text_field_tag :business_phone, "+44 20 1234 5678",
+              disabled: true, class: "input" %>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<% preferences_panel = capture do %>
+  <%= render_card(title: "Preferences",
+        description: "Customise your experience") do %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="space-y-2">
+        <%= label_tag :theme, "Theme", class: "label" %>
+
+        <%= select_tag :theme,
+              options_for_select(
+                [ [ "Light", "light" ],
+                  [ "Dark", "dark" ],
+                  [ "System Default", "system" ] ],
+                "system"
+              ),
+              class: "select" %>
+      </div>
+
+      <div class="space-y-2">
+        <%= label_tag :notifications, "Email notifications", class: "label" %>
+
+        <div class="flex items-center gap-3">
+          <%= check_box_tag :notifications, "1", true,
+                role: "switch", class: "input" %>
+
+          <span class="text-sm text-muted-foreground"> Enabled </span>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<div class="max-w-4xl space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold">Settings</h1>
+
+    <p class="mt-1 text-sm text-muted-foreground">
+      Manage your account settings and preferences.
+    </p>
+  </div>
+
+  <%= render_tabs(id: "settings", tabs: [
+        { label: "Profile", content: profile_panel },
+        { label: "Preferences", content: preferences_panel }
+      ]) %>
+
+  <div class="flex justify-end">
+    <%= render_button { "Save Changes" } %>
+  </div>
+</div>

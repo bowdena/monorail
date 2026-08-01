@@ -1,0 +1,60 @@
+---
+title: Badge
+---
+
+# Badge
+
+A small inline label marking the state or category of the thing it
+sits next to.
+
+## When to use
+
+- Marking a record's state in a list or header: "Active", "Overdue",
+  "Stale".
+- Categorising: team names, episode types, counts.
+
+## When not to use
+
+- As a button — badges are not interactive. If it needs a click, it
+  is a `button` (size `sm`) or a link.
+- For long text — a badge holds a word or two.
+- As an alert — page-level states use `alert`; a badge marks one
+  record, not the page.
+
+## Anatomy and options
+
+A badge is one element — write it inline; there is no partial.
+
+```erb
+<span class="badge badge-secondary">Active</span>
+```
+
+The class is the whole API: `badge` plus one variant modifier. Add any
+extra utility classes or HTML attributes directly on the `<span>`.
+
+<%= embed :badge, :variants %>
+
+`secondary` and `outline` are the neutral workhorses (the most-used
+in the production apps) — category labels, counts. The clinical
+variants (`success` `warning` `info` `critical` `stale`) carry state
+meaning from the colour tokens.
+
+## Do and don't
+
+- Do pick state variants by meaning, not appearance — `warning`
+  because the data needs attention (see the *Colour* foundations
+  page).
+- Do use `stale` for data past its freshness window — that token
+  exists precisely for this.
+- Don't put state colour on every badge; neutral badges keep state
+  badges meaningful.
+- Don't encode state *only* in colour — the badge text must carry
+  the meaning on its own ("Overdue", not a bare red dot).
+
+## Accessibility and content
+
+- Renders a `<span>` — no role needed; the text is read inline with
+  the surrounding content.
+- One or two words, sentence case, no punctuation.
+- Because the text carries the meaning, colour-blind users lose
+  nothing.

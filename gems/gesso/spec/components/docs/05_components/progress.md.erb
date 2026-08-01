@@ -1,0 +1,60 @@
+---
+title: Progress
+---
+
+# Progress
+
+A horizontal bar showing how much of a measurable operation is
+complete. Basecoat ships no component — a track holding a fill, built
+from utilities, with `role="progressbar"` and aria kept in sync with
+the width.
+
+<%= embed :progress, :default %>
+
+```html
+<div class="bg-primary/20 relative h-2 w-full overflow-hidden rounded-full"
+     role="progressbar" aria-label="Importing referrals"
+     aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">
+  <div class="bg-primary h-full transition-all" style="width: 60%"></div>
+</div>
+```
+
+## When to use
+
+- Multi-step operations with a real completion fraction: imports,
+  uploads, multi-stage processing.
+- Showing completeness of a thing, not just a wait — e.g. profile or
+  form completion.
+
+## When not to use
+
+- Unknown duration or progress — use `spinner`. A bar that crawls
+  and stalls is worse than no bar (see the *Feedback* pattern page).
+- Loading page content — use `skeleton`.
+
+## Anatomy and options
+
+Two nested elements: a track (`bg-primary/20 relative h-2 w-full
+overflow-hidden rounded-full`) holding a fill (`bg-primary h-full
+transition-all`) whose `width` carries the percentage. `transition-all`
+animates value changes, so stepwise updates read as movement without
+any JS. Clamp the percentage to 0–100 before writing it.
+
+## Do and don't
+
+- Do drive `width` and `aria-valuenow` from real units of work
+  (records processed, bytes sent) — never from elapsed time.
+- Do pair the bar with a visible count when one exists ("32 of 120
+  records") rather than relying on the bar alone.
+- Don't park the bar at a high value while waiting on a final step;
+  if the last step's duration is unknown, the operation wants a
+  spinner for that phase.
+- Don't use a progress bar as a static gauge of unrelated quantities
+  (capacity, score) — it signals an operation in progress.
+
+## Accessibility and content
+
+- `role="progressbar"` with `aria-valuenow` / `-valuemin` /
+  `-valuemax` kept in sync with the fill width — screen readers get
+  the same number sighted users see.
+- `aria-label` names the operation: "Importing referrals".

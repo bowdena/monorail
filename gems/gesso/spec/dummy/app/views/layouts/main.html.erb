@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <%#
+      Runs before first paint to prevent a flash of unstyled content (FOUC)
+      when a dark theme preference is stored. Stimulus alone cannot do this
+      because it runs after the page has already been painted.
+    %>
+
+    <script nonce="<%= content_security_policy_nonce %>">
+      (function() {
+        var t = localStorage.getItem("theme-preference") || "system";
+        if (t === "dark" ||
+            (t === "system" &&
+             window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
+
+    <title><%= content_for(:title) || "Rails Components" %></title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Rails Components">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+
+    <%= javascript_include_tag "application",
+          "data-turbo-track": "reload", type: "module" %>
+  </head>
+
+  <body class="flex h-screen overflow-hidden bg-background">
+    <%= render_sidebar(
+          app_name: "NHS App",
+          nav_items: [
+            { label: "Dashboard",     path: "/",          icon: "layout-dashboard" },
+            { label: "Patients",      path: "/patients",  icon: "users" },
+            { label: "Changelog",     path: "/changelog", icon: "history" },
+            { label: "Settings",      path: "/settings",  icon: "settings" },
+            { label: "Support",       path: "/support",   icon: "life-buoy" }
+          ]
+        ) %>
+
+    <div class="flex flex-col flex-1 overflow-hidden min-w-0">
+      <%= render_header(
+            title: content_for(:title),
+            user_name: "Jane Smith",
+            user_initials: "JS",
+            user_email: "jane.smith@nhs.net",
+            notifications: []
+          ) %>
+
+      <main class="flex-1 overflow-auto p-6">
+        <%= yield %>
+      </main>
+    </div>
+  </body>
+</html>

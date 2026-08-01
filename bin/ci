@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Monorepo CI: run every gem and app suite, each in its own bundle, and
+# fail if any fails. Suites under gems/* and apps/* are discovered
+# automatically here. The GitHub Actions matrix in .github/workflows/ci.yml
+# is maintained by hand — add new apps there too (see README).
+root = File.expand_path("..", __dir__)
+Dir.chdir(root)
+
+suites = (Dir["gems/*"] + Dir["apps/*"]).select do |dir|
+  File.executable?(File.join(dir, "bin/ci"))
+end.sort
+
+abort "No CI suites found (looked for */bin/ci)." if suites.empty?
+
+failures = []
+suites.each do |dir|
+  puts "\n\e[1;34m==> CI: #{dir}\e[0m"
+  ok = system({ "BUNDLE_GEMFILE" => nil }, "./bin/ci", chdir: dir)
+  failures << dir unless ok
+end
+
+puts
+if failures.empty?
+  puts "\e[1;32m✓ All #{suites.size} suite(s) passed CI.\e[0m"
+  exit 0
+else
+  puts "\e[1;31m✗ CI failed: #{failures.join(", ")}\e[0m"
+  exit 1
+end

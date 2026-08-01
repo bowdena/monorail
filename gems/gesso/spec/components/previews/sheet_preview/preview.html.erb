@@ -1,0 +1,27 @@
+<%# Trigger + sheet wired to the drawer controller so it opens in Lookbook. %>
+<div data-controller="drawer" class="p-6">
+  <button type="button" class="btn" data-action="click->drawer#open">
+    Open sheet
+  </button>
+
+  <%= render_sheet(id: "demo-sheet", aria_label: "Demo sheet", side:) do %>
+    <div class="flex flex-col h-full">
+      <div class="flex items-center justify-between px-6 py-4 border-b">
+        <h2 class="text-lg font-semibold">Sheet title</h2>
+
+        <button
+          type="button"
+          data-action="click->drawer#close"
+          aria-label="Close sheet"
+          class="btn-icon-ghost"
+        >
+          <%= inline_svg_tag "icons/x.svg", class: "size-5" %>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-6 py-4">
+        <p class="text-sm text-muted-foreground">Sheet body content.</p>
+      </div>
+    </div>
+  <% end %>
+</div>

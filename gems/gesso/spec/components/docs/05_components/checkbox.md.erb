@@ -1,0 +1,71 @@
+---
+title: Checkbox
+---
+
+# Checkbox
+
+A native checkbox with its label, for yes/no choices applied when the
+form is submitted. Basecoat styles it with the `input` class; wrapping
+both in a `label` makes the whole row the click target with no
+`for`/`id` wiring.
+
+<%= embed :checkbox, :default %>
+
+```html
+<label class="label gap-3">
+  <input type="checkbox" class="input" name="consent">
+  Accept terms and conditions
+</label>
+
+<label class="label gap-3">
+  <input type="checkbox" class="input" name="include_discharged" checked>
+  Include discharged patients
+</label>
+
+<label class="label gap-3">
+  <input type="checkbox" class="input" disabled>
+  Unavailable option
+</label>
+```
+
+## When to use
+
+- A binary choice inside a form: consent, "include discharged",
+  feature opt-in.
+- Several independent picks from a list — one checkbox per option.
+
+## When not to use
+
+- Immediate on/off outside a submit flow — use `switch`.
+- Mutually exclusive options — use `radio_group`.
+- Confirming a destructive action — that is a `dialog`, not a
+  "tick to confirm" checkbox.
+
+## Anatomy and options
+
+One native input plus its label. `class="input"` does the styling;
+everything else is the platform's checkbox API:
+
+- `name` / `value` — what the form submits when ticked.
+- `checked`, `disabled`, `required` — native attributes, no wiring.
+- Wrap input and text in `label.label gap-3` as above. Only reach for
+  a separate `<label for=…>` when the two cannot nest in the layout.
+
+## Do and don't
+
+- Do phrase the label as the positive state being enabled: "Include
+  discharged patients" — ticking means yes.
+- Don't use negative labels ("Don't send notifications") — a ticked
+  negative is a double negative.
+- Don't default-tick consent or anything with consequences the user
+  hasn't seen.
+- Do keep checkbox groups under roughly seven options; longer lists
+  want search (`combobox`) or a different model.
+
+## Accessibility and content
+
+- Native `input[type=checkbox]` inside its label: clicking anywhere in
+  the label toggles, Space toggles, state is announced — nothing to
+  add.
+- An unticked `required` checkbox blocks submission natively.
+- Label is sentence case, no terminal punctuation.

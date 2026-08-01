@@ -1,0 +1,22 @@
+# Bundler config for the engine.
+/.bundle
+
+# Dummy host runtime artefacts — generated, never committed.
+/spec/dummy/db/*.sqlite3
+/spec/dummy/db/*.sqlite3-*
+/spec/dummy/log/*
+!/spec/dummy/log/.keep
+/spec/dummy/tmp/*
+!/spec/dummy/tmp/.keep
+/spec/dummy/tmp/pids/*
+!/spec/dummy/tmp/pids/.keep
+/spec/dummy/storage/*
+!/spec/dummy/storage/.keep
+/spec/dummy/public/assets
+/spec/dummy/config/master.key
+/spec/dummy/app/assets/builds/*
+!/spec/dummy/app/assets/builds/.keep
+
+# Node / yarn (build wiring lands in Slice 2).
+node_modules/
+**/.yarn/install-state.gz

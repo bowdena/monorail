@@ -1,0 +1,20 @@
+{
+  "name": "gesso",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Gesso design system — basecoat behaviour and Stimulus controllers for the Rails engine.",
+  "exports": {
+    ".": "./index.js",
+    "./controllers": "./controllers/index.js"
+  },
+  "sideEffects": [
+    "./index.js",
+    "./basecoat.js",
+    "./controllers/index.js"
+  ],
+  "peerDependencies": {
+    "@hotwired/stimulus": "^3.2.2",
+    "basecoat-css": "^0.3.11"
+  }
+}

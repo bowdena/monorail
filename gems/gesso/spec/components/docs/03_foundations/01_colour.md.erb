@@ -1,0 +1,75 @@
+---
+title: Colour
+---
+
+# Colour
+
+Every colour on a page comes from a named token. Components reference
+tokens, never raw values, so light and dark themes work without
+per-component effort.
+
+## Base palette
+
+basecoat-css ships the structural palette as CSS custom properties,
+each with a `-foreground` pair for text rendered on top of it:
+
+| Token | Use |
+| ----- | --- |
+| `--background` / `--foreground` | Page surface and default text |
+| `--card` | Card and panel surfaces |
+| `--popover` | Floating surfaces (menus, popovers, toasts) |
+| `--primary` | Primary actions and emphasis |
+| `--secondary` | Secondary actions |
+| `--muted` | De-emphasised surfaces and text |
+| `--accent` | Hover/active tinting |
+| `--destructive` | Destructive actions |
+| `--border` / `--input` / `--ring` | Borders, field borders, focus ring |
+| `--sidebar-*` | Sidebar surface, text, accent, border |
+
+Tailwind utilities are generated for each (`bg-primary`,
+`text-muted-foreground`, `border-border`, …).
+
+## Sidebar accent
+
+`--sidebar-primary` (with its `-foreground` pair) is the one brand
+accent: a blue-violet, `oklch(0.488 0.243 264.376)`, used for the
+active sidebar item and the header avatar fallback. basecoat ships
+it neutral in light mode; `theme.css` overrides it so both themes
+match the React boilerplate. It belongs to the shell — don't reach
+for it in page content, where `--primary` and the state tokens
+carry emphasis.
+
+## Clinical state tokens
+
+The NHS UI adds five semantic state colours in
+`app/assets/tailwind/theme.css`, ported from the React boilerplate.
+Values are OKLCH and theme-aware (light in `:root`, dark in `.dark`);
+each has a `-foreground` pair and generated utilities (`bg-warning`,
+`text-info`, …).
+
+| Token | Meaning | Example use |
+| ----- | ------- | ----------- |
+| `--success` | Positive outcome, completed state | success toast, positive stat-card badge |
+| `--info` | Neutral information | info alert, info badge |
+| `--warning` | Needs attention, not yet harmful | warning alert, overdue badge |
+| `--critical` | Harmful or blocking; strongest signal | critical alert, error toast |
+| `--stale` | Data past its freshness window | stale-data badge |
+
+`--critical` is the clinical-severity counterpart to basecoat's
+`--destructive`: use `--destructive` for destructive *actions*
+(delete buttons) and `--critical` for critical *states* (alerts,
+toasts, badges).
+
+## Rules
+
+- Never hard-code a colour value in a component or page — extend
+  `theme.css` if a genuinely new semantic colour is needed (rare).
+- Pick tokens by meaning, not appearance. A badge is `--warning`
+  because the data needs attention, not because orange looks right.
+- Always pair a surface token with its `-foreground` for text on it.
+- State colours signal state; they are not decoration. A page should
+  read calmly in neutrals with state colour drawing the eye only to
+  what needs it.
+- Both themes come free if tokens are used; check dark mode anyway
+  when composing dense state-colour UIs (the theme toggle is in the
+  header).

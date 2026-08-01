@@ -1,0 +1,74 @@
+---
+title: Command
+---
+
+# Command
+
+A searchable menu of grouped actions and destinations, filtered as
+the user types.
+
+<%= embed :command, :default %>
+
+## When to use
+
+- A jump-anywhere menu over many destinations or actions, grouped by
+  area.
+- Power-user access to actions that are otherwise spread across
+  pages.
+
+## When not to use
+
+- Choosing a *value* for a form — `combobox` submits; command
+  navigates and acts.
+- A handful of actions — plain buttons or links; a search layer over
+  five items is ceremony.
+- The ⌘K global palette — that combines `command` with the `dialog`
+  primitive and is built per app, not shipped here.
+
+## Usage
+
+`render_command` (`Gesso::Components::CommandHelper`) renders the grouped
+command menu; behaviour comes from basecoat's vendored `command.js`,
+filtering client-side.
+
+```erb
+<%%= render_command(
+  placeholder: "Search…",
+  groups: [
+    {
+      label: "Navigation",
+      items: [
+        { label: "Patients", href: "/patients", icon: "users" },
+        { label: "Settings", href: "/settings", icon: "settings" }
+      ]
+    }
+  ]
+) %>
+```
+
+| Param | Default | Notes |
+| ----- | ------- | ----- |
+| `groups` | `[]` | `{ label:, items: [{ label:, href:, icon: }] }`; `icon` is an `icons/` svg name |
+| `placeholder` | `"Search…"` | search input placeholder |
+| `empty` | basecoat's "No results found." | no-match text, via `data-empty` |
+
+## Do and don't
+
+- Do group items by where they live in the product, with group
+  labels matching sidebar section names.
+- Do give items their established lucide icons — recognition beats
+  reading in a fast-filter list.
+- Don't mix destructive actions into a command list without their
+  confirmation dialogs behind them.
+- Don't duplicate every page link into command; it earns its place
+  by covering the *deep* destinations search would otherwise miss.
+
+## Accessibility and content
+
+- Renders `role="menu"` with `role="group"` / `role="heading"` /
+  `role="menuitem"` structure; filtering and keyboard movement come
+  from the basecoat pattern.
+- Item labels are the destination or action name as it appears at
+  the target — no clever synonyms; users type what they remember.
+- The empty state (`empty:`) follows filtered-to-nothing copy: "No
+  matching actions."

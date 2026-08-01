@@ -1,0 +1,18 @@
+<div class="flex flex-col gap-3 p-4 max-w-md">
+  <%= render_notification_item(notification: { type: "info",
+        title: "New version available",
+        message: "A new version of the app is available.",
+        time: "5m ago", read: false }) %>
+  <%= render_notification_item(notification: { type: "success",
+        title: "Report generated",
+        message: "Your monthly report is ready for download.",
+        time: "30m ago", read: false }) %>
+  <%= render_notification_item(notification: { type: "warning",
+        title: "Action required",
+        message: "Please review the pending requests in your queue.",
+        time: "2h ago", read: false }) %>
+  <%= render_notification_item(notification: { type: "info",
+        title: "Welcome",
+        message: "A read notification is muted.",
+        time: "1d ago", read: true }) %>
+</div>

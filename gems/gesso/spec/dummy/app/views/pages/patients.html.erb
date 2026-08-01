@@ -1,0 +1,125 @@
+<% content_for :title, "Patients" %>
+
+<% urn_panel = capture do %>
+  <%= render_card do %>
+    <p class="text-sm text-muted-foreground mb-4">
+      Enter a patient's URN (up to 7 digits). Leading zeros are added automatically.
+    </p>
+
+    <div class="flex gap-3">
+      <label for="urn" class="sr-only">URN</label>
+
+      <input
+        type="text"
+        id="urn"
+        inputmode="numeric"
+        maxlength="7"
+        placeholder="Enter URN (e.g. 1234567)"
+        class="input max-w-xs"
+        autocomplete="off"
+      >
+
+      <%= render_button do %>
+        <%= inline_svg_tag "icons/search.svg", class: "size-4" %> Search
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
+
+<% advanced_panel = capture do %>
+  <%= render_card(title: "Advanced Search",
+        description: "Search by name, date of birth, or phone. Fill in any combination of fields.") do %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="space-y-2">
+        <%= label_tag :first_name, "First Name", class: "label" %>
+
+        <%= text_field_tag :first_name, nil,
+              placeholder: "Enter first name", class: "input" %>
+      </div>
+
+      <div class="space-y-2">
+        <%= label_tag :last_name, "Last Name", class: "label" %>
+
+        <%= text_field_tag :last_name, nil,
+              placeholder: "Enter last name", class: "input" %>
+      </div>
+
+      <div class="space-y-2">
+        <label class="label" id="dob-label">Date of Birth</label>
+
+        <div class="flex items-center gap-1" role="group" aria-labelledby="dob-label">
+          <%= text_field_tag :dob_day, nil,
+                placeholder: "DD",
+                aria: { label: "Day of birth" },
+                inputmode: "numeric", maxlength: 2,
+                autocomplete: "off",
+                class: "input w-16 text-center" %>
+
+          <span class="text-muted-foreground" aria-hidden="true">/</span>
+
+          <%= text_field_tag :dob_month, nil,
+                placeholder: "MM",
+                aria: { label: "Month of birth" },
+                inputmode: "numeric", maxlength: 2,
+                autocomplete: "off",
+                class: "input w-16 text-center" %>
+
+          <span class="text-muted-foreground" aria-hidden="true">/</span>
+
+          <%= text_field_tag :dob_year, nil,
+                placeholder: "YYYY",
+                aria: { label: "Year of birth" },
+                inputmode: "numeric", maxlength: 4,
+                autocomplete: "off",
+                class: "input w-20 text-center" %>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <%= label_tag :phone, "Phone Number", class: "label" %>
+
+        <%= telephone_field_tag :phone, nil,
+              placeholder: "Enter phone number", class: "input" %>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <%= render_button do %>
+        <%= inline_svg_tag "icons/search.svg", class: "size-4" %> Search
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
+
+<div class="max-w-4xl space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold">Patients</h1>
+
+    <p class="mt-1 text-sm text-muted-foreground">
+      Search for patients by URN or use advanced search criteria.
+    </p>
+  </div>
+
+  <%# Example selected patient — shows what the header looks like %>
+  <%= render_patient_info_header(
+        patient: {
+          urn: "1234567",
+          first_name: "Jane",
+          last_name: "Smith",
+          dob: "15 Mar 1985",
+          gender: "F",
+          address: "123 Main St, Sydney NSW 2000"
+        }
+      ) %>
+
+  <%= render_tabs(id: "patients", tabs: [
+        { label: safe_join([
+            inline_svg_tag("icons/search.svg", class: "size-4 mr-1 inline-block"),
+            " URN Search"
+          ]), content: urn_panel },
+        { label: safe_join([
+            inline_svg_tag("icons/filter.svg", class: "size-4 mr-1 inline-block"),
+            " Advanced Search"
+          ]), content: advanced_panel }
+      ]) %>
+</div>

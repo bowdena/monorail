@@ -1,0 +1,122 @@
+---
+title: Button
+---
+
+# Button
+
+Triggers an action on the current page — submitting a form, opening
+an overlay, running an operation.
+
+## Usage
+
+`render_button` (`Gesso::Components::ButtonHelper`) validates the options and
+renders the component; the block is the label.
+
+```erb
+<%%= render_button(variant: "primary") do %>
+  Save changes
+<%% end %>
+```
+
+`size` and `variant` combine freely, and any option below can be passed
+in the same call:
+
+```erb
+<%%= render_button(variant: "destructive", size: "sm", type: "submit") do %>
+  Delete record
+<%% end %>
+```
+
+## When to use
+
+- Performing an action: save, add, remove, open, confirm.
+- Submitting a form (`type: "submit"`).
+
+## When not to use
+
+- Navigating to another page — use a link. If it changes the URL, it
+  is a link, however button-like it looks.
+- Switching views in place — use `tabs`.
+- Toggling a setting — use `switch` or `checkbox`.
+
+## Variants
+
+<%= embed :button, :variants %>
+
+| Variant | When to use |
+| ------- | ----------- |
+| `primary` | The view's single main action — Save, Submit, Confirm. Keep one per view. |
+| `secondary` | A supporting action sitting beside the primary one. |
+| `outline` | Secondary and toolbar actions — the most-used workhorse in the production apps. |
+| `ghost` | Low-emphasis actions in dense UI: toolbars, menus, icon buttons. |
+| `link` | An action that must sit inline in running text. Rarely needed. |
+| `destructive` | Deletion or removal — irreversible or dangerous actions. |
+| `warning` | An action that needs caution but isn't destructive. |
+| `info` | A neutral, informational highlighted action. |
+| `default` | The bare `btn` base, for when you supply your own treatment. |
+
+## Options
+
+| Param | Values | Notes |
+| ----- | ------ | ----- |
+| `variant` | see **Variants** above | maps to basecoat `btn-*` |
+| `size` | `default` `sm` `lg` `icon` | `icon` is the square icon-only size |
+| `type` | `button` (default) `submit` `reset` | |
+| `loading` | boolean | spinner + disabled while in flight |
+| `disabled` | boolean | |
+| `classes` | string | extra CSS classes |
+
+## Loading state
+
+`loading` is owned by a small Stimulus controller (`button`). The
+label stays in the DOM beside the spinner the whole time, so the
+accessible name never disappears mid-action.
+
+**Starting the spinner — two ways:**
+
+- *On click.* Every button carries `data-action="button#load"`, so
+  clicking sets the loading value, reveals the spinner and disables the
+  button in one step. This is the common case: a submit button that
+  must not fire twice.
+- *Pre-loaded.* Render with `loading: true` to draw the button already
+  spinning and disabled — e.g. a row re-rendered while its operation is
+  still in flight.
+
+**Stopping the spinner.** The controller has no stop method by design.
+The loading state ends when the button is re-rendered without
+`loading:` — and in a normal Turbo flow that happens for free: the
+action's response (a redirect, Turbo Stream, frame or morph) replaces
+the button with a fresh, non-loading one. To clear it *without*
+re-rendering, set the element's `data-button-loading-value` back to
+`false`; `loadingValueChanged` then hides the spinner and re-enables the
+button.
+
+**When to use it.** Reach for `loading` on actions that make a server
+round-trip and must not be triggered twice — form submits and "running"
+operations. It fits the request → response → replace lifecycle: the
+click starts the spinner, the response clears it. Don't use it for
+instant client-side actions (there is nothing to wait for), and don't
+leave a button spinning on an action that never re-renders it — let
+Turbo replace the button, or reset the value yourself.
+
+## Do and don't
+
+- Do keep one `primary` button per view; demote the rest to
+  `outline` or `ghost`.
+- Do use `loading` on submit buttons — it disables and spins,
+  preventing double submission.
+- Do pair icon-only buttons (`size: "icon"`) with an `aria-label`
+  via `classes` and a familiar icon.
+- Don't disable a button to explain anything — if the action is
+  unavailable, say why next to it or omit it. `disabled` is for
+  momentary states (in-flight, incomplete form).
+- Don't use `destructive` for emphasis; red means deletion.
+
+## Accessibility and content
+
+- Renders a real `<button>` with an explicit `type` — never a styled
+  `<div>`; keyboard and form semantics come free.
+- The loading state keeps the label in the DOM beside the spinner,
+  so the accessible name never disappears mid-action.
+- Labels are verb-first, sentence case, naming the outcome ("Add to
+  episode") — see the *Content* foundations page.
