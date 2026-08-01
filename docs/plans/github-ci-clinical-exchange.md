@@ -90,8 +90,11 @@ work with no extra setup. If cuprite cannot find the binary, the fix is
 `browser_path: ENV["CHROME_PATH"]` rather than installing a browser.
 
 **Caching.** `bundler-cache: true` for gems, `cache: yarn` for node
-modules, and the `actions/cache` rubocop cache carried over from the
-dead `ci.yml`.
+modules, and the rubocop `actions/cache` block carried over from the
+dead `ci.yml` — kept as generated Rails boilerplate, with its paths
+rewritten to be workspace-relative. It buys little while the app is
+small (32 files inspect in 1.2s cold) and earns its keep as the app
+grows.
 
 **Concurrency.** One in-flight run per ref, `cancel-in-progress: true`,
 so a fast follow-up push supersedes the previous run.
@@ -130,7 +133,7 @@ so a fast follow-up push supersedes the previous run.
 **Spec:** No spec — verified by `corepack enable && yarn install
 --immutable` leaving `yarn.lock` unchanged, and `yarn --version`
 reporting 4.18.0.
-**Status:** pending
+**Status:** done
 
 ### Slice 2: Add the CI workflow
 **Commit:** `chore: run clinical_exchange CI on GitHub`
@@ -139,7 +142,7 @@ reporting 4.18.0.
 **Spec:** No RSpec coverage — YAML workflows are verified by the run
 itself. Acceptance is a green run on this branch, plus a docs-only
 push that triggers nothing.
-**Status:** pending
+**Status:** in-progress
 
 ### Slice 3: Lift dependabot to the repo root
 **Commit:** `chore: move dependabot config to the root`
