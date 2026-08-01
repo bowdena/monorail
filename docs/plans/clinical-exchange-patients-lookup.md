@@ -108,7 +108,7 @@ returned. `Conduit::IPM::Patient` is a `ROM::Struct` with `urn`,
 **Spec:** none — documentation only. Verified by reading the code paths
 it describes: `Conduit.ipm`, `Repositories::Patients`, `Repository#
 guarded`, `IPM::Patient`.
-**Status:** pending
+**Status:** done
 
 ### Slice 2: Configure conduit in the app
 **Commit:** `feat: configure conduit in clinical exchange`

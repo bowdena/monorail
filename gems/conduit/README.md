@@ -38,8 +38,9 @@ Conduit.configure do |config|
 end
 ```
 
-Configure only the sources you use. Querying an unconfigured source
-returns a failed `Result` with `Error::NotConfigured`.
+Configure only the sources you use. Reaching an unconfigured source
+raises `Error::NotConfigured` — before a gateway is opened, so a
+misconfigured app cannot connect at all.
 
 The valid source names are discoverable at runtime — configuring
 anything else raises at boot, naming this list:
@@ -64,36 +65,47 @@ One MSSQL instance hosts a database per source.
 
 ## Querying
 
-Named queries only; each returns a `Conduit::Result` and never
-raises on database failure.
+Named queries only, reached through the repositories for a source.
+`Conduit.ipm` is the entry point; each query returns records, or
+raises a typed `Conduit::Error` when the database fails.
 
 ```ruby
-result = Conduit::IPM::Patients.find_by_urn(urn: "0700003")
-result = Conduit::IPM::Patients.find_all_by(
+patients = Conduit.ipm.patients
+
+patients.by_urn("0700003")   # => Conduit::IPM::Patient, or nil
+patients.by_urn!("0700003")  # => Patient; raises Error::NotFound
+patients.find_all_by(
   first_name: "Tori", last_name: "Judd",
   date_of_birth: Date.new(1957, 9, 29)
-)
-result = Conduit::IPM::Patients.matching(last_name: "jud")
+)                                    # => [Patient]
+patients.matching(last_name: "jud")  # => [Patient]
 ```
 
-- `find_by_urn` — one patient by URN; fails with `Error::NotFound`
-  when nothing matches.
+- `by_urn` — one patient by that exact URN, or `nil` when nothing
+  matches. URNs are matched as stored: a caller that abbreviates them
+  pads to the stored width itself. `by_urn!` raises `Error::NotFound`
+  rather than returning `nil`.
 - `find_all_by` — exact, case-insensitive name matching (any subset
-  of first name, last name, date of birth); succeeds with `[]` when
-  nothing matches.
+  of first name, last name, date of birth); `[]` when nothing
+  matches.
 - `matching` — like `find_all_by`, but names match on any fragment.
   Date of birth stays exact — a fuzzy date has no meaning.
+
+Archived patients are never returned.
 
 `find_all_by` and `matching` raise `ArgumentError` when every
 criterion is blank: matching the entire table is a caller bug, not a
 query.
 
+Failures are raised, not returned, so a caller that must degrade
+rather than fail rescues them:
+
 ```ruby
-if result.success?
-  result.records  # frozen Data rows (Conduit::IPM::Patient)
-  result.record   # first record, for single-row queries
-else
-  result.error    # a Conduit::Error subclass — see below
+begin
+  patients.matching(last_name: "jud")
+rescue Conduit::Error => error
+  raise unless error.transient?
+  # server unreachable or timed out — fall back to something local
 end
 ```
 
@@ -112,7 +124,7 @@ resource in this gem — apps never reach past the public API.
 
 ## Record shapes
 
-Every row is a frozen Ruby `Data` value — plain attributes, no
+Every row is a `ROM::Struct` value — plain attributes, no
 ActiveRecord, no lazy loading, safe to pass around and cache.
 
 | Type                    | Attributes                                 |
@@ -126,25 +138,29 @@ Internal keys never leak: patients expose the URN (iPM's `PASID`),
 not the replica's `PATNT_REFNO` primary key, and reference codes
 arrive as their descriptions (`gender`, `atsi_status`).
 
-The shapes are also discoverable at runtime, since `Data` classes
+The shapes are also discoverable at runtime, since struct classes
 describe themselves:
 
 ```ruby
-Conduit::IPM::Patient.members
+Conduit::IPM::Patient.attribute_names
 # => [:urn, :first_name, :last_name, :date_of_birth, :gender,
 #     :atsi_status, :merged_from]
 
-result.record.to_h   # attribute => value hash for a fetched record
+record.to_h      # attribute => value hash for a fetched record
+record.merged?   # true when merge resolution moved the record
 ```
 
-`members` is the contract — if a column is added to a source, it only
-reaches apps when the Data type and its mapping grow to include it.
+`attribute_names` is the contract — if a column is added to a source,
+it only reaches apps when the struct and its mapping grow to include
+it.
 
 ## Errors
 
-Every failure is a typed error on `result.error`, carrying `message`,
-`source` (which database was involved) and `cause` (the underlying
-adapter exception, when there is one).
+Every failure is a typed `Conduit::Error` subclass, carrying
+`message`, `source` (which database was involved) and `cause` (the
+underlying adapter exception, when there is one). Failures that are
+not database failures — a bug in this gem, say — are left alone
+rather than dressed up as infrastructure errors.
 
 | Error                         | Meaning                                 |
 |-------------------------------|-----------------------------------------|
@@ -153,31 +169,37 @@ adapter exception, when there is one).
 | `Error::PermissionDenied`     | grant or database missing for the login |
 | `Error::ConnectionFailed`     | server unreachable / down               |
 | `Error::Timeout`              | connect or statement took too long      |
-| `Error::NotFound`             | `find` matched no row                   |
+| `Error::NotFound`             | a bang query matched no row             |
 | `Error::QueryError`           | statement failed; also the catch-all    |
 
 Rather than listing classes, branch on the remediation predicates:
 
 ```ruby
-case
-when result.error.configuration?
-  # NotConfigured, AuthenticationFailed, PermissionDenied — a human
-  # must fix settings or provisioning; alert loudly.
-when result.error.transient?
-  # ConnectionFailed, Timeout — retrying later may succeed; degrade
-  # gracefully.
-else
-  # NotFound is a domain outcome; QueryError is a conduit bug —
-  # report it.
+begin
+  Conduit.ipm.patients.by_urn!(urn)
+rescue Conduit::Error => error
+  case
+  when error.configuration?
+    # NotConfigured, AuthenticationFailed, PermissionDenied — a human
+    # must fix settings or provisioning; alert loudly.
+  when error.transient?
+    # ConnectionFailed, Timeout — retrying later may succeed; degrade
+    # gracefully.
+  else
+    # NotFound is a domain outcome; QueryError is a conduit bug —
+    # report it.
+  end
 end
 ```
 
 ## Audit trail
 
-Conduit emits a `query.conduit` event for every query — guard
-failures included, so even a misconfigured app leaves a trace.
-Subscribe once in an initializer with `Conduit.on_query`, which
-yields a typed `Conduit::QueryEvent`.
+Conduit emits a `query.conduit` event for every query that reaches a
+repository, failures included — a rejected login or a missing grant
+leaves a trace carrying its error. An unconfigured source is the one
+gap: `Conduit.ipm` raises before any query runs, so nothing is
+emitted. Subscribe once in an initializer with `Conduit.on_query`,
+which yields a typed `Conduit::QueryEvent`.
 
 Subscribers run synchronously in the calling thread. That is the
 contract that lets your app attach its own user context: conduit
