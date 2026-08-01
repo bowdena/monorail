@@ -1,6 +1,7 @@
 {
   "name": "app",
   "private": true,
+  "packageManager": "yarn@4.18.0",
   "devDependencies": {
     "@herb-tools/formatter": "^0.10.2",
     "@herb-tools/linter": "^0.10.2",
