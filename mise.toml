@@ -5,6 +5,7 @@ monorepo_root = true
 
 [monorepo]
 config_roots = [
+  "apps/clinical_exchange",
   "gems/conduit"
 ]
 

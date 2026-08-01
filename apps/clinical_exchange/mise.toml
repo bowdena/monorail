@@ -1,0 +1,38 @@
+# Local Postgres cluster for clinical_exchange, following the recipe
+# commented out in the repo root mise.toml. The cluster lives under
+# tmp/, so it is disposable and already gitignored by Rails.
+#
+# First run:  mise run db:init && mise run db:start && bin/rails db:prepare
+# After that: mise run db:start / mise run db:stop
+#
+# These tasks manage the Postgres server only. Rails owns the databases
+# inside it — create them with bin/rails db:prepare.
+
+[env]
+PGDATA = "{{config_root}}/tmp/.postgres/data"
+PGPORT = "5510"
+PGUSER = "postgres"
+PGPASSWORD = "postgres"
+
+[tasks."db:init"]
+description = "Create the Postgres data directory (first run only)"
+run = """
+set -euo pipefail
+
+# initdb can only take the superuser password from a file, so write one
+# and remove it however the task exits.
+password_file="$MISE_PROJECT_ROOT/tmp/.pgpass_tmp"
+trap 'rm -f "$password_file"' EXIT
+
+mkdir -p "$(dirname "$PGDATA")"
+echo "$PGPASSWORD" > "$password_file"
+initdb --locale=en_US.UTF-8 --username="$PGUSER" --pwfile="$password_file"
+"""
+
+[tasks."db:start"]
+description = "Start Postgres"
+run = "pg_ctl start --log=$PGDATA/server.log"
+
+[tasks."db:stop"]
+description = "Stop Postgres"
+run = "pg_ctl stop"
