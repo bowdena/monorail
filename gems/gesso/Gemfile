@@ -5,7 +5,7 @@ source "https://rubygems.org"
 gemspec
 
 # The dummy host app (spec/dummy) exercises the engine as a full Rails app.
-gem "rails", "~> 8.1.3"
+gem "rails", "~> 8.1.3.1"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use sqlite3 as the database for Active Record
