@@ -1,0 +1,25 @@
+# Throwaway MSSQL instance for conduit's integration specs: one
+# server on localhost:1433 — Conduit::Sources' test default — with
+# the sa password the seeder expects. The suite creates and seeds
+# the iPM_REPL database itself on first run, so the container needs
+# no seed mounts and no persistent volume: down discards everything,
+# the next run reseeds.
+# Driven by the mssql:up / mssql:down mise tasks alongside this file.
+name: conduit
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${CONDUIT_TEST_ADMIN_PASSWORD:-Your_strong_Passw0rd}"
+    ports:
+      - "${CONDUIT_MSSQL_PORT:-1433}:1433"
+    # up --wait blocks until sqlcmd can log in, so the specs can run
+    # immediately after the task returns.
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -Q "SELECT 1" -b
+      interval: 5s
+      start_period: 30s
+      retries: 12

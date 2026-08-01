@@ -1,0 +1,21 @@
+source "https://rubygems.org"
+
+# The conduit gem itself, loaded from conduit.gemspec in this directory.
+gemspec
+
+group :development, :test do
+  # Audits gems for known security defects
+  gem "bundler-audit", require: false
+
+  gem "debug", platforms: %i[mri windows], require: "debug/prelude"
+
+  gem "rake", require: false
+
+  # [https://github.com/standardrb/standard]
+  gem "rubocop-rspec", "~> 3.10.0", require: false
+  gem "standard", "~> 1.56.0", require: false
+end
+
+group :test do
+  gem "rspec"
+end
