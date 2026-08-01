@@ -75,8 +75,15 @@ returned. `Conduit::IPM::Patient` is a `ROM::Struct` with `urn`,
   subclasses.
 - **Audit** — `Conduit.on_query` subscriber logging via `Rails.logger`.
   No table, no user context; the app has no authentication yet.
-- **Credentials** — Rails credentials, `conduit.ipm.username` /
-  `password`. Requires a regenerated master key (see slice 2).
+- **Credentials** — per-environment Rails credentials, each with its own
+  key: `config/credentials/development.yml.enc`, `test.yml.enc` and
+  `production.yml.enc`, holding `conduit.ipm.username` / `password`.
+  Development and test carry dummy values for the local MSSQL container;
+  production carries the real SELECT-only login. CI decrypts with a
+  `RAILS_MASTER_KEY` secret holding the *test* key — Rails falls back to
+  that variable for whichever environment file is active. The existing
+  `config/credentials.yml.enc` has no key and no reader once the
+  per-environment files exist.
 - **Chrome** — sidebar and header move into the application layout,
   copying the wiring in gesso's dummy `layouts/main.html.erb`.
 
@@ -112,17 +119,30 @@ guarded`, `IPM::Patient`.
 
 ### Slice 2: Configure conduit in the app
 **Commit:** `feat: configure conduit in clinical exchange`
-**Prerequisite (you run this):** `bin/rails credentials:edit` in
-`apps/clinical_exchange` to mint `config/master.key` and add the conduit
-entries, then add `RAILS_MASTER_KEY` as a GitHub Actions secret. The
-current `credentials.yml.enc` cannot be decrypted and its contents are
-lost.
+**Prerequisite (you run these):** in `apps/clinical_exchange`, one per
+environment —
+`bin/rails credentials:edit --environment development`, `--environment
+test`, `--environment production` — each holding
+
+```yaml
+conduit:
+  ipm:
+    username: <login>
+    password: <password>
+```
+
+then add `RAILS_MASTER_KEY` as a GitHub Actions secret holding the
+contents of `config/credentials/test.key`.
 **Files:** `apps/clinical_exchange/Gemfile`, `Gemfile.lock`,
-`config/initializers/conduit.rb`, `config/credentials.yml.enc`,
-`.github/workflows/clinical_exchange.yml`,
+`config/initializers/conduit.rb`,
+`config/credentials/{development,test,production}.yml.enc`,
+`.github/workflows/clinical_exchange.yml`, `README.md`,
 `spec/initializers/conduit_spec.rb`
 **Spec:** conduit is configured with the application name and the ipm
 source; a `query.conduit` event is written to the Rails log.
+**Note:** the README documents the conduit variables a deployed
+environment must supply — `CONDUIT_MSSQL_HOST`, `CONDUIT_MSSQL_PORT`,
+`CONDUIT_IPM_DATABASE`.
 **Status:** pending
 
 ### Slice 3: Put the chrome in the layout
