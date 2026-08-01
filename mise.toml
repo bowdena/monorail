@@ -5,10 +5,15 @@ monorepo_root = true
 
 [monorepo]
 config_roots = [
+  "apps/clinical_exchange",
   "gems/conduit"
 ]
 
 [tools]
+# gh is the GitHub CLI. bin/ci signs off through it via the
+# basecamp/gh-signoff extension, installed separately with
+# `gh extension install basecamp/gh-signoff`.
+gh = "2.97.0"
 postgres = "18.4"
 ruby = "4.0.6"
 nodejs = "26.5.1"
