@@ -54,6 +54,7 @@ module Gesso
         scripts = (pkg["scripts"] ||= {})
         scripts["build"] =
           scripts["build"] ? preserving_symlinks(scripts["build"]) : DEFAULT_BUILD
+        @unwired_build = scripts["build"] unless wired?(scripts["build"])
 
         create_file "package.json", JSON.pretty_generate(pkg) + "\n", force: true
       end
@@ -86,9 +87,20 @@ module Gesso
         say %(  1. Ensure your Gemfile has: gem "gesso", path: "#{gesso_gem_path}")
         say "  2. Run: bundle install && yarn install"
         say "  3. Start bin/dev (or build once: bin/rails tailwindcss:build && yarn build)"
+        show_unwired_build_warning if @unwired_build
       end
 
       private
+        def show_unwired_build_warning
+          say ""
+          say "Your build script was left as it is:", :yellow
+          say "  #{@unwired_build}"
+          say "gesso installs as a link: dependency, so the bundler has to"
+          say "resolve it without following the symlink. esbuild does that"
+          say "with --preserve-symlinks; pass your bundler's equivalent, or"
+          say %(`import "gesso"` will not resolve.)
+        end
+
         def file_exists?(relative)
           File.exist?(File.join(destination_root, relative))
         end
@@ -103,6 +115,10 @@ module Gesso
           return script if script.include?("--preserve-symlinks")
 
           "#{script} --preserve-symlinks"
+        end
+
+        def wired?(script)
+          script.include?("--preserve-symlinks")
         end
 
         def already_precompiles?

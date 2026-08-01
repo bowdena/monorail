@@ -15,6 +15,18 @@ RSpec.describe Gesso::Generators::InstallGenerator do
     generator.shell.mute { generator.invoke_all }
   end
 
+  # The generator says its post-install notes through the shell, which
+  # run_generator mutes; this runs it unmuted to assert on what it said.
+  def generator_output
+    generator = described_class.new([], [], destination_root: @dir)
+    original_stdout = $stdout
+    $stdout = StringIO.new
+    generator.invoke_all
+    $stdout.string
+  ensure
+    $stdout = original_stdout
+  end
+
   def read(relative)
     File.read(File.join(@dir, relative))
   end
@@ -96,6 +108,25 @@ RSpec.describe Gesso::Generators::InstallGenerator do
 
     expect(JSON.parse(read("package.json")).dig("scripts", "build"))
       .to eq("rollup -c")
+  end
+
+  # Declining silently leaves the app with an unresolvable import and no
+  # clue why, so the one thing left to do by hand has to be said out loud.
+  it "warns when it cannot wire a build script it did not write" do
+    write_package_json("scripts" => { "build" => "rollup -c" })
+
+    output = generator_output
+
+    expect(output).to include("rollup -c")
+    expect(output).to include("--preserve-symlinks")
+  end
+
+  it "says nothing about the build when it wired one" do
+    write_package_json("scripts" => {
+      "build" => "esbuild app/javascript/*.* --bundle"
+    })
+
+    expect(generator_output).not_to include("could not")
   end
 
   it "installs the asset precompile hook" do
