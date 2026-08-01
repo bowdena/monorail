@@ -15,3 +15,6 @@ application.register("sidebar", SidebarController)
 
 import DrawerController from "./drawer_controller"
 application.register("drawer", DrawerController)
+
+import ComboboxController from "./combobox_controller"
+application.register("combobox", ComboboxController)

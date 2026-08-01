@@ -35,24 +35,10 @@ class ComboboxPreview < Lookbook::Preview
     )
   end
 
-  # Without search filter.
-  def not_searchable
-    preview(
-      name: "size",
-      selected: "medium",
-      searchable: false,
-      options: [
-        { value: "small",  label: "Small" },
-        { value: "medium", label: "Medium" },
-        { value: "large",  label: "Large" }
-      ]
-    )
-  end
-
   private
     def preview(name: nil, options: [], selected: nil,
-                placeholder: "Select…", searchable: true, id: nil)
+                placeholder: "Select…", id: nil)
       render_with_template(template: "combobox_preview/preview",
-        locals: { name:, options:, selected:, placeholder:, searchable:, id: })
+        locals: { name:, options:, selected:, placeholder:, id: })
     end
 end
