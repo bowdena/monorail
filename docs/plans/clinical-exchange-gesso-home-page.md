@@ -72,10 +72,16 @@ end and every later page has a documented pattern to follow.
 
 ## Open Questions
 - `gems/gesso/README.md` points at `bin/lookbook` from the repo root, and
-  at `apps/app_one` as a worked example. Neither exists. → Resolution: the
-  new steering file documents the command that works today,
-  `cd gems/gesso/spec/dummy && bin/dev`. Adding `bin/lookbook` and fixing
-  the README are a separate chore.
+  at `apps/app_one` as a worked example. Neither exists. → Resolved in
+  slices 7 and 8: `bin/lookbook` gets built, because the README was
+  describing a genuinely useful shortcut rather than a mistake, and the
+  worked example becomes `apps/clinical_exchange`, which this feature
+  makes true.
+- `01_build_recipe.md.erb` tells an author to write a spec under
+  `spec/docs/`, which does not exist. → Slice 8 removes the three
+  mentions. Building doc-page specs would be real coverage — the pages
+  are ERB with live embeds, so a broken embed currently fails unnoticed —
+  but that is a feature, not a correction.
 - The GitHub Actions workflow runs only `scan_ruby` and `lint` — there is
   no RSpec job, so the system spec added here will not run in CI. → Flagged
   for a separate chore; `bin/ci` does run the suite locally.
@@ -133,7 +139,7 @@ bundler cannot drop the `Application.start()` call.
 **Spec:** The installer copies its hook into an app that has none, and
 leaves an app that already has one at any `spec/**/precompile_assets.rb`
 untouched.
-**Status:** pending
+**Status:** done
 
 ### Slice 2c: Install the build flag into existing apps
 **Commit:** `fix: add the build flag to an existing script`
@@ -143,7 +149,16 @@ untouched.
 **Spec:** An app whose `package.json` already declares a `build` script
 without `--preserve-symlinks` gains the flag, with the rest of the
 command left alone.
-**Status:** pending
+**Status:** done
+
+### Slice 2d: Warn when the build script cannot be wired
+**Commit:** `feat: warn when the build cannot be wired`
+**Files:**
+- `gems/gesso/lib/generators/gesso/install/install_generator.rb`
+- `gems/gesso/spec/generators/install_generator_spec.rb`
+**Spec:** An app whose build script is not esbuild's is told so by name,
+with the reason; an app that was wired hears nothing about it.
+**Status:** done
 
 ### Slice 2: Consume the gesso engine
 **Commit:** `chore: consume the gesso design system`
@@ -158,7 +173,16 @@ command left alone.
   own hook, moved from `spec/system/support/` so request specs get assets)
 **Spec:** No new spec. Asset build succeeds, the gesso theme reaches
 `app/assets/builds`, and the bundle holds exactly one `Application.start()`.
-**Status:** pending
+**Status:** done
+
+### Slice 2e: Namespace the app's precompile hook
+**Commit:** `chore: namespace the asset precompile hook`
+**Files:**
+- `apps/clinical_exchange/spec/support/precompile_assets.rb`
+**Spec:** None new. The hook came from the old template and defined its
+predicates on `Object`; the suite stays green and assets still build for
+request and system specs.
+**Status:** done
 
 ### Slice 3: Home page at root
 **Commit:** `feat: add a gesso-backed home page at root`
@@ -169,7 +193,7 @@ command left alone.
 - `apps/clinical_exchange/spec/requests/static_pages_spec.rb`
 **Spec:** `GET /` responds 200, renders the `home` template, and the body
 carries the markup the gesso helpers emit.
-**Status:** pending
+**Status:** done
 
 ### Slice 4: Browser coverage for the home page
 **Commit:** `test: cover the home page in a browser`
@@ -178,7 +202,7 @@ carries the markup the gesso helpers emit.
 **Spec:** Visiting `/` shows the heading, the gesso theme stylesheet is
 served and applied, and gesso's Stimulus bundle is loaded — the check that
 catches a silently empty asset build.
-**Status:** pending
+**Status:** done
 
 ### Slice 5: Steer the app at the gesso documentation
 **Commit:** `docs: steer llms to the gesso design system`
@@ -186,11 +210,31 @@ catches a silently empty asset build.
 - `apps/clinical_exchange/.claude/rails/design_system.md` (new)
 - `apps/clinical_exchange/CLAUDE.md` (self-loading table rows)
 **Spec:** None — documentation.
-**Status:** pending
+**Status:** done
 
 ### Slice 6: Component authoring rules inside gesso
 **Commit:** `docs: add authoring rules to the gesso engine`
 **Files:**
 - `gems/gesso/CLAUDE.md` (new)
 **Spec:** None — documentation.
+**Status:** done
+
+### Slice 7: A lookbook shortcut at the repository root
+**Commit:** `chore: add a lookbook shortcut at the repo root`
+**Files:**
+- `bin/lookbook` (new, executable)
+- `apps/clinical_exchange/.claude/rails/design_system.md`
+**Spec:** None — a shell wrapper. Verified by running it and reaching
+`:3000/lookbook`. The steering file's note that the shortcut does not
+exist is replaced by the shortcut itself.
+**Status:** pending
+
+### Slice 8: Correct stale references in gesso's docs
+**Commit:** `docs: correct stale references in gesso`
+**Files:**
+- `gems/gesso/README.md`
+- `gems/gesso/spec/components/docs/06_for_llms/01_build_recipe.md.erb`
+**Spec:** None — documentation. Confirm nothing else in the repository
+references the removed names and that Lookbook still renders the build
+recipe page.
 **Status:** pending
