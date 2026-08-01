@@ -32,6 +32,12 @@ RSpec.describe Gesso::Components::ButtonHelper, type: :helper do
       .to have_css("button.btn[data-variant='ghost'][data-size='icon-sm']")
   end
 
+  it "passes aria attributes through to the button" do
+    html = helper.render_button(size: "icon", aria: { label: "Add patient" }) { "+" }
+    expect(Capybara.string(html))
+      .to have_css("button.btn[aria-label='Add patient']")
+  end
+
   it "appends caller-supplied classes" do
     html = helper.render_button(classes: "w-full") { "Label" }
     expect(Capybara.string(html)).to have_css("button.btn.w-full")

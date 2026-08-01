@@ -67,7 +67,8 @@ class ButtonPreview < Lookbook::Preview
   end
 
   def icon
-    preview(variant: "ghost", size: "icon", label: "★")
+    preview(variant: "ghost", size: "icon", label: "★",
+            aria: { label: "Add to favourites" })
   end
 
   def loading
@@ -80,8 +81,8 @@ class ButtonPreview < Lookbook::Preview
 
   private
     def preview(variant: "primary", size: "default", loading: false,
-                disabled: false, label: "Button")
+                disabled: false, label: "Button", aria: nil)
       render_with_template(template: "button_preview/preview",
-        locals: { variant:, size:, loading:, disabled:, label: })
+        locals: { variant:, size:, loading:, disabled:, label:, aria: })
     end
 end

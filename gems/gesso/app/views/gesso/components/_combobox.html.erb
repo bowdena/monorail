@@ -27,7 +27,8 @@
 <%= tag.div class: "select" do %>
   <%= hidden_field_tag name, selected, id: id %>
 
-  <%= button_tag type: "button", name: nil, class: "btn-outline",
+  <%= button_tag type: "button", name: nil, class: "btn",
+        data: { variant: "outline" },
         aria: { expanded: "false", haspopup: "listbox" } do %>
     <%= tag.span current_label %>
     <%= inline_svg_tag "icons/chevron-down.svg", class: "size-4 opacity-50" %>

@@ -13,7 +13,8 @@ module Gesso::Components
     #
     # The block is the button label.
     def render_button(variant: "primary", size: "default", type: "button",
-                      loading: false, disabled: false, classes: nil, &block)
+                      loading: false, disabled: false, classes: nil,
+                      aria: nil, &block)
       unless VARIANTS.include?(variant)
         raise ArgumentError, "variant must be one of #{VARIANTS.join(", ")}"
       end
@@ -24,7 +25,7 @@ module Gesso::Components
 
       render("gesso/components/button",
         variant: basecoat_value(variant), size: basecoat_value(size),
-        type:, loading:, disabled:, classes:, &block)
+        type:, loading:, disabled:, classes:, aria:, &block)
     end
 
     private

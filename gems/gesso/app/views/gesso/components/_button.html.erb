@@ -1,4 +1,4 @@
-<%# locals: (variant:, size:, type: "button", loading: false, disabled: false, classes: nil) %>
+<%# locals: (variant:, size:, type: "button", loading: false, disabled: false, classes: nil, aria: nil) %>
 <%#
   Button component.
 
@@ -16,12 +16,15 @@
     loading  - when true, shows a spinner and disables the button
     disabled - when true, disables the button
     classes  - additional CSS classes
+    aria     - hash of aria attributes, e.g. { label: "Close" }; an
+               icon-only button needs one to have an accessible name
 %>
 
 <%# name: nil drops button_tag's default name="button" attribute. %>
 <%= button_tag(
       type:,
       name: nil,
+      aria:,
       class: class_names("btn", classes),
       disabled: disabled || loading,
       data: {

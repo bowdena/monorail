@@ -65,6 +65,7 @@ in the same call:
 | `loading` | boolean | spinner + disabled while in flight |
 | `disabled` | boolean | |
 | `classes` | string | extra CSS classes |
+| `aria` | hash | aria attributes, e.g. `{ label: "Close" }` |
 
 ## Loading state
 
@@ -106,7 +107,7 @@ Turbo replace the button, or reset the value yourself.
 - Do use `loading` on submit buttons — it disables and spins,
   preventing double submission.
 - Do pair icon-only buttons (`size: "icon"`) with an `aria-label`
-  via `classes` and a familiar icon.
+  via `aria:` and a familiar icon — the glyph alone is not a name.
 - Don't disable a button to explain anything — if the action is
   unavailable, say why next to it or omit it. `disabled` is for
   momentary states (in-flight, incomplete form).

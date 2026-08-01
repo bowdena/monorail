@@ -7,9 +7,10 @@ module Gesso::Components
     #
     #   render_theme_toggle
     def render_theme_toggle
-      button_tag(type: "button", name: nil, class: "btn-icon-ghost",
+      button_tag(type: "button", name: nil, class: "btn",
         aria: { label: "Toggle theme" },
-        data: { controller: "theme", action: "click->theme#cycle" }) do
+        data: { controller: "theme", action: "click->theme#cycle",
+                variant: "ghost", size: "icon" }) do
         safe_join([
           tag.span(inline_svg_tag("icons/sun.svg", size: "16"),
             data: { theme_target: "sun" }, class: "hidden"),
