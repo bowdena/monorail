@@ -129,6 +129,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
+      # ruby-vips loads libvips through FFI on boot, so the library has to
+      # be on the runner before Rails starts. The Dockerfile installs the
+      # same package for production.
+      - name: Install libvips
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y libvips
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
