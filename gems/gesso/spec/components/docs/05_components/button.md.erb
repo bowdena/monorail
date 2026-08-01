@@ -53,14 +53,14 @@ in the same call:
 | `destructive` | Deletion or removal — irreversible or dangerous actions. |
 | `warning` | An action that needs caution but isn't destructive. |
 | `info` | A neutral, informational highlighted action. |
-| `default` | The bare `btn` base, for when you supply your own treatment. |
+| `default` | The bare `btn` base, for when you supply your own treatment. Renders with no `data-variant`. |
 
 ## Options
 
 | Param | Values | Notes |
 | ----- | ------ | ----- |
-| `variant` | see **Variants** above | maps to basecoat `btn-*` |
-| `size` | `default` `sm` `lg` `icon` | `icon` is the square icon-only size |
+| `variant` | see **Variants** above | maps to basecoat `data-variant` |
+| `size` | `default` `xs` `sm` `lg` `icon` `icon-xs` `icon-sm` `icon-lg` | maps to basecoat `data-size`; the `icon*` sizes are square and icon-only |
 | `type` | `button` (default) `submit` `reset` | |
 | `loading` | boolean | spinner + disabled while in flight |
 | `disabled` | boolean | |

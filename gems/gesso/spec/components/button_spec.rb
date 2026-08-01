@@ -12,25 +12,33 @@ RSpec.describe "Button component", type: :request do
   end
 
   it "renders the primary variant" do
-    expect(render_preview("primary")).to have_css("button.btn-primary")
+    expect(render_preview("primary"))
+      .to have_css("button.btn[data-variant='primary']")
   end
 
   it "renders the destructive variant" do
-    expect(render_preview("destructive")).to have_css("button.btn-destructive")
+    expect(render_preview("destructive"))
+      .to have_css("button.btn[data-variant='destructive']")
   end
 
   it "renders the warning variant" do
-    expect(render_preview("warning")).to have_css("button.btn-warning")
+    expect(render_preview("warning"))
+      .to have_css("button.btn[data-variant='warning']")
   end
 
   it "renders the info variant" do
-    expect(render_preview("info")).to have_css("button.btn-info")
+    expect(render_preview("info"))
+      .to have_css("button.btn[data-variant='info']")
   end
 
-  it "renders the small size as a btn-sm class" do
-    # size and variant combine into "btn-<size>-<variant>" when both differ
-    # from default; the default-variant small button is "btn-sm-primary".
-    expect(render_preview("small")).to have_css("button.btn-sm-primary")
+  it "renders the small size as data-size" do
+    expect(render_preview("small"))
+      .to have_css("button.btn[data-variant='primary'][data-size='sm']")
+  end
+
+  it "renders the icon size as data-size" do
+    expect(render_preview("icon"))
+      .to have_css("button.btn[data-variant='ghost'][data-size='icon']")
   end
 
   it "disables the button when disabled" do

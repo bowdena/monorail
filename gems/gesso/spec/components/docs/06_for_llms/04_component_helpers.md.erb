@@ -46,14 +46,15 @@ module Components
   module ButtonHelper
     VARIANTS = %w[ default primary secondary outline ghost link
                    destructive warning info ].freeze
-    SIZES = %w[ default sm lg icon ].freeze
+    SIZES = %w[ default xs sm lg icon icon-xs icon-sm icon-lg ].freeze
 
     def render_button(variant: "primary", size: "default", **opts, &block)
       unless VARIANTS.include?(variant)
         raise ArgumentError, "variant must be one of #{VARIANTS.join(", ")}"
       end
       # ... compose locals, then:
-      render("gesso/components/button", button_class: button_class(variant:, size:),
+      render("gesso/components/button",
+        variant: basecoat_value(variant), size: basecoat_value(size),
         **opts, &block)
     end
   end
@@ -63,7 +64,8 @@ end
 ## The partial is pure markup
 
 - A strict `locals: (...)` signature on the first line —
-  receiving ready-made values (e.g. `button_class:`), not raw options.
+  receiving ready-made values (e.g. a `variant:` already resolved to
+  what basecoat expects), not raw options.
 - No `case`, no validation, no class maths — that all lives in the
   helper.
 - Accept `classes`; `yield` the block for content.

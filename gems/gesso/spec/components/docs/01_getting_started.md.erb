@@ -79,7 +79,7 @@ route and asserts on the DOM:
 ```ruby
 get "/lookbook/preview/button/primary"
 page = Capybara.string(response.body)
-expect(page).to have_css("button.btn-primary")
+expect(page).to have_css("button.btn[data-variant='primary']")
 ```
 
 Docs pages follow the same pattern from `spec/docs/`, asserting each

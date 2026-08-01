@@ -29,9 +29,9 @@ HTML element, attribute, or CSS feature covers it.
 
 ## Basecoat before custom CSS
 
-Basecoat ships the visual system: `btn` and its variant suffixes,
-`.table`, `.input`, `.dialog`, `.select`, `.command`, `.toast`. Use the
-shipped class before writing any CSS. A component only gets a file in
+Basecoat ships the visual system: `.btn` with its `data-variant` and
+`data-size` attributes, `.table`, `.input`, `.dialog`, `.select`,
+`.command`, `.toast`. Use the shipped class before writing any CSS. A component only gets a file in
 `app/assets/tailwind/components/` for styling basecoat does not
 provide — and that file extends the basecoat treatment rather than
 replacing it. Page-level spacing and layout use Tailwind utilities;

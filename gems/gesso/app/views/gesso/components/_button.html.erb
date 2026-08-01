@@ -1,14 +1,17 @@
-<%# locals: (button_class:, type: "button", loading: false, disabled: false, classes: nil) %>
+<%# locals: (variant:, size:, type: "button", loading: false, disabled: false, classes: nil) %>
 <%#
   Button component.
 
   Rendered via render_button (Gesso::Components::ButtonHelper), which validates
-  variant/size and computes button_class. This partial only renders
-  markup — it does no class composition itself.
+  variant/size. This partial only renders markup — it does no class
+  composition itself.
 
   Params:
-    button_class - basecoat class string (e.g. "btn-primary"); the
-                   helper computes it from variant + size
+    variant  - basecoat variant, rendered as data-variant; nil for the
+               default variant (primary, secondary, outline, ghost,
+               link, destructive, warning, info)
+    size     - basecoat size, rendered as data-size; nil for the default
+               size (xs, sm, lg, icon, icon-xs, icon-sm, icon-lg)
     type     - button | submit | reset  (default: "button")
     loading  - when true, shows a spinner and disables the button
     disabled - when true, disables the button
@@ -19,9 +22,11 @@
 <%= button_tag(
       type:,
       name: nil,
-      class: class_names(button_class, classes),
+      class: class_names("btn", classes),
       disabled: disabled || loading,
       data: {
+        variant:,
+        size:,
         controller: "button",
         action: "button#load",
         button_loading_value: loading
