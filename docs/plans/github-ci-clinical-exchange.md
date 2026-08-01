@@ -89,12 +89,19 @@ already runs headless with `--no-sandbox`, so the system spec should
 work with no extra setup. If cuprite cannot find the binary, the fix is
 `browser_path: ENV["CHROME_PATH"]` rather than installing a browser.
 
-**Caching.** `bundler-cache: true` for gems, `cache: yarn` for node
-modules, and the rubocop `actions/cache` block carried over from the
-dead `ci.yml` — kept as generated Rails boilerplate, with its paths
-rewritten to be workspace-relative. It buys little while the app is
-small (32 files inspect in 1.2s cold) and earns its keep as the app
-grows.
+**Caching.** `bundler-cache: true` for gems, and the rubocop
+`actions/cache` block carried over from the dead `ci.yml` — kept as
+generated Rails boilerplate, with its paths rewritten to be
+workspace-relative. It buys little while the app is small (32 files
+inspect in 1.2s cold) and earns its keep as the app grows.
+
+`setup-node`'s built-in `cache: yarn` cannot be used here. It probes
+the cache directory before any step of ours runs, so it invokes the
+runner's Yarn 1, which hard-errors on a `packageManager` field rather
+than degrading. Corepack is enabled first instead, and the cache path
+comes from `yarn config get cacheFolder` — Yarn 4 puts its global cache
+under `~/.local/share/yarn/berry`, not the `~/.yarn` path a hardcoded
+guess would use.
 
 **Concurrency.** One in-flight run per ref, `cancel-in-progress: true`,
 so a fast follow-up push supersedes the previous run.

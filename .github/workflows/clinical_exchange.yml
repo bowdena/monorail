@@ -28,13 +28,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: apps/clinical_exchange/.node-version
-          cache: yarn
-          cache-dependency-path: apps/clinical_exchange/yarn.lock
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Locate the Yarn cache
+        id: yarn-cache
+        run: echo "path=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the Yarn cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache.outputs.path }}
+          key: yarn-${{ runner.os }}-${{ hashFiles('apps/clinical_exchange/yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-
 
       - name: Install JavaScript dependencies
-        run: |
-          corepack enable
-          yarn install --immutable
+        run: yarn install --immutable
 
       - name: Lint HTML+ERB templates
         run: yarn herb:lint
@@ -128,13 +139,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: apps/clinical_exchange/.node-version
-          cache: yarn
-          cache-dependency-path: apps/clinical_exchange/yarn.lock
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Locate the Yarn cache
+        id: yarn-cache
+        run: echo "path=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the Yarn cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache.outputs.path }}
+          key: yarn-${{ runner.os }}-${{ hashFiles('apps/clinical_exchange/yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-
 
       - name: Install JavaScript dependencies
-        run: |
-          corepack enable
-          yarn install --immutable
+        run: yarn install --immutable
 
       - name: Prepare the test database
         run: bin/rails db:prepare
