@@ -12,6 +12,11 @@ module Gesso
     class InstallGenerator < Rails::Generators::Base
       source_root File.expand_path("templates", __dir__)
 
+      DEFAULT_BUILD =
+        "esbuild app/javascript/*.* --bundle --preserve-symlinks " \
+        "--sourcemap --format=esm --outdir=app/assets/builds " \
+        "--public-path=/assets".freeze
+
       desc "Wire this app to consume the gesso design system."
 
       def add_tailwind_entry
@@ -45,10 +50,10 @@ module Gesso
           deps["@hotwired/turbo-rails"] ||= "^8.0.23"
         end
         (pkg["devDependencies"] ||= {})["esbuild"] ||= "^0.28.1"
-        (pkg["scripts"] ||= {})["build"] ||=
-          "esbuild app/javascript/*.* --bundle --preserve-symlinks " \
-          "--sourcemap --format=esm --outdir=app/assets/builds " \
-          "--public-path=/assets"
+
+        scripts = (pkg["scripts"] ||= {})
+        scripts["build"] =
+          scripts["build"] ? preserving_symlinks(scripts["build"]) : DEFAULT_BUILD
 
         create_file "package.json", JSON.pretty_generate(pkg) + "\n", force: true
       end
@@ -86,6 +91,18 @@ module Gesso
       private
         def file_exists?(relative)
           File.exist?(File.join(destination_root, relative))
+        end
+
+        # gesso is installed as a link: dependency, so its package resolves
+        # through a symlink that esbuild follows back to the gem unless it
+        # is told to preserve them — leaving `import "gesso"` unresolved.
+        # An app that already bundles keeps its own command; it only gains
+        # the flag.
+        def preserving_symlinks(script)
+          return script unless script.include?("esbuild")
+          return script if script.include?("--preserve-symlinks")
+
+          "#{script} --preserve-symlinks"
         end
 
         def already_precompiles?

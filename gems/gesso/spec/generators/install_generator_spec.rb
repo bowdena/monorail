@@ -19,6 +19,10 @@ RSpec.describe Gesso::Generators::InstallGenerator do
     File.read(File.join(@dir, relative))
   end
 
+  def write_package_json(contents)
+    File.write(File.join(@dir, "package.json"), JSON.pretty_generate(contents))
+  end
+
   it "writes the Tailwind entry importing gesso" do
     run_generator
 
@@ -56,6 +60,42 @@ RSpec.describe Gesso::Generators::InstallGenerator do
     expect(resolved).to eq(Gesso::Engine.root.join("app/javascript").to_s)
     expect(pkg["dependencies"]).to include("basecoat-css")
     expect(pkg.dig("scripts", "build")).to include("--preserve-symlinks")
+  end
+
+  # The link:-installed gesso package only resolves when esbuild preserves
+  # symlinks, so an app that already bundles has to gain the flag too.
+  it "adds the flag to a build script that predates gesso" do
+    write_package_json("scripts" => {
+      "build" => "esbuild app/javascript/*.* --bundle --outdir=app/assets/builds"
+    })
+
+    run_generator
+
+    build = JSON.parse(read("package.json")).dig("scripts", "build")
+    expect(build).to include("--preserve-symlinks")
+    expect(build).to include("--outdir=app/assets/builds")
+  end
+
+  it "does not add the flag twice" do
+    write_package_json("scripts" => {
+      "build" => "esbuild app/javascript/*.* --bundle --preserve-symlinks"
+    })
+
+    run_generator
+
+    build = JSON.parse(read("package.json")).dig("scripts", "build")
+    expect(build.scan("--preserve-symlinks").size).to eq(1)
+  end
+
+  # The flag is esbuild's. Appending it to some other bundler's command
+  # would break a build the installer has no business rewriting.
+  it "leaves a build script that does not use esbuild alone" do
+    write_package_json("scripts" => { "build" => "rollup -c" })
+
+    run_generator
+
+    expect(JSON.parse(read("package.json")).dig("scripts", "build"))
+      .to eq("rollup -c")
   end
 
   it "installs the asset precompile hook" do
