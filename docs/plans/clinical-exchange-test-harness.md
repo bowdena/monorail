@@ -93,7 +93,8 @@ needed untracking as well
 `.herb.yml` (new), `lib/tasks/lint.rake` (new)
 **Spec:** none — verified by `bin/rails lint` passing on the generated
 app and failing when a deliberate offence is introduced
-**Status:** pending
+**Status:** done — `herb:format` needed an explicit `app/views` path;
+without one `herb-format` reads stdin when there is no TTY
 
 ### Slice 3: RSpec test harness
 **Commit:** `chore: add rspec test harness`
