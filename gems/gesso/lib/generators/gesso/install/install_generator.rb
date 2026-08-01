@@ -12,6 +12,11 @@ module Gesso
     class InstallGenerator < Rails::Generators::Base
       source_root File.expand_path("templates", __dir__)
 
+      DEFAULT_BUILD =
+        "esbuild app/javascript/*.* --bundle --preserve-symlinks " \
+        "--sourcemap --format=esm --outdir=app/assets/builds " \
+        "--public-path=/assets".freeze
+
       desc "Wire this app to consume the gesso design system."
 
       def add_tailwind_entry
@@ -45,16 +50,20 @@ module Gesso
           deps["@hotwired/turbo-rails"] ||= "^8.0.23"
         end
         (pkg["devDependencies"] ||= {})["esbuild"] ||= "^0.28.1"
-        (pkg["scripts"] ||= {})["build"] ||=
-          "esbuild app/javascript/*.* --bundle --preserve-symlinks " \
-          "--sourcemap --format=esm --outdir=app/assets/builds " \
-          "--public-path=/assets"
+
+        scripts = (pkg["scripts"] ||= {})
+        scripts["build"] =
+          scripts["build"] ? preserving_symlinks(scripts["build"]) : DEFAULT_BUILD
+        @unwired_build = scripts["build"] unless wired?(scripts["build"])
 
         create_file "package.json", JSON.pretty_generate(pkg) + "\n", force: true
       end
 
+      # An app that already precompiles owns that setup, wherever it keeps
+      # it. Installing a second hook would add a duplicate before(:suite)
+      # and leave it ambiguous which one the suite is running.
       def add_precompile_hook
-        return if file_exists?("spec/support/precompile_assets.rb")
+        return if already_precompiles?
 
         copy_file "precompile_assets.rb", "spec/support/precompile_assets.rb"
       end
@@ -78,11 +87,42 @@ module Gesso
         say %(  1. Ensure your Gemfile has: gem "gesso", path: "#{gesso_gem_path}")
         say "  2. Run: bundle install && yarn install"
         say "  3. Start bin/dev (or build once: bin/rails tailwindcss:build && yarn build)"
+        show_unwired_build_warning if @unwired_build
       end
 
       private
+        def show_unwired_build_warning
+          say ""
+          say "Your build script was left as it is:", :yellow
+          say "  #{@unwired_build}"
+          say "gesso installs as a link: dependency, so the bundler has to"
+          say "resolve it without following the symlink. esbuild does that"
+          say "with --preserve-symlinks; pass your bundler's equivalent, or"
+          say %(`import "gesso"` will not resolve.)
+        end
+
         def file_exists?(relative)
           File.exist?(File.join(destination_root, relative))
+        end
+
+        # gesso is installed as a link: dependency, so its package resolves
+        # through a symlink that esbuild follows back to the gem unless it
+        # is told to preserve them — leaving `import "gesso"` unresolved.
+        # An app that already bundles keeps its own command; it only gains
+        # the flag.
+        def preserving_symlinks(script)
+          return script unless script.include?("esbuild")
+          return script if script.include?("--preserve-symlinks")
+
+          "#{script} --preserve-symlinks"
+        end
+
+        def wired?(script)
+          script.include?("--preserve-symlinks")
+        end
+
+        def already_precompiles?
+          Dir.glob(File.join(destination_root, "spec/**/precompile_assets.rb")).any?
         end
 
         def read(relative)

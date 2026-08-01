@@ -15,8 +15,24 @@ RSpec.describe Gesso::Generators::InstallGenerator do
     generator.shell.mute { generator.invoke_all }
   end
 
+  # The generator says its post-install notes through the shell, which
+  # run_generator mutes; this runs it unmuted to assert on what it said.
+  def generator_output
+    generator = described_class.new([], [], destination_root: @dir)
+    original_stdout = $stdout
+    $stdout = StringIO.new
+    generator.invoke_all
+    $stdout.string
+  ensure
+    $stdout = original_stdout
+  end
+
   def read(relative)
     File.read(File.join(@dir, relative))
+  end
+
+  def write_package_json(contents)
+    File.write(File.join(@dir, "package.json"), JSON.pretty_generate(contents))
   end
 
   it "writes the Tailwind entry importing gesso" do
@@ -58,11 +74,82 @@ RSpec.describe Gesso::Generators::InstallGenerator do
     expect(pkg.dig("scripts", "build")).to include("--preserve-symlinks")
   end
 
+  # The link:-installed gesso package only resolves when esbuild preserves
+  # symlinks, so an app that already bundles has to gain the flag too.
+  it "adds the flag to a build script that predates gesso" do
+    write_package_json("scripts" => {
+      "build" => "esbuild app/javascript/*.* --bundle --outdir=app/assets/builds"
+    })
+
+    run_generator
+
+    build = JSON.parse(read("package.json")).dig("scripts", "build")
+    expect(build).to include("--preserve-symlinks")
+    expect(build).to include("--outdir=app/assets/builds")
+  end
+
+  it "does not add the flag twice" do
+    write_package_json("scripts" => {
+      "build" => "esbuild app/javascript/*.* --bundle --preserve-symlinks"
+    })
+
+    run_generator
+
+    build = JSON.parse(read("package.json")).dig("scripts", "build")
+    expect(build.scan("--preserve-symlinks").size).to eq(1)
+  end
+
+  # The flag is esbuild's. Appending it to some other bundler's command
+  # would break a build the installer has no business rewriting.
+  it "leaves a build script that does not use esbuild alone" do
+    write_package_json("scripts" => { "build" => "rollup -c" })
+
+    run_generator
+
+    expect(JSON.parse(read("package.json")).dig("scripts", "build"))
+      .to eq("rollup -c")
+  end
+
+  # Declining silently leaves the app with an unresolvable import and no
+  # clue why, so the one thing left to do by hand has to be said out loud.
+  it "warns when it cannot wire a build script it did not write" do
+    write_package_json("scripts" => { "build" => "rollup -c" })
+
+    output = generator_output
+
+    expect(output).to include("rollup -c")
+    expect(output).to include("--preserve-symlinks")
+  end
+
+  it "says nothing about the build when it wired one" do
+    write_package_json("scripts" => {
+      "build" => "esbuild app/javascript/*.* --bundle"
+    })
+
+    expect(generator_output).not_to include("could not")
+  end
+
   it "installs the asset precompile hook" do
     run_generator
 
     hook = read("spec/support/precompile_assets.rb")
     expect(hook).to include("assets:precompile")
+    expect(hook).to include("module AssetPrecompilation")
+  end
+
+  # An app that already precompiles owns that setup — a second hook would
+  # add a duplicate before(:suite) and leave it ambiguous which one runs.
+  it "leaves an app that already precompiles alone" do
+    FileUtils.mkdir_p(File.join(@dir, "spec/system/support"))
+    File.write(File.join(@dir, "spec/system/support/precompile_assets.rb"),
+      "# the app's own assets:precompile hook\n")
+
+    run_generator
+
+    expect(File.exist?(File.join(@dir, "spec/support/precompile_assets.rb")))
+      .to be(false)
+    expect(read("spec/system/support/precompile_assets.rb"))
+      .to eq("# the app's own assets:precompile hook\n")
   end
 
   it "installs the foreman dev workflow" do

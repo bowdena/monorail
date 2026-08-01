@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+
+# Lookbook for the gesso design system — component previews and the design
+# documentation. Both ship with the engine and are served by its dummy
+# host, so there is nothing to run in a consuming app.
+#
+#   bin/lookbook          http://localhost:3000/lookbook
+#   PORT=4000 bin/lookbook
+
+cd "$(dirname "$0")/../gems/gesso/spec/dummy" || exit 1
+
+# The engine pins its own Ruby in gems/gesso/.ruby-version, which is not
+# the one the repository root pins. A shell activated at the root carries
+# that root toolchain across the cd above, booting the dummy on a Ruby its
+# bundle was not installed for, so ask mise to resolve again from here.
+if command -v mise > /dev/null 2>&1; then
+  exec mise exec -- bin/dev "$@"
+fi
+
+exec bin/dev "$@"

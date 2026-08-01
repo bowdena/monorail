@@ -7,8 +7,7 @@
     "esbuild": "^0.28.1"
   },
   "scripts": {
-    "build": "esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets",
-    "build:css": "npx @tailwindcss/cli -i ./app/assets/stylesheets/application.tailwind.css -o ./app/assets/builds/application.css --minify",
+    "build": "esbuild app/javascript/*.* --bundle --preserve-symlinks --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets",
     "herb:lint": "herb-lint",
     "herb:format": "herb-format app/views",
     "herb:format:check": "herb-format --check app/views"
@@ -16,7 +15,7 @@
   "dependencies": {
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo-rails": "^8.0.23",
-    "@tailwindcss/cli": "^4.3.3",
-    "tailwindcss": "^4.3.3"
+    "basecoat-css": "^0.3.11",
+    "gesso": "link:../../gems/gesso/app/javascript"
   }
 }

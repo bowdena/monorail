@@ -108,20 +108,23 @@ For configuration, architecture, routing, jobs, cache, auth please read
 When working on files in the following paths, read the corresponding guideline
 file before making changes. Use the Read tool to load it.
 
-| File path pattern              | Read this file                        |
-|--------------------------------|---------------------------------------|
-| `spec/**`                      | `.claude/rails/tests.md`              |
-| `app/models/**`                | `.claude/rails/models.md`             |
-| `app/views/**`                 | `.claude/rails/frontend.md`           |
-| `app/helpers/**`               | `.claude/rails/frontend.md`           |
-| `app/javascript/**`            | `.claude/rails/frontend.md`           |
-| `app/assets/**`                | `.claude/rails/frontend.md`           |
-| `app/controllers/**`           | `.claude/rails/controllers.md`        |
-| `app/jobs/**`                  | `.claude/rails/architecture.md`       |
-| `app/mailers/**`               | `.claude/rails/architecture.md`       |
-| `config/**`                    | `.claude/rails/architecture.md`       |
-| `lib/**`                       | `.claude/rails/architecture.md`       |
-| `db/**`                        | `.claude/rails/architecture.md`       |
+| File path pattern    | Read this file                                        |
+|----------------------|-------------------------------------------------------|
+| `spec/**`            | `.claude/rails/tests.md`                              |
+| `app/models/**`      | `.claude/rails/models.md`                             |
+| `app/views/**`       | `.claude/rails/frontend.md`, `design_system.md`       |
+| `app/helpers/**`     | `.claude/rails/frontend.md`, `design_system.md`       |
+| `app/javascript/**`  | `.claude/rails/frontend.md`                           |
+| `app/assets/**`      | `.claude/rails/frontend.md`                           |
+| `app/controllers/**` | `.claude/rails/controllers.md`                        |
+| `app/jobs/**`        | `.claude/rails/architecture.md`                       |
+| `app/mailers/**`     | `.claude/rails/architecture.md`                       |
+| `config/**`          | `.claude/rails/architecture.md`                       |
+| `lib/**`             | `.claude/rails/architecture.md`                       |
+| `db/**`              | `.claude/rails/architecture.md`                       |
+
+Where two files are listed, read both. Bare filenames in the right-hand
+column live in `.claude/rails/`.
 
 When creating a commit, read `.claude/rails/git.md`.
 When planning a feature or reviewing a plan document, read

@@ -1,9 +1,3 @@
-import { Application } from "@hotwired/stimulus"
-
-const application = Application.start()
-
-// Configure Stimulus development experience
-application.debug = false
-window.Stimulus   = application
-
-export { application }
+// The design system starts and owns the Stimulus application; this app's
+// controllers register on that instance rather than starting a second one.
+export { application } from "gesso/application"
