@@ -172,6 +172,32 @@ end
 
 **NOT used for service objects.** Business logic stays in models.
 
+## Class Methods
+
+Declare them in a `class << self` block. Never `def self.method`.
+
+```ruby
+# ✅ Good
+class Patient < ApplicationRecord
+  class << self
+    def remember(found)
+      find_or_initialize_by(urn: found.urn)
+    end
+  end
+end
+
+# ❌ Bad
+class Patient < ApplicationRecord
+  def self.remember(found)
+    find_or_initialize_by(urn: found.urn)
+  end
+end
+```
+
+One block per class, holding every class method, so the class-level API
+reads as a unit. Private class methods go behind `private` inside that
+block — `private_class_method` is not needed there.
+
 ## Method Naming
 
 **Verbs** - Actions that change state:
