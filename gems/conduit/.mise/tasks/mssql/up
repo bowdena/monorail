@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#MISE description="Start the Docker MSSQL instance for integration tests"
+set -euo pipefail
+
+# Tasks run from the gem root (this config root), so the compose
+# file sits one level in under .mise. --wait blocks until the
+# server accepts logins, so specs can run the moment this returns.
+docker compose -f "${MISE_PROJECT_ROOT}/.mise/docker-compose.yml" up --detach --wait

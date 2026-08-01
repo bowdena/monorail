@@ -17,7 +17,11 @@ abort "No CI suites found (looked for */bin/ci)." if suites.empty?
 failures = []
 suites.each do |dir|
   puts "\n\e[1;34m==> CI: #{dir}\e[0m"
-  ok = system({ "BUNDLE_GEMFILE" => nil }, "./bin/ci", chdir: dir)
+  # Via `mise exec` so the suite runs under the tool versions its own
+  # config root pins (.ruby-version, mise.toml). chdir alone does not
+  # re-resolve them — mise activates on shell hooks, not on chdir, so a
+  # bare ./bin/ci would inherit the repo root's Ruby instead.
+  ok = system({ "BUNDLE_GEMFILE" => nil }, "mise", "exec", "--", "./bin/ci", chdir: dir)
   failures << dir unless ok
 end
 

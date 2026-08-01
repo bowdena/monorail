@@ -1,28 +1,38 @@
+# Monorepo mode: makes each config_root's tasks addressable from the
+# repo root as //<root>:<task> (e.g. mise //gems/conduit:mssql:up).
+# Requires mise >= 2026.7
+monorepo_root = true
+
+[monorepo]
+config_roots = [
+  "gems/conduit"
+]
+
 [tools]
-postgres = "17.9"
-ruby = "3.3.5"
-nodejs = "24.15.0"
-yarn = "4.14.0"
+postgres = "18.4"
+ruby = "4.0.6"
+nodejs = "26.5.1"
+yarn = "4.18.0"
 
-[env]
-AWS_CONFIG_FILE = ".aws/config"
-LOCATION = "local"
-PGDATA = "./tmp/.postgres/data"
-PGPORT = 5500
-PGUSER = "postgres"
-PGPASSWORD = "postgres"
+#[env]
+#AWS_CONFIG_FILE = ".aws/config"
+#LOCATION = "local"
+#PGDATA = "./tmp/.postgres/data"
+#PGPORT = 5500
+#PGUSER = "postgres"
+#PGPASSWORD = "postgres"
 
-[tasks."_init"]
-description = "initialize the data folder first time setting it up"
-run = """
-echo "postgres" > ./tmp/.pgpass_tmp
-initdb --locale=en_US.UTF-8 --username=postgres --pwfile=./tmp/.pgpass_tmp
-"""
+#[tasks."_init"]
+#description = "initialize the data folder first time setting it up"
+#run = """
+#echo "postgres" > ./tmp/.pgpass_tmp
+#initdb --locale=en_US.UTF-8 --username=postgres --pwfile=./tmp/.pgpass_tmp
+#"""
 
-[tasks."db:start"]
-description = "Start postgres"
-run = "pg_ctl start"
+#[tasks."db:start"]
+#description = "Start postgres"
+#run = "pg_ctl start"
 
-[tasks."db:stop"]
-description = "Stop postgres"
-run = "pg_ctl stop"
+#[tasks."db:stop"]
+#description = "Stop postgres"
+#run = "pg_ctl stop"

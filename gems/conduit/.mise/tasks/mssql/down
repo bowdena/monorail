@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Stop the MSSQL Docker instance and discard its data"
+set -euo pipefail
+
+docker compose -f "${MISE_PROJECT_ROOT}/.mise/docker-compose.yml" down

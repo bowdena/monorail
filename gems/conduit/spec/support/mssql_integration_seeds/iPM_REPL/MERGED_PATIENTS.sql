@@ -1,0 +1,62 @@
+-- iPM_REPL.dbo.MERGED_PATIENTS: production-shaped schema for conduit's
+-- integration specs, derived from the tracked dump in
+-- spec/support/mssql_production_schemas/iPM_REPL/MERGED_PATIENTS.sql.
+-- Columns are verbatim; production indexes are omitted (they do
+-- not affect correctness). Rows reset to the merge-chain fixtures
+-- on each seeding; the seeder refuses to run against a
+-- real-looking instance. Idempotent; runs after database.sql.
+
+USE [iPM_REPL];
+GO
+
+IF OBJECT_ID('dbo.MERGED_PATIENTS') IS NULL
+BEGIN
+  CREATE TABLE dbo.MERGED_PATIENTS (
+	MGPAT_REFNO numeric(10,0) NOT NULL,
+	PATNT_REFNO numeric(10,0) NOT NULL,
+	PREV_PATNT_REFNO numeric(10,0) NOT NULL,
+	MGRSN_REFNO numeric(10,0) NOT NULL,
+	PARTIAL_FLAG char(1) COLLATE Latin1_General_CI_AS NOT NULL,
+	OWNER_HEORG_REFNO numeric(10,0) NULL,
+	CREATE_DTTM datetime2 NOT NULL,
+	MODIF_DTTM datetime2 NOT NULL,
+	USER_CREATE varchar(30) COLLATE Latin1_General_CI_AS NOT NULL,
+	USER_MODIF varchar(30) COLLATE Latin1_General_CI_AS NOT NULL,
+	ARCHV_FLAG char(1) COLLATE Latin1_General_CI_AS NULL,
+	STRAN_REFNO numeric(10,0) NULL,
+	EXTERNAL_KEY varchar(20) COLLATE Latin1_General_CI_AS NULL,
+	AEATT_REFNO numeric(10,0) NULL,
+	INPUT_PARAM varchar(MAX) COLLATE Latin1_General_CI_AS NULL
+  );
+END
+GO
+
+-- Reset to the canonical sample. Plain DELETE is safe here: the
+-- seeder aborts before running any script when the instance
+-- looks real (see spec/support/mssql_seed_integration_tests.rb).
+-- The chain: Ava Prior 9000001 merged into Pryor 9000002 (2024),
+-- Pryor merged into Prior 9000003 (2025) — so 9000003 is current.
+-- The 2026 row re-merging 9000001 is archived and must be ignored
+-- even though it is the newest.
+DELETE FROM dbo.MERGED_PATIENTS;
+INSERT INTO iPM_REPL.dbo.MERGED_PATIENTS (MGPAT_REFNO,PATNT_REFNO,PREV_PATNT_REFNO,MGRSN_REFNO,PARTIAL_FLAG,OWNER_HEORG_REFNO,CREATE_DTTM,MODIF_DTTM,USER_CREATE,USER_MODIF,ARCHV_FLAG,STRAN_REFNO,EXTERNAL_KEY,AEATT_REFNO,INPUT_PARAM) VALUES
+	 (9100001,9000002,9000001,12000,N'N',NULL,'2024-03-01 10:00:00.000','2024-03-01 10:00:00.000',N'NHSMERGE',N'NHSMERGE',N'N',NULL,NULL,NULL,NULL),
+	 (9100002,9000003,9000002,12000,N'N',NULL,'2025-03-01 10:00:00.000','2025-03-01 10:00:00.000',N'NHSMERGE',N'NHSMERGE',N'N',NULL,NULL,NULL,NULL),
+	 (9100003,9000004,9000001,12000,N'N',NULL,'2026-03-01 10:00:00.000','2026-03-01 10:00:00.000',N'NHSMERGE',N'NHSMERGE',N'Y',NULL,NULL,NULL,NULL);
+GO
+
+-- Deliberately corrupt: Ivy Knot 0700005 (9000005) and Ivy Loop
+-- 0700006 (9000006) are each recorded as merged into the other.
+-- Real iPM data should never contain a cycle, but the resolver's
+-- guard against one needs rows to terminate on.
+INSERT INTO iPM_REPL.dbo.MERGED_PATIENTS (MGPAT_REFNO,PATNT_REFNO,PREV_PATNT_REFNO,MGRSN_REFNO,PARTIAL_FLAG,OWNER_HEORG_REFNO,CREATE_DTTM,MODIF_DTTM,USER_CREATE,USER_MODIF,ARCHV_FLAG,STRAN_REFNO,EXTERNAL_KEY,AEATT_REFNO,INPUT_PARAM) VALUES
+	 (9100004,9000006,9000005,12000,N'N',NULL,'2023-06-01 10:00:00.000','2023-06-01 10:00:00.000',N'NHSMERGE',N'NHSMERGE',N'N',NULL,NULL,NULL,NULL),
+	 (9100005,9000005,9000006,12000,N'N',NULL,'2023-06-02 10:00:00.000','2023-06-02 10:00:00.000',N'NHSMERGE',N'NHSMERGE',N'N',NULL,NULL,NULL,NULL);
+GO
+
+-- Merge chain ending at an archived record: Sam Holt 0700007
+-- (9000007) merged into Sam Holtz 0700008 (9000008), whose patient
+-- row is archived — resolution finds no active current record.
+INSERT INTO iPM_REPL.dbo.MERGED_PATIENTS (MGPAT_REFNO,PATNT_REFNO,PREV_PATNT_REFNO,MGRSN_REFNO,PARTIAL_FLAG,OWNER_HEORG_REFNO,CREATE_DTTM,MODIF_DTTM,USER_CREATE,USER_MODIF,ARCHV_FLAG,STRAN_REFNO,EXTERNAL_KEY,AEATT_REFNO,INPUT_PARAM) VALUES
+	 (9100006,9000008,9000007,12000,N'N',NULL,'2024-06-01 10:00:00.000','2024-06-01 10:00:00.000',N'NHSMERGE',N'NHSMERGE',N'N',NULL,NULL,NULL,NULL);
+GO

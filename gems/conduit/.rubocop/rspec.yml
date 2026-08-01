@@ -1,0 +1,56 @@
+plugins:
+  - rubocop-rspec
+
+# Multiple expectations are useful when you are testing
+# something you have achieved partially, which is also useful for
+# debugging through the test
+RSpec/MultipleExpectations:
+  Enabled: false
+
+# Feels the default 3 is too short, and contexts are useful to use
+RSpec/NestedGroups:
+  Enabled: false
+
+# The default is too short. Sometimes it is useful to break out a structure
+# ie hash, arrays, arguments etc for better readability.
+RSpec/ExampleLength:
+  Max: 40
+
+# Don't know why is this a problem
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
+# Named subject should already be known from the top level describe.
+RSpec/NamedSubject:
+  Enabled: false
+
+# I feel like this is down to personal preference, and would'nt hurt to make this
+# a bit more flexible for individual preference.
+RSpec/MessageSpies:
+  Enabled: false
+
+RSpec/ContextWording:
+  Prefixes:
+    - when
+    - and
+    - with
+    - without
+    - if
+    - unless
+    - for
+
+RSpec/DescribeMethod:
+  Enabled: false
+
+# Integration specs cover cross-source behaviour (audit trail,
+# authentication, source-down) rather than a single class, hence the
+# placement under spec/integration/.
+RSpec/DescribeClass:
+  Exclude:
+    - "spec/integration/**/*"
+
+RSpec/SpecFilePathFormat:
+  Exclude:
+    - "spec/integration/**/*"
+    # Mirrors lib/conduit/errors.rb, which defines the whole taxonomy.
+    - "spec/conduit/errors_spec.rb"

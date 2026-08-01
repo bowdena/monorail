@@ -1,0 +1,29 @@
+# Standard-based ruleset mirroring nexus-health's rubocop setup,
+# minus its Rails cops (conduit is a plain gem) and app-specific
+# excludes.
+inherit_from:
+  - .rubocop/strict.yml
+  - .rubocop/local.yml
+  - .rubocop/rspec.yml
+
+inherit_mode:
+  merge:
+    - Exclude
+
+require:
+  - standard
+
+plugins:
+  - standard-custom
+  - standard-performance
+  - rubocop-performance
+
+inherit_gem:
+  standard: config/base.yml
+  standard-performance: config/base.yml
+  standard-custom: config/base.yml
+
+AllCops:
+  NewCops: disable
+  SuggestExtensions: false
+  TargetRubyVersion: 3.3
