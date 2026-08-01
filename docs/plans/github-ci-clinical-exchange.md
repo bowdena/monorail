@@ -12,21 +12,25 @@ broken style, security warnings and failing specs before I merge,
 without paying for runner time on pushes that do not touch the app.
 
 ## Acceptance Criteria
-- [ ] Pushing a branch that changes a file under
+- [x] Pushing a branch that changes a file under
       `apps/clinical_exchange/` starts the workflow
 - [ ] Pushing a branch that changes a file under `gems/` starts the
       workflow, because the app compiles against the gesso path gem
 - [ ] Pushing a branch that changes only unrelated files (README,
       docs/) starts no workflow run
 - [ ] The workflow runs on pushes to `main` as well as feature branches
-- [ ] `herb`, `rubocop` and `brakeman` run as three parallel jobs
-- [ ] The `test` job does not start until all three linting jobs pass,
+- [x] `herb`, `rubocop` and `brakeman` run as three parallel jobs
+- [x] The `test` job does not start until all three linting jobs pass,
       and is skipped when any of them fails
-- [ ] The `test` job runs the full suite, including the Capybara system
+- [x] The `test` job runs the full suite, including the Capybara system
       spec, against a real Postgres and headless Chrome
-- [ ] A failing rubocop offence, a brakeman warning, or a failing spec
+- [x] A failing rubocop offence, a brakeman warning, or a failing spec
       each turn the run red
-- [ ] `yarn install` in CI resolves the same dependency tree as local
+- [x] `yarn install` in CI resolves the same dependency tree as local
+
+The three unticked criteria are all path-filter and default-branch
+behaviour, observable only on a `gems/`-only push, a docs-only push,
+and the merge to `main` respectively.
 
 ## Implementation Notes
 
@@ -129,8 +133,11 @@ so a fast follow-up push supersedes the previous run.
   `packageManager`
 - Dead app-level `.github` → `ci.yml` deleted, `dependabot.yml` lifted
   to the repo root
-- Does cuprite find Chrome on `ubuntu-latest`? → unresolved, verified
-  by the first real run in slice 2
+- Does cuprite find Chrome on `ubuntu-latest`? → yes, no extra setup
+  needed; confirmed by a green run
+- Can `setup-node`'s `cache: yarn` be used? → no, it probes the cache
+  directory with the runner's Yarn 1, which refuses to run against a
+  `packageManager` field; corepack is enabled first instead
 
 ## Slices
 
@@ -157,7 +164,7 @@ push that triggers nothing.
 `apps/clinical_exchange/.github/dependabot.yml`
 **Spec:** No spec — verified by GitHub accepting the config on the
 repository's Dependabot settings page.
-**Status:** in-progress
+**Status:** done
 
 The generated config assumed a single-app repo and pointed bundler at
 `/`, where there is no Gemfile. The root version uses `directories:`
