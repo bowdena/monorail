@@ -1,0 +1,48 @@
+---
+title: Navigation
+---
+
+# Navigation
+
+Navigation has two layers: the app shell (where am I in the product)
+and within-page structure (where am I in this record). Each layer has
+fixed components — pages do not invent navigation.
+
+## The app shell
+
+- The `sidebar` carries the product's sections: one entry per
+  top-level area, each with its lucide icon and label, current section
+  marked. It collapses to icons; it never scrolls horizontally and
+  never nests more than one level.
+- The `header` carries global, section-independent tools: patient
+  search, the notification drawer (a sheet), the theme toggle and the
+  user menu. Page-specific actions never live in the header.
+- Page titles repeat in the content region (`<h1>`), not only in the
+  shell — the page must make sense with the sidebar collapsed.
+
+## Within a page
+
+| Need | Use |
+| ---- | --- |
+| Switch between views of the same record | `tabs` |
+| Long content, sections consultable independently | `accordion` |
+| A long collection, consumed page by page | `pagination` |
+| Jump back along the path | breadcrumb links in the page header |
+
+Tabs versus accordion: tabs for parallel *views* the user switches
+between (summary / timeline / documents); accordion for stacked
+*sections* read in place. If users need two open at once, it is an
+accordion (`multiple: true`), never tabs.
+
+## Rules
+
+- Navigation state is in the URL: the active tab, the current page
+  number and active filters survive reload and are shareable. Turbo
+  navigation, not client-side state.
+- `pagination` renders the window it is handed and nothing else — the
+  controller decides the window; the partial does no page maths.
+- Never disable a navigation item to mean "not available here" — omit
+  it. Disabled affordances belong to forms, not navigation.
+- The current location is always visibly marked (active sidebar item,
+  active tab, current page button) and exposed via `aria-current` /
+  `aria-selected`.

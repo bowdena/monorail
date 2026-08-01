@@ -1,0 +1,76 @@
+---
+title: Component decision table
+---
+
+# Component decision table
+
+Need → partial → key locals. Every partial yields block content
+where noted. Full param lists live in each partial's `<%%# %>` doc
+comment; usage rules on each component's guidance page.
+
+## Actions and indicators
+
+| Need | Partial | Key locals |
+| ---- | ------- | ---------- |
+| Trigger an action / submit | `button` | `variant`, `size`, `type`, `loading`, `disabled`; label as block |
+| Mark state or category on a record | `badge` | `variant` (incl. clinical `success warning info critical stale`); text as block |
+| Indeterminate inline wait | `spinner` | `label` |
+| Measurable completion | `progress` | `value` 0–100, `label` |
+| Loading placeholder, known layout | `skeleton` | `classes` for shape/size |
+| Theme switching (header only) | `theme_toggle` | none |
+
+## Form controls
+
+| Need | Partial | Key locals |
+| ---- | ------- | ---------- |
+| Short free text | `input` | `type`, `name`, `value`, `placeholder`, `required` |
+| Field caption | `label` | `for`; text as block |
+| Long free text | `textarea` | `name`, `rows`; content as block |
+| One of many known options | `select` | `name`, `options`, `selected`, `prompt` |
+| One of ≤5, all visible | `radio_group` | `name`, `options` (`{label:, value:}`), `selected` |
+| One of a long/unfamiliar list | `combobox` | `name`, `options` (`{value:, label:}`), `selected`, `searchable` |
+| In-form yes/no | `checkbox` | `name`, `checked`; label as block |
+| Immediate on/off | `switch` | `name`, `checked` |
+| Grouped searchable actions | `command` | `groups`, `placeholder`, `empty` |
+| Confirm patient identity | `patient_info_header` | `patient` hash |
+
+## Data display
+
+| Need | Partial | Key locals |
+| ---- | ------- | ---------- |
+| Group related content | `card` | `title`, `description`, `footer`; body as block |
+| Headline metric | `stat_card` | `title`, `value`, `change`, `change_type`, `icon` |
+| Compare records by column | `table` | `headers`, `rows`, `caption` |
+| Person identity marker | `avatar` | `src`, `initials`, `name`, `size` |
+| Independent collapsible sections | `accordion` | `items` (`{label:, body:, open:}`), `multiple` |
+| Divide within one surface | `separator` | `orientation` |
+
+## Overlays and feedback
+
+| Need | Partial | Key locals |
+| ---- | ------- | ---------- |
+| Blocking decision (not a destructive confirm — a dialog is dismissible) | `dialog` | `id`, `title`, `description`; body + footer as block |
+| Side panel alongside the page | `sheet` | `id`, `aria_label`, `side`; content as block |
+| Action outcome (from flash) | `toast` | `flash` |
+| Persistent page/data state | `alert` | `variant`, `icon`, `title`; body as block |
+
+## Shell and navigation
+
+| Need | Partial | Key locals |
+| ---- | ------- | ---------- |
+| Top bar (layout only) | `header` | `title`, `show_search`, `user_*`, `notifications` |
+| Section navigation (layout only) | `sidebar` | `nav_items` (`{label:, path:, icon:}`), `app_name` |
+| Parallel views of one record | `tabs` | `id`, `tabs` (`{label:, content:}`) |
+| Page through a collection | `pagination` | `pages` (`{number:, path:, current:}` / `:gap`), `previous`, `next_page` |
+
+## Frequent tie-breaks
+
+- Navigates → link. Acts → `button`.
+- 2–5 visible options → `radio_group`, not `select`.
+- Has a submit button → `checkbox`, not `switch`.
+- Blocks the flow → `dialog`. Consulted alongside → `sheet`.
+- User's action outcome → `toast`. Page state → `alert`.
+- Views switched between → `tabs`. Sections read in place →
+  `accordion`.
+- One styled element + a class, or UI on a single page → inline. Same
+  thing on a third page, or any bundled behaviour/a11y → partial.

@@ -1,0 +1,17 @@
+<div class="flex flex-col gap-4 p-4">
+  <%= render_alert(title: "Default") do %>
+    Neutral information with no state meaning.
+  <% end %>
+  <%= render_alert(variant: "info", icon: "icons/info", title: "Info") do %>
+    Context the reader should note; nothing is wrong.
+  <% end %>
+  <%= render_alert(variant: "warning", icon: "icons/alert-triangle", title: "Warning") do %>
+    Needs attention but isn't an error or blocking.
+  <% end %>
+  <%= render_alert(variant: "critical", icon: "icons/shield-alert", title: "Critical") do %>
+    A serious clinical or safety state needing action.
+  <% end %>
+  <%= render_alert(variant: "destructive", icon: "icons/alert-circle", title: "Destructive") do %>
+    A failure, error, or destructive consequence.
+  <% end %>
+</div>

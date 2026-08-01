@@ -1,0 +1,104 @@
+---
+title: Sheet
+---
+
+# Sheet
+
+A side panel sliding flush to the screen edge — same native
+`<dialog>` as the dialog, positioned. The header's notification
+drawer is a sheet.
+
+## When to use
+
+- Supplementary content consulted while keeping the page in context:
+  notification lists, record peeks, filter panels.
+
+## When not to use
+
+- Blocking decisions — `dialog` (see the *Overlays* pattern page
+  decision table).
+- A form home: fields plus a save button have outgrown a sheet —
+  give the flow a page.
+- Primary navigation — that is the `sidebar`, which is part of the
+  shell, not an overlay.
+
+## Usage
+
+`render_sheet` (`Gesso::Components::SheetHelper`) validates the `side` and
+renders the positioned `<dialog>` shell — nothing else. **The heading
+and close control are not part of the shell; you supply them in the
+block** (this is why the previews below show a title and an `x` button
+even though the component itself ships neither). Render the sheet inside
+a `[data-controller="drawer"]` element alongside the trigger that opens
+it.
+
+| Param | Default | Notes |
+| ----- | ------- | ----- |
+| `id` | required | targeted by the trigger |
+| `aria_label` | required | accessible name for the panel |
+| `side` | `"right"` | see **Sides** below |
+| `classes` | — | extra classes on the `<dialog>` |
+
+## Sides
+
+### Right (default)
+
+The standard side panel — details, record peeks, filter panels.
+
+```erb
+<%%= tag.div data: { controller: "drawer" } do %>
+  <%%= button_tag "Open sheet", class: "btn",
+        data: { action: "click->drawer#open" } %>
+
+  <%%= render_sheet(id: "demo-sheet", aria_label: "Demo sheet") do %>
+    <%%= tag.div class: "flex flex-col h-full" do %>
+      <%%= tag.div class: "flex items-center justify-between px-6 py-4 border-b" do %>
+        <h2 class="text-lg font-semibold">Sheet title</h2>
+
+        <%%= button_tag aria: { label: "Close sheet" }, class: "btn-icon-ghost",
+              data: { action: "click->drawer#close" } do %>
+          <%%= inline_svg_tag "icons/x.svg", class: "size-5" %>
+        <%% end %>
+      <%% end %>
+
+      <%%= tag.div class: "flex-1 overflow-y-auto px-6 py-4" do %>
+        Sheet body content.
+      <%% end %>
+    <%% end %>
+  <%% end %>
+<%% end %>
+```
+
+<%= embed :sheet, :default %>
+
+### Left
+
+When the panel relates to the sidebar's content, anchored to the same
+edge. Identical to the above — pass `side: "left"`:
+
+```erb
+<%%= render_sheet(id: "menu", aria_label: "Menu", side: "left") do %>
+  <!-- same panel chrome: heading, close control, body -->
+<%% end %>
+```
+
+<%= embed :sheet, :left %>
+
+## Do and don't
+
+- Do give the sheet's content its own visible heading and close
+  control — the shell deliberately ships neither.
+- Do default to `side: "right"`; `left` is for panels that relate
+  to the sidebar's content.
+- Don't let a sheet hold unsaved input that dismissal would strand —
+  dismissal is one Escape away by design (see *Overlays*).
+- Don't open a sheet from a sheet; close the first.
+
+## Accessibility and content
+
+- Native `<dialog>` via `showModal()`: focus trap, Escape and
+  backdrop dismissal as the dialog — the positioning is only CSS
+  (`sheet.css`).
+- `aria_label` is required because the shell has no built-in title —
+  name the panel ("Notifications"), not the mechanism ("Side
+  panel").

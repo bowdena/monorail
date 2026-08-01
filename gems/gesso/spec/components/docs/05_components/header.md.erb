@@ -1,0 +1,70 @@
+---
+title: Header
+---
+
+# Header
+
+The shell's top bar: page title, global patient search, the
+notification drawer and the user menu.
+
+<%= embed :header, :default %>
+
+## When to use
+
+- Once, in the application layout — every page gets it. Pages
+  configure it through its locals, never re-render their own.
+
+## When not to use
+
+- Page-specific actions or filters — those live in the page content
+  beside what they act on (see the *Navigation* pattern page: the
+  header is global, section-independent tooling).
+- Secondary toolbars — compose page-level rows from buttons; don't
+  imitate header chrome.
+
+## Usage
+
+`render_header` (`Gesso::Components::HeaderHelper`) computes the unread
+notification count and renders the bar. Call it once, in the application
+layout.
+
+```erb
+<%%= render_header(
+  title: content_for(:title),
+  user_name: "Jane Smith",
+  user_initials: "JS",
+  user_email: "jane.smith@nhs.net",
+  notifications: @notifications
+) %>
+```
+
+| Param | Default | Notes |
+| ----- | ------- | ----- |
+| `title` | nil | the page `<h1>` |
+| `show_search` | `true` | global search field |
+| `user_name` / `user_initials` / `user_email` | — | user menu identity |
+| `notifications` | `[]` | drawer items; unread count badges the bell (capped "9+") |
+
+The notification drawer is the `sheet` partial. The header is
+re-rendered on each Turbo navigation and its basecoat controls (the
+user menu, the drawer) are re-initialised by the `turbo:load` handler —
+it must not be `data-turbo-permanent`, or the re-init stacks a
+duplicate dropdown listener that cancels the next click.
+
+## Do and don't
+
+- Do pass the page title through `title:` — one `<h1>` per page,
+  and the header is where it renders.
+- Do cap what enters `notifications` at what the drawer can
+  usefully show; it is a recency surface, not an archive.
+- Don't hide the search (`show_search: false`) without a reason —
+  global patient lookup is the header's main job.
+- Don't add new global controls casually; every header item taxes
+  every page.
+
+## Accessibility and content
+
+- The bell carries the unread count in text (not just a dot), and
+  the drawer is a labelled sheet with native dismissal.
+- Title is the page name as the sidebar knows it — shell and
+  content must agree on what this page is called.

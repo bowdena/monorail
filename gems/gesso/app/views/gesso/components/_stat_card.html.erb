@@ -1,0 +1,42 @@
+<%#
+  locals: (title: nil, value: nil, change: nil,
+  badge_class:, icon: nil, classes: nil)
+%>
+<%#
+  Stat card component.
+
+  Rendered via render_stat_card (Gesso::Components::StatCardHelper), which
+  validates change_type and computes badge_class. This partial only
+  renders markup.
+
+  A metric tile: a muted title, a large value, an optional change badge,
+  and an optional leading icon in a tinted rounded box. Composed from the
+  card partial; the change badge is inline markup.
+
+  Params:
+    title       - metric label
+    value       - the metric value (rendered large)
+    change      - optional change text (e.g. "+12%"); omitted if nil
+    badge_class - ready-made badge class(es) for the change badge
+    icon        - optional icon name (an svg in icons/)
+    classes     - additional CSS classes on the card
+%>
+
+<%= render_card(classes: class_names("stat-card", classes)) do %>
+  <%= tag.div class: "flex items-start justify-between gap-4" do %>
+    <%= tag.div class: "space-y-1" do %>
+      <%= tag.p title, class: "text-sm text-muted-foreground" %>
+      <%= tag.p value, class: "stat-card-value text-2xl font-semibold font-mono" %>
+
+      <% if change %>
+        <%= tag.span change, class: badge_class %>
+      <% end %>
+    <% end %>
+
+    <% if icon %>
+      <%= tag.span class: "stat-card-icon flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary" do %>
+        <%= inline_svg_tag "icons/#{icon}.svg", class: "size-5" %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

@@ -1,0 +1,76 @@
+@layer components {
+  /*
+    Side panel built on a native <dialog>, positioned flush against one
+    edge of the viewport. Generalised from the header notification
+    drawer so any side panel can reuse it; the .sheet-right / .sheet-left
+    modifiers pick the edge and own the slide direction. Opened via the
+    drawer Stimulus controller.
+
+    max-width/max-height override the UA dialog:modal caps
+    (calc(100% - 2em - 6px)), which would otherwise leave a gap around
+    the panel. The translate transition + @starting-style slide the
+    panel in on open and out on close; transition-behavior: allow-discrete
+    keeps it rendered through the closing transition.
+  */
+  .sheet {
+    position: fixed;
+    width: min(100%, 28rem);
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: var(--background);
+    color: var(--foreground);
+    transition-property: translate, overlay, display;
+    transition-duration: 0.3s;
+    transition-timing-function: ease;
+    transition-behavior: allow-discrete;
+  }
+
+  .sheet-right {
+    inset: 0 0 0 auto;
+    border-left: 1px solid var(--border);
+    translate: 100% 0;
+  }
+
+  .sheet-left {
+    inset: 0 auto 0 0;
+    border-right: 1px solid var(--border);
+    translate: -100% 0;
+  }
+
+  .sheet[open] {
+    translate: 0 0;
+  }
+
+  @starting-style {
+    .sheet-right[open] {
+      translate: 100% 0;
+    }
+
+    .sheet-left[open] {
+      translate: -100% 0;
+    }
+  }
+
+  .sheet::backdrop {
+    background: rgb(0 0 0 / 0.5);
+    opacity: 0;
+    transition-property: opacity, overlay, display;
+    transition-duration: 0.3s;
+    transition-timing-function: ease;
+    transition-behavior: allow-discrete;
+  }
+
+  .sheet[open]::backdrop {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .sheet[open]::backdrop {
+      opacity: 0;
+    }
+  }
+}

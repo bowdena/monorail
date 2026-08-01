@@ -1,0 +1,89 @@
+---
+title: Alert
+---
+
+# Alert
+
+A persistent in-page banner stating the current state of the page or
+its data, coloured by severity.
+
+<%= embed :alert, :playground %>
+
+## When to use
+
+- Page or data state the user needs while working: "Results are
+  more than 24 hours old", "Allergy information could not be
+  loaded".
+- The error summary at the top of a failed form (see *Forms*).
+
+## When not to use
+
+- Action outcomes — `toast` (see *Feedback*: state persists, outcomes
+  expire).
+- One record's state in a list — `badge`.
+- Empty states — calm body text, not an alert (see *Content*).
+
+## Usage
+
+`render_alert` (`Gesso::Components::AlertHelper`) validates the variant and
+renders the component; the block is the alert body.
+
+```erb
+<%%= render_alert(title: "Results are stale") do %>
+  Results are more than 24 hours old. Refresh to re-check.
+<%% end %>
+```
+
+Pass a `variant`, an `icon`, and any option below in the same call:
+
+```erb
+<%%= render_alert(variant: "warning", icon: "icons/alert-triangle", title: "Caution") do %>
+  Proceed with care.
+<%% end %>
+```
+
+## Variants
+
+<%= embed :alert, :variants %>
+
+| Variant | When to use |
+| ------- | ----------- |
+| `default` | Neutral information with no state meaning. |
+| `info` | Context the reader should note; nothing is wrong. |
+| `warning` | Needs attention but isn't an error or blocking. |
+| `critical` | A serious clinical or safety state needing action — the strongest signal on a page. |
+| `destructive` | A failure, error, or destructive consequence. |
+
+## Options
+
+| Param | Default | Notes |
+| ----- | ------- | ----- |
+| `variant` | `default` | see **Variants** above |
+| `icon` | — | logical icon path, e.g. `"icons/info"` |
+| `title` | — | the state, stated plainly |
+| `classes` | — | extra CSS classes |
+
+Clinical variants layer token colour onto basecoat's alert layout
+(`alert.css`).
+
+## Do and don't
+
+- Do match variant to meaning, not emphasis: `warning` = risk,
+  `critical` = harm or blockage, `info` = neutral context (see
+  *Colour*).
+- Do use the established icon pairings — `alert-triangle` warning,
+  `alert-circle` critical, `info` info (see *Icons*).
+- Do remove the alert when the state resolves — a stale alert
+  trains users to ignore all alerts.
+- Don't stack alerts; two states worth announcing usually mean one
+  alert summarising and detail in the page.
+- Don't make alerts dismissible if the state persists — hiding the
+  message doesn't resolve the state.
+
+## Accessibility and content
+
+- State + consequence + action where one exists: "Results are more
+  than 24 hours old. Refresh to re-check." (see *Content* for tone).
+- Severity is carried by the title text, not only the colour — the
+  message must work in greyscale.
+- The icon is decorative beside the title; no alt text needed.

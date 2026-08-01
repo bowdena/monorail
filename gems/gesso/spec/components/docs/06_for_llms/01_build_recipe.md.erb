@@ -1,0 +1,74 @@
+---
+title: Build recipe
+---
+
+# Build recipe
+
+Instructions for LLM agents building pages or components in this
+codebase. Follow exactly. Human-facing rationale lives in the
+*Principles*, *Foundations* and *Patterns* pages; this section is the
+executable summary.
+
+## Composing a page
+
+1. Pick components with the [decision table](decision_table). Do not
+   write raw component markup when a partial exists.
+2. Render components through their `render_<component>` helper with
+   explicit locals: `render_card(title: "Patient")` — block for content
+   where the component yields. Each component's accepted locals are
+   declared in its partial's `locals: (...)` signature on the first
+   line; read it before use.
+3. Lay out with container utilities: cards in `grid gap-4`, page
+   regions `p-6`, never margins on components.
+4. Use colour only via tokens (`bg-warning`, `text-critical`); pick
+   by meaning per the *Colour* page.
+5. Follow the writing rules on the *Content* page for every label,
+   error and empty state.
+6. Validate server-side; report action outcomes via flash (the
+   layout's toast renders it); state via `alert`.
+
+## Adding a component
+
+New components follow the [component helpers](component_helpers)
+pattern: a `render_<name>` helper as the entry point, a pure-markup
+partial, a template-backed preview, and a helper unit spec. The steps
+below cover the partial, preview and doc-page mechanics shared by both
+the helper pattern and the older plain partials.
+
+Only when no existing partial covers the need, and the consuming
+page exists:
+
+1. Write the request spec first:
+   `spec/components/<name>_spec.rb`, `type: :request`, rendering
+   `/lookbook/preview/<name>/<scenario>` and asserting DOM via
+   `Capybara.string(response.body)` + `have_css`.
+2. Create `app/views/gesso/components/_<name>.html.erb`: declare a strict
+   `locals: (...)` signature on the first line — required
+   locals without a default, optional ones with — then a `<%%# %>`
+   doc comment describing each; accept `classes`; yield a block for
+   content.
+3. Use native elements and basecoat classes. Only if basecoat lacks
+   styling: add `app/assets/tailwind/components/<name>.css` and
+   register it in `app/assets/tailwind/application.css`.
+4. Create `spec/components/previews/<name>_preview.rb`: `@label`, a
+   `playground` with `@param` annotations, one scenario per variant.
+5. Add the guidance page `spec/components/docs/05_components/
+   <name>.md.erb` with the five standard sections and an embed, plus
+   its `spec/docs/` spec, and a row in the decision table.
+6. Run `bundle exec rspec spec/components/<name>_spec.rb spec/docs/`,
+   then `bin/rails lint`. Both must pass.
+
+## File locations
+
+| What | Where |
+| ---- | ----- |
+| Component markup | `app/views/gesso/components/_<name>.html.erb` |
+| Component CSS (only if needed) | `app/assets/tailwind/components/<name>.css` |
+| Colour tokens | `app/assets/tailwind/theme.css` |
+| Stimulus controllers | `app/javascript/controllers/` |
+| Basecoat JS | bundled from `basecoat-css/all` via `app/javascript/basecoat.js` |
+| Icons (lucide svg) | `app/assets/images/icons/<lucide-name>.svg` |
+| Previews | `spec/components/previews/<name>_preview.rb` |
+| Guidance pages | `spec/components/docs/` |
+| Component specs | `spec/components/<name>_spec.rb` |
+| Docs-page specs | `spec/docs/` |

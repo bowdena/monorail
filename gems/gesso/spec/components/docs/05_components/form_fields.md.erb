@@ -1,0 +1,120 @@
+---
+title: Form fields
+---
+
+# Form fields
+
+The basic field set: `input`, `label`, `textarea`, `select` and
+`switch` — native form elements styled by basecoat. There is no partial
+for these: write the native element with its basecoat class inline.
+
+## Input
+
+A native `<input>` with the `input` class — basecoat styles it
+directly, so write it inline.
+
+<%= embed :form_fields, :input %>
+
+```html
+<input class="input" type="email" placeholder="name@nhs.net">
+```
+
+## Textarea
+
+A native `<textarea>` with the `textarea` class — write it inline.
+
+<%= embed :form_fields, :textarea %>
+
+```html
+<textarea class="textarea" placeholder="Clinical notes" rows="4"></textarea>
+```
+
+## Label
+
+A native `<label>` with the `label` class, wired to its control with
+`for`. Clicking the label focuses the field.
+
+<%= embed :form_fields, :label %>
+
+```html
+<label class="label" for="email">Email</label>
+<input class="input" id="email" type="email" placeholder="name@nhs.net">
+```
+
+## Select
+
+A native `<select>` with the `select` class — write it inline.
+
+<%= embed :form_fields, :select %>
+
+```html
+<select class="select">
+  <option>Leeds</option>
+  <option>Bradford</option>
+</select>
+```
+
+## Switch
+
+A native checkbox with `role="switch"` and the `input` class — basecoat
+styles it as a toggle. Wrap it in a `label` to give it a hit target.
+
+<%= embed :form_fields, :switch %>
+
+```html
+<label class="label">
+  <input type="checkbox" role="switch" class="input">
+  Email notifications
+</label>
+```
+
+## When to use
+
+- `input` — short free text (and `type:` variants: date, number,
+  email).
+- `textarea` — long free text: notes, descriptions.
+- `select` — one of many known options, space-tight.
+- `switch` — on/off applied immediately, outside a submit flow.
+- `label` — every visible field, wired by `for:`.
+
+## When not to use
+
+- Two or three options in a `select` — use `radio_group`; all
+  options visible beats hidden behind a click.
+- A long or unfamiliar option list in a `select` — use `combobox`
+  (searchable).
+- A `switch` inside a form that has a submit button — use `checkbox`
+  (a switch implies the change already happened). See the *Forms*
+  pattern page.
+
+## Anatomy and options
+
+Each is a native element carrying its basecoat class — `input`,
+`textarea`, `label`, `select`, or a checkbox with `role="switch"`. There
+are no component params: `type`, `name`, `id`, `placeholder`, `required`,
+`disabled`, `rows`, `checked` and the rest are the element's own native
+attributes, written inline (or via the matching Rails tag helper).
+
+## Do and don't
+
+- Do wire every `label` with `for:` to the field's `id` — clicking
+  the label must focus the field.
+- Do use the right `type:` on `input` (date, number, email) — it
+  buys native keyboards, validation and pickers.
+- Do put format examples in `placeholder` and rules in help text —
+  never use the placeholder as the label (see *Content*).
+- Don't pre-select a `select` without a reason; use `prompt:` and
+  let the user choose. Defaults are answers — wrong defaults get
+  submitted.
+- Don't restyle a field with ad-hoc classes — apply the basecoat
+  class so every field stays consistent.
+
+## Accessibility and content
+
+- All native elements: keyboard interaction, form submission and
+  screen-reader semantics come from the platform.
+- `required` renders the real attribute — the browser enforces it
+  before the server does.
+- The switch's `role="switch"` announces on/off rather than
+  checked/unchecked; its label should name the thing switched
+  ("Email notifications"), not an action.

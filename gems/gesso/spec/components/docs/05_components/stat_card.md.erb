@@ -1,0 +1,91 @@
+---
+title: Stat card
+---
+
+# Stat card
+
+A metric tile: muted label, large value, optional change badge and
+leading icon. Composed from the card and badge partials.
+
+<%= embed :stat_card, :with_icon %>
+
+## When to use
+
+- Dashboard headline numbers: open referrals, episodes this week,
+  average wait.
+- A row of three or four at the top of a section, gridded with
+  `gap-4`.
+
+## When not to use
+
+- Numbers with structure — comparisons across categories or time
+  belong in a `table` (or a chart, decided per feature).
+- Text content — a stat card presents one number; prose belongs in
+  a `card`.
+- Many metrics — past ~4 tiles the dashboard stops being
+  glanceable; promote the detail into a table.
+
+## Usage
+
+`render_stat_card` (`Gesso::Components::StatCardHelper`) validates `change_type`
+and renders the tile.
+
+```erb
+<%%= render_stat_card(title: "Open referrals", value: 42) %>
+```
+
+Add a change badge and a leading icon in the same call:
+
+```erb
+<%%= render_stat_card(
+  title: "Active referrals",
+  value: "342",
+  change: "+12%",
+  change_type: "positive",
+  icon: "users"
+) %>
+```
+
+## Change types
+
+The `change` badge is coloured by `change_type` — by *meaning*, not by
+the direction of the number.
+
+<%= embed :stat_card, :variants %>
+
+| Change type | When to use |
+| ----------- | ----------- |
+| `positive` | A metric that improved — shown as a success badge. |
+| `negative` | A metric that worsened — shown as a destructive badge. |
+| `neutral` (default) | A change shown without judgement — a secondary badge. |
+
+## Options
+
+| Param | Notes |
+| ----- | ----- |
+| `title` | metric label, rendered muted |
+| `value` | the number, rendered large |
+| `change` | optional change text ("+12%"); omitted when nil |
+| `change_type` | see **Change types** above |
+| `icon` | optional `icons/` svg name in a tinted box |
+| `classes` | extra classes on the card |
+
+## Do and don't
+
+- Do say the period in the title when there is one: "Referrals
+  (7 days)" — a bare number invites misreading.
+- Do pick `change_type` by *meaning*: falling wait times are
+  `positive` even though the number went down.
+- Don't show `change` without a baseline the user knows; "+12%"
+  against an unknown period is noise.
+- Don't use stat cards as links-in-disguise; if it navigates, make
+  the action explicit elsewhere.
+
+## Accessibility and content
+
+- Value and label are plain text in source order (label, then
+  value), so screen readers announce "Open referrals, 42".
+- The change badge carries its sign in text ("+12%"), not only in
+  colour — the badge rules apply (see *Badge*).
+- `tabular-nums` keeps rows of stat cards aligned (see
+  *Typography*).

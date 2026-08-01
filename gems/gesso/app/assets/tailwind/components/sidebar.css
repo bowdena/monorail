@@ -1,0 +1,51 @@
+@layer components {
+  /* Active nav item carries the sidebar-primary accent (React
+     Sidebar.tsx); Basecoat defaults to the neutral sidebar-accent
+     pair. Hover/active stay accented, as in the React source. */
+  .sidebar nav section [role="group"] ul li > a[aria-current="page"] {
+    &,
+    &:hover,
+    &:active {
+      background-color: var(--sidebar-primary);
+      color: var(--sidebar-primary-foreground);
+    }
+  }
+
+  /* Smooth width transition on top of Basecoat's transform transition */
+  .sidebar nav {
+    transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+  }
+
+  /* Icon-only width when collapsed */
+  .sidebar[data-collapsed="true"] {
+    --sidebar-width: 4rem;
+  }
+
+  /* Hide text labels when collapsed */
+  .sidebar[data-collapsed="true"] .sidebar-label {
+    display: none;
+  }
+
+  /* Rotate collapse chevron to point right when collapsed */
+  .sidebar[data-collapsed="true"] .sidebar-collapse-icon svg {
+    transform: rotate(180deg);
+  }
+
+  .sidebar-collapse-icon svg {
+    transition: transform 0.3s ease-in-out;
+  }
+
+  /* Sync sibling content margin with collapsed sidebar width.
+     Basecoat sets margin-left: var(--sidebar-width) on .sidebar + *.
+     Overriding the variable here propagates the change to that margin. */
+  .sidebar[data-collapsed="true"] + * {
+    --sidebar-width: 4rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar nav,
+    .sidebar-collapse-icon svg {
+      transition: none;
+    }
+  }
+}

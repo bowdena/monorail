@@ -1,0 +1,111 @@
+<% content_for :title, "Support" %>
+
+<% body_text = <<~BODY
+    Hi GSD Team,
+
+    I need assistance with the NHS App application.
+
+    Issue Description:
+    [Please describe the issue you're experiencing]
+
+    Steps to Reproduce:
+    1.
+    2.
+    3.
+
+    Expected Behaviour:
+    [What did you expect to happen?]
+
+    Actual Behaviour:
+    [What actually happened?]
+
+    Thank you for your assistance.
+  BODY
+
+  mailto_url = format(
+    "mailto:generalsystemdesign@nh.org.au?subject=%<subject>s&body=%<body>s",
+    subject: CGI.escape("Support Request - NHS App"),
+    body: CGI.escape(body_text)
+  ) %>
+
+<div class="max-w-4xl space-y-6">
+  <div class="flex items-center gap-3">
+    <div class="p-2 rounded-lg bg-primary/10 text-primary">
+      <%= inline_svg_tag "icons/life-buoy.svg", class: "size-6" %>
+    </div>
+
+    <div>
+      <h1 class="text-2xl font-bold">Support</h1>
+
+      <p class="mt-1 text-sm text-muted-foreground">
+        Need help? Get in touch with the General System Design team.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <%= link_to mailto_url, class: "block group" do %>
+      <% email_header = capture do %>
+        <div class="flex items-center gap-4">
+          <div
+            class="
+              p-3 rounded-lg bg-primary/10 text-primary
+              group-hover:bg-primary
+              group-hover:text-primary-foreground
+              transition-colors
+            "
+          >
+            <%= inline_svg_tag "icons/mail.svg", class: "size-6" %>
+          </div>
+
+          <div>
+            <h2 class="text-lg">Email Support</h2>
+            <p>Contact the GSD team via email</p>
+          </div>
+        </div>
+      <% end %>
+
+      <%= render_card(
+            classes: "h-full transition-shadow hover:shadow-lg cursor-pointer",
+            header: email_header) do %>
+        <p class="text-sm text-muted-foreground">
+          Opens a pre-filled email to <span class="font-medium text-foreground"> generalsystemdesign@nh.org.au </span>
+          with a support request template.
+        </p>
+      <% end %>
+    <% end %>
+
+    <% include_header = capture do %>
+      <div class="flex items-center gap-4">
+        <div class="p-3 rounded-lg bg-primary/10 text-primary">
+          <%= inline_svg_tag "icons/message-square.svg", class: "size-6" %>
+        </div>
+
+        <div>
+          <h2 class="text-lg">What to Include</h2>
+          <p>For a faster resolution</p>
+        </div>
+      </div>
+    <% end %>
+
+    <%= render_card(classes: "h-full", header: include_header) do %>
+      <ul class="space-y-2 text-sm text-muted-foreground">
+        <% [
+             "A clear description of the issue",
+             "Steps to reproduce the problem",
+             "What you expected to happen",
+             "Screenshots if applicable",
+             "Your browser and operating system"
+           ].each do |tip| %>
+          <li class="flex items-start gap-2">
+            <span class="text-primary mt-0.5 flex-shrink-0">
+              <%= inline_svg_tag "icons/check.svg", class: "size-4" %>
+            </span>
+
+            <%= tip %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+</div>

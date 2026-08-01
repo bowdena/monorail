@@ -1,0 +1,58 @@
+@layer components {
+  [data-theme-target="sun"]:not(.hidden) {
+    animation: theme-sun-enter 0.5s ease-out;
+  }
+
+  [data-theme-target="moon"]:not(.hidden) {
+    animation: theme-moon-enter 0.5s ease-out;
+  }
+
+  [data-theme-target="monitor"]:not(.hidden) {
+    animation: theme-monitor-enter 0.4s ease-out;
+  }
+
+  @keyframes theme-sun-enter {
+    from {
+      transform: rotate(-90deg) scale(0.5);
+      opacity: 0;
+    }
+    to {
+      transform: rotate(0deg) scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes theme-moon-enter {
+    from {
+      transform: rotate(30deg) scale(0.5);
+      opacity: 0;
+    }
+    to {
+      transform: rotate(0deg) scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes theme-monitor-enter {
+    0% {
+      transform: scale(0.4);
+      opacity: 0;
+    }
+    65% {
+      transform: scale(1.15);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-theme-target="sun"]:not(.hidden),
+    [data-theme-target="moon"]:not(.hidden),
+    [data-theme-target="monitor"]:not(.hidden) {
+      animation: none;
+    }
+  }
+}

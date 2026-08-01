@@ -1,0 +1,81 @@
+@layer components {
+  /*
+    Warning and info button variants not provided by basecoat-css. Basecoat
+    enumerates layout (sizing) and colour per size x variant, so the custom
+    variants must do the same: the size-suffixed names below pick up the
+    matching sizing, and the colour rules use the clinical state tokens
+    (see theme.css). Solid fill with a darkened hover, matching btn-primary.
+  */
+  .btn-warning,
+  .btn-sm-warning,
+  .btn-lg-warning,
+  .btn-icon-warning,
+  .btn-info,
+  .btn-sm-info,
+  .btn-lg-info,
+  .btn-icon-info {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap
+      rounded-md text-sm font-medium shadow-xs transition-all
+      disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  /* Sizing per size segment (default has no segment; sm/lg/icon do). */
+  .btn-warning,
+  .btn-info {
+    @apply h-9 px-4 py-2 has-[>svg]:px-3;
+  }
+  .btn-sm-warning,
+  .btn-sm-info {
+    @apply h-8 gap-1.5 px-3 has-[>svg]:px-2.5;
+  }
+  .btn-lg-warning,
+  .btn-lg-info {
+    @apply h-10 px-6 has-[>svg]:px-4;
+  }
+  .btn-icon-warning,
+  .btn-icon-info {
+    @apply size-9;
+  }
+
+  /* Colour per variant, drawn from the clinical state tokens. */
+  .btn-warning,
+  .btn-sm-warning,
+  .btn-lg-warning,
+  .btn-icon-warning {
+    background-color: var(--warning);
+    color: var(--warning-foreground);
+
+    &:hover,
+    &[aria-pressed="true"] {
+      background-color: color-mix(in oklch, var(--warning) 90%, black);
+    }
+  }
+  .btn-info,
+  .btn-sm-info,
+  .btn-lg-info,
+  .btn-icon-info {
+    background-color: var(--info);
+    color: var(--info-foreground);
+
+    &:hover,
+    &[aria-pressed="true"] {
+      background-color: color-mix(in oklch, var(--info) 90%, black);
+    }
+  }
+
+  /* Spinner shown in the button's loading state. */
+  .btn-spinner {
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentcolor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: btn-spin 0.6s linear infinite;
+  }
+
+  @keyframes btn-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}

@@ -1,0 +1,76 @@
+---
+title: Separator
+---
+
+# Separator
+
+A thin rule dividing content. Basecoat ships no component — it is the
+`border` token applied as a border (horizontal `<hr>`) or a
+one-pixel-wide block (vertical), written inline.
+
+## Horizontal
+
+An `<hr>` carries the separator role natively — no attributes to add.
+
+<%= embed :separator, :horizontal %>
+
+```html
+<p>Browse the patient record.</p>
+<hr class="border-0 border-t border-border">
+<p>Recent observations are listed below.</p>
+```
+
+## Vertical
+
+A one-pixel block inside a flex row; `self-stretch` makes it follow
+the row's height. A `<div>` has no separator semantics of its own, so
+add `role="separator"` and `aria-orientation="vertical"` (the role
+defaults to horizontal).
+
+<%= embed :separator, :vertical %>
+
+```html
+<div class="flex h-8 items-center gap-4">
+  Docs
+  <div class="w-px self-stretch bg-border" role="separator"
+       aria-orientation="vertical"></div>
+  Source
+  <div class="w-px self-stretch bg-border" role="separator"
+       aria-orientation="vertical"></div>
+  API
+</div>
+```
+
+## When to use
+
+- Dividing groups inside one surface where a heading would be too
+  heavy: menu sections, footer link groups, toolbar clusters
+  (vertical).
+
+## When not to use
+
+- Between cards or page sections — the layout gap already separates
+  them (see *Spacing and layout*); a rule on top is double
+  punctuation.
+- As decoration under headings — the heading is the separator.
+- When the two sides deserve names — use headings, not a bare line.
+
+## Do and don't
+
+- Do prefer whitespace first; reach for a separator only when
+  proximity alone fails to group.
+- Do use `self-stretch` for the vertical form inside flex rows — not
+  a styled border on a neighbour.
+- Don't stack separators to create spacing — spacing comes from
+  `gap-*`.
+- Don't recolour separators; `border` token only, or the page grows
+  a second visual language.
+
+## Accessibility and content
+
+- `<hr>` is announced as a boundary natively; purely decorative rules
+  can add `aria-hidden="true"` to stay silent.
+- The vertical `<div>` form needs `role="separator"` and
+  `aria-orientation="vertical"` to be announced the same way.
+- It has no text; if you want to write on a divider, the content
+  wants a heading instead.

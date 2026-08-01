@@ -1,0 +1,49 @@
+---
+title: Icons
+---
+
+# Icons
+
+Icons are [Lucide](https://lucide.dev) SVGs, vendored one file per
+icon in `app/assets/images/icons/` and rendered inline so they inherit
+`currentColor` and theme automatically. There is no icon font and no
+icon component.
+
+## Using an icon
+
+Render with `inline_svg_tag`, sized with Tailwind utilities:
+
+```erb
+<%%= inline_svg_tag "icons/search.svg", class: "size-4" %>
+```
+
+- `size-4` (16px) inside buttons, inputs, table rows and badges;
+  `size-5`/`size-6` for navigation and feature icons.
+- Colour comes from the parent's text colour — set
+  `text-muted-foreground` (or a state token) on the wrapper, not on
+  the SVG.
+- Decorative icons sit next to their label and need no alt text;
+  icon-only controls must carry an `aria-label` on the *control*.
+
+## Adding an icon
+
+1. Take the SVG from Lucide, unmodified (24×24 viewBox,
+   `stroke="currentColor"`).
+2. Save it as `app/assets/images/icons/<lucide-name>.svg`, keeping
+   Lucide's kebab-case name (`check-circle-2.svg`, not
+   `circle_check.svg`).
+3. Use it via `inline_svg_tag` — no registry to update.
+
+## Rules
+
+- Lucide only — one icon set keeps stroke weight and corner radius
+  consistent. Do not mix in another library's icons.
+- An icon never appears without a meaning the user already knows:
+  pair new or ambiguous icons with a visible label.
+- Reuse the established pairings: `search`, `x` (dismiss),
+  `check` (selected), `chevron-down` (expandable),
+  `alert-triangle` (warning), `alert-circle` (critical),
+  `info`, `check-circle-2` (success), `more-horizontal` (overflow).
+- State-coloured icons take the same token as their component
+  (`text-warning` icon inside a warning alert), driven by the
+  component's CSS — not hand-set per page.

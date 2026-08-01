@@ -1,0 +1,16 @@
+<%#
+  The sidebar's <nav> is position: fixed (full viewport height), which
+  would collapse this embedded preview to no height. For the preview only,
+  render the nav in normal flow so the sidebar is visible inline. The live
+  app keeps the real fixed, full-height sidebar.
+%>
+<div class="sidebar-demo">
+  <style>
+    .sidebar-demo .sidebar nav {
+      position: static;
+      height: auto;
+    }
+  </style>
+
+  <%= render_sidebar(app_name:, nav_items:) %>
+</div>

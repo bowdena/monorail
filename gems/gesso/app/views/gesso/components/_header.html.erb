@@ -1,0 +1,143 @@
+<%#
+  locals: (title: nil, show_search: true, user_name: "User",
+  user_initials: "U", user_email: "", notifications: [],
+  unread_count: 0, unread_label: "0")
+%>
+<%#
+  Header component.
+
+  Rendered via render_header (Gesso::Components::HeaderHelper), which computes
+  the unread notification count and badge label. This partial only
+  renders markup.
+
+  Params:
+    title         - the page <h1>
+    show_search   - global search field (default: true)
+    user_name / user_initials / user_email - user menu identity
+    notifications - drawer items
+    unread_count  - number of unread notifications
+    unread_label  - unread badge text (capped "9+")
+%>
+
+<%= tag.header id: "main-header",
+      class: "h-16 bg-sidebar text-sidebar-foreground border-b " \
+             "border-sidebar-border px-6 flex items-center justify-between" do %>
+  <%= tag.div class: "flex items-center" do %>
+    <% if title %>
+      <%= tag.h1 title, class: "text-xl font-semibold" %>
+    <% end %>
+  <% end %>
+
+  <% if show_search %>
+    <%= tag.div class: "flex-1 max-w-md mx-8" do %>
+      <%= search_field_tag :q, nil,
+            placeholder: "Search...",
+            class: "input pl-9 bg-sidebar-accent/50 border-sidebar-border " \
+                   "text-sidebar-foreground placeholder:text-sidebar-foreground/50 " \
+                   "focus-visible:ring-sidebar-ring w-full" %>
+    <% end %>
+  <% end %>
+
+  <%= tag.div class: "flex items-center gap-4" do %>
+    <%# Notification drawer %>
+    <%= tag.div data: { controller: "drawer" } do %>
+      <%= button_tag type: "button", name: nil, aria: { label: "Notifications" },
+            data: { action: "click->drawer#open" },
+            class: "btn-icon-ghost relative text-sidebar-foreground/80 " \
+                   "hover:text-sidebar-foreground hover:bg-sidebar-accent" do %>
+        <%= inline_svg_tag "icons/bell.svg", class: "size-5" %>
+
+        <% if unread_count > 0 %>
+          <%= tag.span unread_label, class: "notification-badge" %>
+        <% end %>
+      <% end %>
+
+      <%= render_sheet(
+            id: "notifications-sheet",
+            aria_label: "Notifications",
+            side: "right",
+            classes: "notification-drawer"
+          ) do %>
+        <%= tag.div class: "flex flex-col h-full" do %>
+          <%= tag.div class: "flex items-center justify-between px-6 py-4 border-b" do %>
+            <%= tag.div do %>
+              <%= tag.h2 "Notifications", class: "text-lg font-semibold" %>
+
+              <%= tag.p class: "text-sm text-muted-foreground" do %>
+                <% if unread_count > 0 %>
+                  <%= unread_count %>
+                  unread
+                <% else %>
+                  All caught up!
+                <% end %>
+              <% end %>
+            <% end %>
+
+            <%= button_tag type: "button", name: nil,
+                  aria: { label: "Close notifications" },
+                  data: { action: "click->drawer#close" },
+                  class: "btn-icon-ghost" do %>
+              <%= inline_svg_tag "icons/x.svg", class: "size-5" %>
+            <% end %>
+          <% end %>
+
+          <%= tag.div class: "flex-1 overflow-y-auto px-6 py-4 space-y-2" do %>
+            <% if notifications.empty? %>
+              <%= tag.div class: "flex flex-col items-center justify-center py-12 text-muted-foreground" do %>
+                <%= inline_svg_tag "icons/bell.svg", class: "size-12 mb-4 opacity-20" %>
+                <%= tag.p "No notifications yet", class: "text-sm" %>
+              <% end %>
+            <% else %>
+              <% notifications.each do |notification| %>
+                <%= render_notification_item(notification:) %>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%# User dropdown — handled by Basecoat's dropdown-menu JS %>
+    <%= tag.div class: "dropdown-menu" do %>
+      <%= button_tag type: "button", name: nil,
+            aria: { expanded: "false", haspopup: "menu" },
+            class: "flex items-center gap-3 rounded-md px-3 py-1.5 text-sm " \
+                   "text-sidebar-foreground hover:bg-sidebar-accent transition-colors" do %>
+        <%= tag.span class: "hidden sm:block text-right max-w-[10rem]" do %>
+          <%= tag.span user_name, class: "block text-sm font-medium truncate" %>
+
+          <% if user_email.present? %>
+            <%= tag.span user_email, class: "block text-xs text-sidebar-foreground/60 truncate" %>
+          <% end %>
+        <% end %>
+
+        <%= tag.span user_initials, class: "user-avatar", aria: { hidden: true } %>
+      <% end %>
+
+      <%= tag.div data: { popover: "" }, aria: { hidden: true } do %>
+        <%= tag.div role: "menu" do %>
+          <%= tag.div role: "heading", aria: { level: 3 }, class: "flex-col items-start" do %>
+            <%= tag.p user_name, class: "font-medium" %>
+
+            <% if user_email.present? %>
+              <%= tag.p user_email, class: "text-xs text-muted-foreground font-normal truncate" %>
+            <% end %>
+          <% end %>
+
+          <%= tag.hr role: "separator" %>
+
+          <%= link_to "/settings", role: "menuitem" do %>
+            <%= inline_svg_tag "icons/settings.svg" %> Settings
+          <% end %>
+
+          <%= tag.hr role: "separator" %>
+
+          <%= link_to "/logout", role: "menuitem",
+                class: "text-destructive focus-visible:text-destructive" do %>
+            <%= inline_svg_tag "icons/log-out.svg" %> Sign out
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

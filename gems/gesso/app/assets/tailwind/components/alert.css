@@ -1,0 +1,35 @@
+@layer components {
+  /*
+    Clinical alert variants not provided by basecoat-css. Layered on the
+    base "alert" class (which supplies layout), these tint the border and
+    background with the matching clinical state token (see theme.css) and
+    colour the leading icon, matching the React boilerplate. Body text
+    stays at the default foreground colour.
+  */
+  .alert-warning {
+    border-color: color-mix(in oklch, var(--warning) 50%, transparent);
+    background-color: color-mix(in oklch, var(--warning) 10%, transparent);
+
+    & > svg {
+      color: var(--warning);
+    }
+  }
+
+  .alert-critical {
+    border-color: color-mix(in oklch, var(--critical) 50%, transparent);
+    background-color: color-mix(in oklch, var(--critical) 10%, transparent);
+
+    & > svg {
+      color: var(--critical);
+    }
+  }
+
+  .alert-info {
+    border-color: color-mix(in oklch, var(--info) 50%, transparent);
+    background-color: color-mix(in oklch, var(--info) 10%, transparent);
+
+    & > svg {
+      color: var(--info);
+    }
+  }
+}

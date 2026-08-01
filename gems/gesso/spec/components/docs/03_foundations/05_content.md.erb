@@ -1,0 +1,61 @@
+---
+title: Content
+---
+
+# Content
+
+Interface text is part of the design system. Clinical users scan under
+time pressure: write short, specific, front-loaded text, and write the
+same thing the same way everywhere.
+
+## Labels and casing
+
+- Sentence case everywhere — headings, buttons, labels, tabs, badges.
+  "Recent contacts", not "Recent Contacts".
+- Field labels are nouns, short, and never punctuated: "Date of
+  birth", not "Please enter the date of birth:".
+- Do not use placeholder text as the label; placeholders show format
+  examples only ("DD/MM/YYYY") and every field keeps a visible label.
+- Abbreviate only what every user already reads as a word (NHS, GP,
+  DOB in a dense table). When space allows, spell it out.
+- Dates are day-first and unambiguous: "12 Mar 2026". Relative times
+  ("2 hours ago") only for recency signals, always with the absolute
+  time available.
+
+## Buttons and actions
+
+- Verb first, object when the verb alone is ambiguous: "Add to
+  episode", "Remove from team", "Search patient" — not "Submit",
+  "OK", or "Go".
+- The primary action names the outcome of the screen; "Cancel" (not
+  "Close") for abandoning a form mid-edit, "Close" for dismissing
+  read-only surfaces.
+- Destructive buttons say what is destroyed: "Remove team", "Delete
+  record" — never bare "Delete" next to several candidates.
+- One primary action per view; everything else is secondary, outline
+  or ghost.
+
+## Errors and warnings
+
+- Structure: what happened, then what to do. "Referral could not be
+  saved. Check the highlighted fields and try again."
+- Never blame the user and never apologise theatrically — no "Oops!",
+  no "Sorry!". State the fact plainly.
+- Field errors name the rule, not just the failure: "Date of birth
+  must be in the past", not "Invalid date".
+- Match severity to the colour token: `--critical` text states harm
+  or blockage ("Allergy information could not be loaded"), `--warning`
+  states risk ("Results are more than 24 hours old"). Do not escalate
+  wording for emphasis.
+
+## Empty states
+
+- Say what would be here and how it gets here: "No recent contacts.
+  Contacts appear after the first episode activity."
+- If the user can act, offer the action: "No teams yet. Add a team to
+  start assigning referrals." — the action mirrors the button text.
+- Distinguish *empty* from *filtered to nothing*: "No contacts match
+  the selected date range." tells the user to widen the filter, not
+  that the record is empty.
+- Empty states are calm body text, not alerts — no state colour, no
+  icon theatrics.

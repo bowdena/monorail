@@ -1,0 +1,54 @@
+<%# locals: (nav_items: [], app_name: "App Name") %>
+<%#
+  Sidebar component.
+
+  Rendered via render_sidebar (Gesso::Components::SidebarHelper), which derives
+  the active section from the request path and flags each nav item. This
+  partial only renders markup.
+
+  Params:
+    nav_items - array of { label:, path:, icon:, active: } hashes
+    app_name  - product name beside the logo mark
+%>
+
+<%= tag.aside id: "main-sidebar", class: "sidebar",
+      data: { controller: "sidebar", sidebar_initialized: "" } do %>
+  <%= tag.nav do %>
+    <%= tag.header do %>
+      <%= tag.div class: "flex items-center gap-3 h-10 px-2" do %>
+        <%= inline_svg_tag "icons/box.svg", class: "shrink-0 size-6" %>
+        <%= tag.span app_name, class: "sidebar-label font-semibold text-sm truncate" %>
+      <% end %>
+    <% end %>
+
+    <%= tag.section do %>
+      <%= tag.div role: "group" do %>
+        <%= tag.ul do %>
+          <% nav_items.each do |item| %>
+            <%= tag.li do %>
+              <%= link_to item[:path],
+                    aria: { current: item[:active] ? "page" : nil, label: item[:label] } do %>
+                <%= inline_svg_tag "icons/#{item[:icon]}.svg" %>
+                <%= tag.span item[:label], class: "sidebar-label" %>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%= tag.footer do %>
+      <%= render_theme_toggle %>
+
+      <%= button_tag type: "button", name: nil, aria: { label: "Toggle sidebar" },
+            data: { action: "click->sidebar#toggle" },
+            class: "flex w-full items-center gap-2 rounded-md p-2 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors" do %>
+        <%= tag.span class: "sidebar-collapse-icon" do %>
+          <%= inline_svg_tag "icons/chevron-left.svg", class: "size-4" %>
+        <% end %>
+
+        <%= tag.span "Collapse", class: "sidebar-label" %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

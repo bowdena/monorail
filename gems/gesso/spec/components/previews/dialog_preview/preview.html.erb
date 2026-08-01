@@ -1,0 +1,47 @@
+<%# Trigger + dialog wired to the drawer controller so it opens in Lookbook.
+    min-height reserves room so the open modal is not clipped by the
+    embedded preview's auto-sized iframe, which otherwise fits only the
+    trigger button. %>
+<div data-controller="drawer" class="p-6" style="min-height: 30rem;">
+  <button type="button" class="btn" data-action="click->drawer#open">
+    Open dialog
+  </button>
+
+  <%= render_dialog(
+        id: "demo-dialog",
+        title: "Session expired",
+        description: "Your session has expired. Sign in again to continue."
+      ) do %>
+    <%# When long, cap the section so it scrolls regardless of window
+        height — basecoat otherwise only scrolls once the dialog hits the
+        viewport cap. %>
+    <%= tag.section class: (long ? "max-h-64" : nil) do %>
+      <% if long %>
+        <% 12.times do |i| %>
+          <p class="text-sm text-muted-foreground">
+            Paragraph <%= i + 1 %>: this body is long enough to scroll
+            within the dialog.
+          </p>
+        <% end %>
+      <% else %>
+        <div class="text-sm text-muted-foreground">
+          <p>This can happen when:</p>
+
+          <ul class="mt-2 space-y-1">
+            <li>• Your session was inactive for too long</li>
+            <li>• Your permissions changed</li>
+            <li>• The authentication token was revoked</li>
+          </ul>
+        </div>
+      <% end %>
+    <% end %>
+
+    <footer>
+      <button type="button" class="btn-ghost" data-action="click->drawer#close">
+        Cancel
+      </button>
+
+      <button type="button" class="btn">Sign in</button>
+    </footer>
+  <% end %>
+</div>

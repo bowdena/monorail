@@ -1,0 +1,44 @@
+@layer components {
+  /*
+    The notification drawer panel is now the shared .sheet component
+    (see sheet.css); only the bell badge remains header-specific.
+  */
+
+  /* Unread notification count badge on the bell button */
+  .notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 3px;
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /*
+    Initials avatar for the header user menu and the patient info header.
+    The geometry and the sidebar-primary tint moved here when the generic
+    .avatar component was inlined as a basecoat <img>.
+  */
+  .user-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: color-mix(in oklch, var(--sidebar-primary) 20%, transparent);
+    color: var(--sidebar-primary);
+  }
+}

@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# CI suite for the gesso engine, run against the dummy host in spec/dummy.
+# The engine is not a full Rails app (no config/boot), so set up Bundler
+# directly; the steps live in config/ci.rb (Rails 8 ActiveSupport CI style).
+require "bundler/setup"
+require "active_support/continuous_integration"
+
+CI = ActiveSupport::ContinuousIntegration
+require_relative "../config/ci.rb"

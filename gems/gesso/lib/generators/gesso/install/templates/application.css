@@ -1,0 +1,10 @@
+/*
+  Tailwind entry — consumes the gesso design system.
+
+  tailwindcss and basecoat-css come from this app's node_modules; the gesso
+  engine's theme, component styles, and @source globs arrive through the
+  generated build entry (tailwindcss-rails engine support).
+*/
+@import "tailwindcss";
+@import "basecoat-css";
+@import "../builds/tailwind/gesso";

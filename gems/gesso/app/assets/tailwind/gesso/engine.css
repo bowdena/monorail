@@ -1,0 +1,43 @@
+/*
+  Gesso engine Tailwind entry (tailwindcss-rails engine support).
+
+  A host app includes the design system by adding, to its own
+  app/assets/tailwind/application.css:
+
+    @import "tailwindcss";
+    @import "basecoat-css";
+    @import "../builds/tailwind/gesso";
+
+  tailwindcss-rails generates app/assets/builds/tailwind/gesso.css (which
+  imports this file) on build/watch. The host provides tailwindcss and
+  basecoat-css; this file adds gesso's theme tokens, component styles, and
+  the @source globs so the engine's own markup is scanned for utilities —
+  the consumer needs no knowledge of the engine's internal paths.
+*/
+
+/* Clinical state colour tokens (warning, critical, stale, info, success). */
+@import "../theme.css";
+
+/* Per-component styles for variants not provided by basecoat-css. */
+@import "../components/accordion.css";
+@import "../components/alert.css";
+@import "../components/badge.css";
+@import "../components/button.css";
+@import "../components/theme_toggle.css";
+@import "../components/sidebar.css";
+@import "../components/header.css";
+@import "../components/sheet.css";
+@import "../components/dialog.css";
+@import "../components/toast.css";
+
+/* Scan the engine's own partials and helpers for utility classes. */
+@source "../../../views";
+@source "../../../helpers";
+
+/*
+  Preview templates are the only markup for inlined components (skeleton,
+  spinner, separator, …) — no partial exists to scan, so their utilities
+  (animate-pulse, w-px, size-6) must be picked up here or the embedded
+  previews render unstyled.
+*/
+@source "../../../../spec/components/previews";

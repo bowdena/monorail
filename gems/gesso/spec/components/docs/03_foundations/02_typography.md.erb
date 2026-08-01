@@ -1,0 +1,38 @@
+---
+title: Typography
+---
+
+# Typography
+
+Type comes from basecoat's defaults and Tailwind's scale. There is no
+custom font loading and no per-component font sizing — hierarchy is
+built from a small, consistent set of utilities.
+
+## Type scale
+
+| Role | Utilities | Use |
+| ---- | --------- | --- |
+| Page title | `text-2xl font-semibold` | One per page |
+| Section heading | `text-lg font-semibold` | Card titles, page sections |
+| Body | (default) `text-base` | Running text, table cells, form values |
+| Supporting | `text-sm text-muted-foreground` | Descriptions, captions, metadata |
+| Fine print | `text-xs text-muted-foreground` | Timestamps, counts, badge text |
+
+Component partials already apply the right step — card titles,
+stat-card labels, table headers and form labels carry their sizing
+internally. Page code mostly needs the page title and body steps.
+
+## Rules
+
+- One `<h1>` per page; headings descend without skipping levels —
+  hierarchy comes from the heading element, with the utility classes
+  matching it visually.
+- De-emphasise with `text-muted-foreground`, not a smaller size, when
+  the text is still part of the reading flow.
+- Numbers that update or align in columns (tables, stat cards) use
+  `tabular-nums`.
+- No bold-on-bold: `font-semibold` marks hierarchy, not emphasis
+  inside body text. Inline emphasis is rare in clinical UI; prefer
+  restructuring the sentence.
+- Line length for prose blocks caps around `max-w-prose`; full-width
+  text is for tables, not paragraphs.

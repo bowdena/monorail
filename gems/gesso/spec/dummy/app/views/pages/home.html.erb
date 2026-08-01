@@ -1,0 +1,125 @@
+<% content_for :title, "Dashboard" %>
+
+<% stats = [
+    {
+      title: "Total Patients",
+      value: "2,847",
+      icon: "users",
+      change: "+12 this week",
+      change_type: "positive"
+    },
+    {
+      title: "Active Admissions",
+      value: "34",
+      icon: "bed-double",
+      change: "3 pending discharge",
+      change_type: "neutral"
+    },
+    {
+      title: "Today's Appointments",
+      value: "18",
+      icon: "calendar",
+      change: "4 remaining",
+      change_type: "neutral"
+    },
+    {
+      title: "Pending Reviews",
+      value: "7",
+      icon: "alert-circle",
+      change: "2 high priority",
+      change_type: "negative"
+    }
+  ]
+
+  quick_links = [
+    { label: "Search Patients",   path: "/patients",  icon: "search"    },
+    { label: "View Changelog",    path: "/changelog", icon: "history"   },
+    { label: "Settings",          path: "/settings",  icon: "settings"  },
+    { label: "Support",           path: "/support",   icon: "life-buoy" }
+  ] %>
+
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold">Dashboard</h1>
+
+    <p class="mt-1 text-sm text-muted-foreground">
+      Welcome back, Jane. Here's what's happening today.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <% stats.each do |stat| %>
+      <%= render_stat_card(**stat) %>
+    <% end %>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <%= render_card(title: "Recent Activity",
+          description: "Latest updates across the system",
+          classes: "lg:col-span-2") do %>
+      <div class="space-y-4">
+        <% [
+               {
+                 icon: "user",
+                 text: "Patient #1234567 admitted to Ward 4B",
+                 time: "10 minutes ago",
+                 variant: "info"
+               },
+               {
+                 icon: "check-circle",
+                 text: "Discharge summary completed for Patient #9876543",
+                 time: "42 minutes ago",
+                 variant: "success"
+               },
+               {
+                 icon: "alert-triangle",
+                 text: "Review required: Patient #2345678 test results",
+                 time: "1 hour ago",
+                 variant: "warning"
+               },
+               {
+                 icon: "file-text",
+                 text: "Referral submitted for Patient #3456789",
+                 time: "2 hours ago",
+                 variant: "default"
+               }
+             ].each do |item| %>
+          <% badge_class = "badge badge-#{item[:variant]} mt-0.5 flex-shrink-0" %>
+
+          <div class="flex items-start gap-3">
+            <span class="<%= badge_class %>">
+              <%= inline_svg_tag "icons/#{item[:icon]}.svg",
+                      class: "size-3" %>
+            </span>
+
+            <div class="min-w-0">
+              <p class="text-sm"><%= item[:text] %></p>
+
+              <p class="text-xs text-muted-foreground mt-0.5">
+                <%= item[:time] %>
+              </p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= render_card(title: "Quick Links",
+          description: "Navigate to common areas") do %>
+      <div class="space-y-2">
+        <% quick_links.each do |link| %>
+          <%= link_to link[:path],
+                  class: "flex items-center gap-3 p-2 rounded-md
+                          hover:bg-accent transition-colors text-sm" do %>
+            <span class="text-muted-foreground">
+              <%= inline_svg_tag "icons/#{link[:icon]}.svg",
+                      class: "size-4" %>
+            </span>
+
+            <%= link[:label] %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

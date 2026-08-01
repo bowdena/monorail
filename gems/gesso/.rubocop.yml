@@ -1,0 +1,14 @@
+# Omakase Ruby styling for Rails
+inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+
+# The dummy host's generated schema files (Rails excludes db/** at an app
+# root; here the host lives under spec/dummy, so exclude it explicitly).
+AllCops:
+  Exclude:
+    - spec/dummy/db/**/*
+
+# Overwrite or add rules to create your own house style
+#
+# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
+# Layout/SpaceInsideArrayLiteralBrackets:
+#   Enabled: false

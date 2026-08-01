@@ -1,0 +1,57 @@
+---
+title: Skeleton
+---
+
+# Skeleton
+
+A pulsing placeholder that holds the shape of content while it loads.
+Basecoat ships no component — it is `animate-pulse` plus the `accent`
+token and sizing utilities, written inline. Compose several to mirror a
+layout.
+
+<%= embed :skeleton, :default %>
+
+```html
+<div class="bg-accent animate-pulse rounded-md h-4 w-48" aria-hidden="true"></div>
+<div class="bg-accent animate-pulse rounded-md h-4 w-32" aria-hidden="true"></div>
+```
+
+## When to use
+
+- A page region is loading and its layout is known — rows, cards,
+  headings get a placeholder of the same shape, so nothing jumps
+  when content lands.
+
+## When not to use
+
+- Content that might come back empty — resolve straight to the empty
+  state; a skeleton promises content (see the *Feedback* pattern
+  page).
+- Unknown layout — use `spinner`.
+- In-flight button actions — the button's `loading` param.
+
+## Anatomy and options
+
+A single block: `animate-pulse` for the pulse, `bg-accent` for the
+fill, and sizing/shape utilities for the dimensions — `h-4 w-32`,
+`rounded-full size-10` (avatar), `h-24 w-full` (card). Compose several
+to mirror a layout: one per heading, row or cell, in the same container
+the real content will use.
+
+## Do and don't
+
+- Do match the real content's dimensions — same heights, same grid,
+  same gaps. The page must not reflow on arrival.
+- Do keep skeleton groups brief: placeholder the first screenful,
+  not an entire long list.
+- Don't approximate text with one big block — one bar per line reads
+  as text; a slab reads as an image.
+- Don't combine with a spinner or progress bar for the same region.
+
+## Accessibility and content
+
+- Mark each placeholder `aria-hidden="true"` — screen readers skip it;
+  announce loading via the region's live text or a `role="status"`
+  spinner when one exists elsewhere.
+- Uses the `accent` token, so it stays visible in both themes without
+  any per-theme tuning.

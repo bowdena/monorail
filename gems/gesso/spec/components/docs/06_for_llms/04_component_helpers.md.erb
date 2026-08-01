@@ -1,0 +1,108 @@
+---
+title: Component helpers
+---
+
+# Component helpers
+
+How a component is built in this codebase: a `render_<component>`
+helper is the public entry point, and the partial is pure markup. New
+and converted components follow this pattern. (`button` is the
+reference implementation; some older components are still plain
+partials, mid-migration.)
+
+## The shape
+
+```erb
+<%%= render_button(variant: "primary") do %>
+  Save changes
+<%% end %>
+```
+
+Three files per component:
+
+1. **Helper** — `app/helpers/gesso/components/<name>_helper.rb`,
+   `module Gesso::Components::<Name>Helper`, public method
+   `render_<name>(...)`. The single entry point callers use; never
+   `render "gesso/components/<name>"` directly.
+2. **Partial** — `app/views/gesso/components/_<name>.html.erb`. Pure markup.
+3. **Preview** — `spec/components/previews/<name>_preview.rb` plus a
+   `<name>_preview/` template dir.
+
+## The helper owns the logic
+
+- Allowed enum values as frozen constants (`VARIANTS`, `SIZES`).
+- **Validation:** raise `ArgumentError` naming the allowed values for
+  an unknown enum option — fail fast at the call site.
+- Class composition, defaults, and any value objects.
+- Build markup with **Rails tag helpers** (`button_tag`), not
+  hand-written HTML; suppress unwanted defaults (`name: nil`) and join
+  classes with `class_names`.
+- Call the partial with the **string-plus-block** render form
+  (`render("gesso/components/<name>", locals, &block)`); the explicit
+  `partial:`/`locals:` form does not pass the block to `yield`.
+
+```ruby
+module Components
+  module ButtonHelper
+    VARIANTS = %w[ default primary secondary outline ghost link
+                   destructive warning info ].freeze
+    SIZES = %w[ default sm lg icon ].freeze
+
+    def render_button(variant: "primary", size: "default", **opts, &block)
+      unless VARIANTS.include?(variant)
+        raise ArgumentError, "variant must be one of #{VARIANTS.join(", ")}"
+      end
+      # ... compose locals, then:
+      render("gesso/components/button", button_class: button_class(variant:, size:),
+        **opts, &block)
+    end
+  end
+end
+```
+
+## The partial is pure markup
+
+- A strict `locals: (...)` signature on the first line —
+  receiving ready-made values (e.g. `button_class:`), not raw options.
+- No `case`, no validation, no class maths — that all lives in the
+  helper.
+- Accept `classes`; `yield` the block for content.
+
+## Previews use a template
+
+Inline helper calls fail in a preview — Lookbook/ViewComponent defers
+the preview `render`. Use `render_with_template` with a shared template
+that calls the helper (the helper is auto-included in the template's
+view context — no `extend`):
+
+```ruby
+def primary
+  render_with_template(template: "button_preview/preview",
+    locals: { variant: "primary", label: "Primary" })
+end
+```
+
+Add a `variants` scenario rendering every variant together, for the
+doc page to embed.
+
+## Specs
+
+- **Helper unit spec** — `spec/components/<name>_helper_spec.rb`,
+  `type: :helper`. Call the helper directly in each example
+  (`helper.render_<name>(...) { label }` wrapped in `Capybara.string`)
+  and assert on the HTML. Do not abstract setup into a shared
+  `def`/proc — keep each example self-contained.
+- **Request spec** — `spec/components/<name>_spec.rb`, `type: :request`,
+  still renders `/lookbook/preview/<name>/<scenario>` and asserts DOM.
+
+## Doc page
+
+`spec/components/docs/05_components/<name>.md.erb`:
+
+- A **Usage** section with syntax-highlighted ` ```erb ` blocks showing
+  the `render_<name>` call (basic + with common options).
+- When the component has variants or modes: a table listing them, an
+  embedded gallery (`<%%= embed :<name>, :variants %>` — an embed, not
+  raw HTML, so the iframe loads only the app CSS and avoids the
+  `lookbook.css` preflight leak), and concrete **when to use / when not
+  to use** guidance for each.

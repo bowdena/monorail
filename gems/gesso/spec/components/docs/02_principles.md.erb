@@ -1,0 +1,86 @@
+---
+title: Design principles
+---
+
+# Design principles
+
+Five rules govern every component in this library and every page built
+from it. When a build decision is unclear, these settle it — in this
+order.
+
+## Native first
+
+Reach for what the browser ships before writing JavaScript.
+
+- Disclosure is `<details>`/`<summary>` — the accordion is zero-JS,
+  and single-open behaviour comes from the native shared `name`
+  attribute, not a controller.
+- Blocking overlays are native `<dialog>` with `showModal()` — focus
+  trapping, the Escape key and the backdrop come free. The sheet and
+  dialog share one small Stimulus controller for open/close wiring
+  only.
+- Scrolling regions are `overflow-y: auto`, not a custom-scrollbar
+  component.
+- Form controls are native `<input>` elements styled by basecoat —
+  checkbox, radio, switch are all `type="checkbox|radio"` underneath.
+
+If a behaviour seems to need new JavaScript, first check whether an
+HTML element, attribute, or CSS feature covers it.
+
+## Basecoat before custom CSS
+
+Basecoat ships the visual system: `btn` and its variant suffixes,
+`.table`, `.input`, `.dialog`, `.select`, `.command`, `.toast`. Use the
+shipped class before writing any CSS. A component only gets a file in
+`app/assets/tailwind/components/` for styling basecoat does not
+provide — and that file extends the basecoat treatment rather than
+replacing it. Page-level spacing and layout use Tailwind utilities;
+component look-and-feel never does.
+
+## No new dependencies
+
+The runtime dependency set is closed: Rails, Turbo, Stimulus,
+basecoat (CSS + JS from the `basecoat-css` npm package), Tailwind. Component
+behaviour that basecoat's bundle already implements — select,
+command, toast — is wired, not rewritten. Anything that appears to
+need a new gem or npm package (charts, rich date pickers) is decided
+per consuming feature, never added to the library speculatively.
+
+## Build the minimum
+
+A component earns its place by having a consuming page, not by
+existing in some other design system. Variants, params and options are
+added when a real page needs them. The partials take the smallest
+local set that covers current use — a handed-in pagination window
+instead of page maths, a flash-to-toast mapping instead of a
+programmatic toast API. When in doubt, leave it out; gaps are cheap to
+fill and dead options are expensive to carry.
+
+Start inline. New UI is written directly in the page that needs it,
+not pre-extracted into a partial on the chance it recurs. It graduates
+to a component on the **third** instance of the same thing — two
+copies are a coincidence, three are a pattern. Inlining first and
+refactoring later is cheaper than carrying an abstraction no second
+page ever wanted.
+
+A component bundles UI/UX **and** behaviour: the markup, its basecoat
+styling, and the state, logic or accessibility contract that travels
+with it. That bundle is what earns the extraction — not the markup
+alone. So one trigger is duplication (the third instance); the other
+is responsibility. A piece that carries behaviour or an accessibility
+contract a caller would otherwise get wrong — a focus-managed dialog,
+a keyboard-operable combobox — becomes a component on its *first* use,
+because inlining it once is how the bug ships. A single styled element
+with a class is neither: the class is already the API, so it stays
+inline.
+
+## Accessible by default
+
+Accessibility lives inside the component so callers cannot forget it:
+`role="progressbar"` on progress, `role="separator"` on separators,
+`aria-label` on pagination's `<nav>`, `role="listbox"`/`combobox` in
+the select pattern, `aria-selected` marking the chosen option. Native
+elements (see above) carry their own keyboard handling. A new
+component is not done until it is operable by keyboard alone and
+announces its state — that ships in the first commit, not as a
+follow-up.

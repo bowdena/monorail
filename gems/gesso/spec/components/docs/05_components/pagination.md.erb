@@ -1,0 +1,74 @@
+---
+title: Pagination
+---
+
+# Pagination
+
+Page-by-page navigation through a long collection — prev/next plus
+a numbered window with ellipses.
+
+<%= embed :pagination, :default %>
+
+## When to use
+
+- Long collections consumed a page at a time, almost always under a
+  `table`.
+
+## When not to use
+
+- Collections that fit on two screens — show them all; pagination
+  costs a click per screenful.
+- Feeds where position doesn't matter — but infinite scroll is an
+  app-level choice, not shipped here; default to pagination.
+- Stepping through a flow — pagination navigates a collection, not
+  a process.
+
+## Usage
+
+`render_pagination` (`Gesso::Components::PaginationHelper`) renders a handed-in
+window — **it does no page maths**. The controller (or view) computes
+which numbers and gaps to show and hands the window in.
+
+```erb
+<%%= render_pagination(
+  previous: { path: "?page=2" },
+  next_page: { path: "?page=4" },
+  pages: [
+    { number: 1, path: "?page=1", current: false },
+    :gap,
+    { number: 3, path: "?page=3", current: true },
+    { number: 4, path: "?page=4", current: false },
+    :gap,
+    { number: 10, path: "?page=10", current: false }
+  ]
+) %>
+```
+
+| Param | Notes |
+| ----- | ----- |
+| `pages` | array of `{ number:, path:, current: }` hashes and `:gap` symbols (ellipses) |
+| `previous` | `{ path: }`, or nil to omit (first page) |
+| `next_page` | `{ path: }`, or nil to omit (last page). Named to avoid the `next` keyword |
+
+Current page renders `btn-icon-outline` with `aria-current`; others
+`btn-icon-ghost`.
+
+## Do and don't
+
+- Do put the page number in the URL (`?page=3`) — shareable,
+  reloadable (see *Navigation*: state in the URL).
+- Do keep the window small: first, last, current ±1, gaps between —
+  the controller decides, consistently across the app.
+- Do omit `previous`/`next_page` at the ends (pass nil) rather than
+  rendering them disabled (see *Navigation*: omit, don't disable).
+- Don't reset filters or sort when the page changes; page links
+  carry the full query.
+- Don't show pagination for a single page of results.
+
+## Accessibility and content
+
+- A labelled `<nav>` ("Pagination"); prev/next links carry explicit
+  labels ("Go to previous page"); the current page is announced via
+  `aria-current`.
+- Ellipses are visual gap markers, not links; screen readers skip
+  to the real pages.

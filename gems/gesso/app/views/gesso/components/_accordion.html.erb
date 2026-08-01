@@ -1,0 +1,37 @@
+<%# locals: (id: "accordion", items: [], multiple: false, classes: nil) %>
+<%#
+  Accordion component.
+
+  Rendered via render_accordion (Gesso::Components::AccordionHelper). This
+  partial only renders markup.
+
+  A stack of disclosure sections built on native <details>/<summary>,
+  styled by basecoat-css. By default every section shares a `name` so
+  the browser keeps only one open at a time (single-open); pass
+  multiple: true to drop the name and let any number stay open.
+
+  The chevron in each summary rotates on [open] via accordion.css.
+
+  Each item is a hash with :label, :body and optional :open keys.
+
+  Params:
+    id       - group name shared by the items (default: "accordion")
+    items    - array of { label:, body:, open: } hashes
+    multiple - allow more than one section open at once (default: false)
+    classes  - additional CSS classes on the wrapper
+%>
+
+<%= tag.div class: class_names("accordion", classes) do %>
+  <% items.each do |item| %>
+    <%= tag.details name: (multiple ? nil : id), open: item[:open] do %>
+      <%= tag.summary class: "accordion-trigger" do %>
+        <%= tag.span item[:label] %>
+
+        <%= inline_svg_tag "icons/chevron-down.svg",
+              class: "accordion-chevron size-4" %>
+      <% end %>
+
+      <%= tag.div item[:body], class: "accordion-content" %>
+    <% end %>
+  <% end %>
+<% end %>

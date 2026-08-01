@@ -1,0 +1,24 @@
+<%#
+  The live toaster is position: fixed to a screen corner, which would
+  collapse this embedded preview to no height. For the docs gallery only,
+  render it inline (static, top-down) so every toast is visible.
+  auto_dismiss: false keeps them all on screen.
+%>
+<div class="toast-gallery p-4">
+  <style>
+    .toast-gallery .toaster {
+      position: static;
+      width: 100%;
+      max-width: 28rem;
+      padding: 0;
+      flex-direction: column;
+    }
+  </style>
+
+  <%= render_toast(auto_dismiss: false, flash: {
+        "notice"  => "Your changes were saved.",
+        "info"    => "A new version is available.",
+        "warning" => "Your session will expire in 5 minutes.",
+        "alert"   => "Something went wrong. Please try again."
+      }) %>
+</div>

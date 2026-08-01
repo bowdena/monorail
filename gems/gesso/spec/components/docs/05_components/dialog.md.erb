@@ -1,0 +1,120 @@
+---
+title: Dialog
+---
+
+# Dialog
+
+A centred, blocking modal on a native `<dialog>` — for decisions the
+user must make before continuing.
+
+<%= embed :dialog, :default %>
+
+## When to use
+
+- A decision that blocks the flow: unsaved changes, required
+  acknowledgement.
+- A small, focused task that must complete before the page continues.
+
+## When not to use
+
+- **Confirming a deletion or other destructive action.** A dialog is
+  dismissible — Escape, a backdrop click or the close button all close
+  it *without answering the question*, so a stray click can dismiss the
+  confirmation rather than record a deliberate choice. Destructive
+  actions need an explicit, non-dismissable confirmation instead.
+- Content consulted alongside the page — `sheet` (see the *Overlays*
+  pattern page decision table).
+- Action outcomes — `toast`. Page state — `alert`.
+- Anything that grows into a multi-section form — give it a page.
+
+## Usage
+
+`render_dialog` (`Gesso::Components::DialogHelper`) renders the modal shell —
+close button, title/description header — and yields the block as a
+`<section>` body and `<footer>` actions (basecoat styles both as direct
+children). Render it inside a `[data-controller="drawer"]` element
+alongside the trigger that opens it.
+
+```erb
+<%%= tag.div data: { controller: "drawer" } do %>
+  <%%= button_tag "Publish changes", class: "btn",
+        data: { action: "click->drawer#open" } %>
+
+  <%%= render_dialog(
+        id: "publish",
+        title: "Publish changes?",
+        description: "The updated content becomes visible to everyone."
+      ) do %>
+    <%%= tag.section do %>
+      Readers will see the new version immediately.
+    <%% end %>
+
+    <%%= tag.footer do %>
+      <%%= button_tag "Cancel", class: "btn-ghost",
+            data: { action: "click->drawer#close" } %>
+      <%%= button_tag "Publish", class: "btn" %>
+    <%% end %>
+  <%% end %>
+<%% end %>
+```
+
+| Param | Default | Notes |
+| ----- | ------- | ----- |
+| `id` | required | wires `aria-labelledby` / `aria-describedby` to the title and description |
+| `title` | required | the decision, as a heading |
+| `description` | — | supporting text under the title |
+| `close_label` | `"Close"` | accessible label for the close button |
+| `classes` | — | extra classes on the `<dialog>` |
+
+Opened with `showModal()` via the drawer controller: focus trap,
+Escape and backdrop dismissal are native. Long bodies scroll inside
+the `<section>` (`dialog.css`); the dialog never exceeds the
+viewport.
+
+## How it opens
+
+The trigger and the dialog are not linked by `id` — they are wired
+through the `drawer` Stimulus controller by scope and targets. Wrap both
+in one `data-controller="drawer"` element:
+
+- **Trigger** — a button with `data-action="click->drawer#open"`. The
+  controller's `open()` calls `showModal()` on its panel.
+- **Panel** — `render_dialog` renders the `<dialog>` with
+  `data-drawer-target="panel"`, so the controller knows which element to
+  open. This target — not the `id` — is the link between button and
+  dialog.
+- **Close** — the built-in close button (and any Cancel you add) carries
+  `data-action="click->drawer#close"`, which calls `close()`.
+- **Backdrop** — the `<dialog>` carries
+  `data-action="click->drawer#backdropClick"`; it closes only when the
+  click lands on the dialog box itself (the backdrop), not its content.
+
+`render_dialog` supplies the panel side; you supply the wrapper and
+trigger. The same controller drives `render_sheet`. Because Escape and
+the backdrop dismiss natively, the dialog is always closeable without
+answering — see *When not to use*.
+
+## Do and don't
+
+- Do make `title` the decision ("Publish changes?") and the confirming
+  button name the action ("Publish") — never "Are you sure?" + "OK"
+  (see *Content*).
+- Do keep the footer to primary + "Cancel"; a dialog with three
+  choices is a design smell.
+- Don't use a dialog to confirm a deletion or other destructive action
+  — it is dismissible, so the confirmation can be closed without
+  answering; use an explicit, non-dismissable confirmation instead.
+- Don't open a dialog from a dialog — close the first (see
+  *Overlays*: never stack).
+- Don't open on page load or on a timer; a dialog answers a user
+  action.
+
+## Accessibility and content
+
+- Native `showModal()` makes the page behind inert and traps focus;
+  Escape, backdrop and the labelled close button all dismiss — three
+  ways out, none custom.
+- `title`/`description` are real heading + text in the dialog, read
+  on open.
+- Body copy carries only what the decision needs; detail belongs on
+  the page underneath.

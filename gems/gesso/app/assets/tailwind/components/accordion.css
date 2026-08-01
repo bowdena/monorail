@@ -1,0 +1,42 @@
+@layer components {
+  /* Stacked disclosure sections on native <details>. Basecoat already
+     animates ::details-content open/closed; this adds the bordered row
+     chrome and rotates the chevron when its <details> is open. */
+  .accordion {
+    border-top: 1px solid var(--border);
+  }
+
+  .accordion > details {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .accordion-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    padding: 1rem 0;
+    font-weight: 500;
+    text-align: left;
+  }
+
+  .accordion-trigger:hover {
+    text-decoration: underline;
+  }
+
+  .accordion-chevron {
+    flex-shrink: 0;
+    color: var(--muted-foreground);
+    transition: transform 0.2s ease;
+  }
+
+  .accordion > details[open] .accordion-chevron {
+    transform: rotate(180deg);
+  }
+
+  .accordion-content {
+    padding-bottom: 1rem;
+    color: var(--muted-foreground);
+  }
+}

@@ -1,0 +1,69 @@
+---
+title: Sidebar
+---
+
+# Sidebar
+
+The shell's section navigation: one entry per top-level product
+area, collapsible to icons.
+
+## When to use
+
+- Once, in the application layout — it is the product's map. Pages
+  supply nothing; the layout passes `nav_items`.
+
+## When not to use
+
+- Within-page navigation — `tabs`, accordion or in-page links (see
+  the *Navigation* pattern page).
+- Deep hierarchies — the sidebar holds one level; if a section
+  needs sub-navigation, that belongs inside the section's pages.
+
+## Usage
+
+`render_sidebar` (`Gesso::Components::SidebarHelper`) derives the active section
+from the request path and renders the navigation. Call it once, in the
+application layout.
+
+```erb
+<%%= render_sidebar(
+  app_name: "NHS App",
+  nav_items: [
+    { label: "Dashboard", path: "/",         icon: "layout-dashboard" },
+    { label: "Patients",  path: "/patients", icon: "users" }
+  ]
+) %>
+```
+
+<%= embed :sidebar, :default %>
+
+| Param | Notes |
+| ----- | ----- |
+| `app_name` | product name beside the logo mark |
+| `nav_items` | `{ label:, path:, icon: }` hashes, one per section |
+
+The helper derives the active item from `request.path` (prefix match;
+exact for `/`) and marks it with `aria-current="page"`, which styles it
+with the `--sidebar-primary` blue-violet accent in both themes (see
+*Colour* under Foundations). Collapse behaviour comes from its Stimulus
+`sidebar` controller.
+
+## Do and don't
+
+- Do keep it to the sections a user thinks of as *places* — around
+  seven entries; past that, the product wants regrouping, not a
+  longer list.
+- Do give each section its established lucide icon — icons are what
+  remains when collapsed.
+- Don't put actions in the sidebar; it navigates, it never mutates.
+- Don't reorder sections per page or per role without strong need —
+  spatial memory is the sidebar's value.
+
+## Accessibility and content
+
+- Real `<nav>` with a list of links; the current section carries
+  `aria-current="page"`. When collapsed the visible label is hidden but
+  each link keeps its accessible name via an `aria-label`, so screen
+  readers are unaffected by collapse.
+- Labels are one or two words, sentence case, matching the page
+  titles they lead to.

@@ -1,0 +1,32 @@
+<%# locals: (button_class:, type: "button", loading: false, disabled: false, classes: nil) %>
+<%#
+  Button component.
+
+  Rendered via render_button (Gesso::Components::ButtonHelper), which validates
+  variant/size and computes button_class. This partial only renders
+  markup — it does no class composition itself.
+
+  Params:
+    button_class - basecoat class string (e.g. "btn-primary"); the
+                   helper computes it from variant + size
+    type     - button | submit | reset  (default: "button")
+    loading  - when true, shows a spinner and disables the button
+    disabled - when true, disables the button
+    classes  - additional CSS classes
+%>
+
+<%# name: nil drops button_tag's default name="button" attribute. %>
+<%= button_tag(
+      type:,
+      name: nil,
+      class: class_names(button_class, classes),
+      disabled: disabled || loading,
+      data: {
+        controller: "button",
+        action: "button#load",
+        button_loading_value: loading
+      }
+    ) do %>
+  <span data-button-target="spinner" class="btn-spinner<%= " hidden" unless loading %>" aria-hidden="true"></span>
+  <span data-button-target="content"><%= yield %></span>
+<% end %>

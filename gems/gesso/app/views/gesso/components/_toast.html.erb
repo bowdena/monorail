@@ -1,0 +1,42 @@
+<%# locals: (toasts: []) %>
+<%#
+  Toast component.
+
+  Rendered via render_toast (Gesso::Components::ToastHelper), which maps Rails
+  flash types to basecoat toast categories, roles, icons and an
+  auto-dismiss duration. This partial only renders markup.
+
+  Each toast carries a dismiss button; the vendored toast.js dismisses a
+  toast on a click of a button inside its <footer>. A data-duration of -1
+  means the toast never auto-dismisses and must be closed with that
+  button; any other value is the auto-dismiss window in ms.
+
+  Renders nothing when there are no toasts.
+
+  Params:
+    toasts - array of { message:, category:, role:, icon:, duration: }
+             hashes, one per flash message.
+%>
+
+<% if toasts.any? %>
+  <%= tag.div id: "toaster", class: "toaster" do %>
+    <% toasts.each do |toast| %>
+      <%= tag.div class: "toast", role: toast[:role], aria: { atomic: true },
+            data: { category: toast[:category], duration: toast[:duration] } do %>
+        <%= tag.div class: "toast-content" do %>
+          <%= inline_svg_tag "icons/#{toast[:icon]}.svg", aria: { hidden: true } %>
+
+          <%= tag.section do %>
+            <%= tag.p toast[:message] %>
+          <% end %>
+
+          <%= tag.footer do %>
+            <%= button_tag type: "button", name: nil, aria: { label: "Dismiss" } do %>
+              <%= inline_svg_tag "icons/x.svg", aria: { hidden: true } %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
