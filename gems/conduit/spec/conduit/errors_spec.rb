@@ -25,6 +25,8 @@ RSpec.describe Conduit::Error do
       expect(described_class::Timeout.new("boom")).to be_a(described_class)
       expect(described_class::NotFound.new("boom")).to be_a(described_class)
       expect(described_class::QueryError.new("boom")).to be_a(described_class)
+      expect(described_class::TooManyResults.new("boom"))
+        .to be_a(described_class)
       expect(described_class::PermissionDenied.new("boom"))
         .to be_a(described_class)
       expect(described_class::AuthenticationFailed.new("boom"))
@@ -51,11 +53,13 @@ RSpec.describe Conduit::Error do
       end
     end
 
-    context "for ConnectionFailed and QueryError" do
+    context "for ConnectionFailed, QueryError, TooManyResults" do
       it "is false" do
         expect(described_class::ConnectionFailed.new("x").configuration?)
           .to be false
         expect(described_class::QueryError.new("x").configuration?).to be false
+        expect(described_class::TooManyResults.new("x").configuration?)
+          .to be false
       end
     end
   end
@@ -68,11 +72,12 @@ RSpec.describe Conduit::Error do
       end
     end
 
-    context "for NotConfigured, NotFound, QueryError" do
+    context "for NotConfigured, NotFound, QueryError, TooManyResults" do
       it "is false" do
         expect(described_class::NotConfigured.new("x").transient?).to be false
         expect(described_class::NotFound.new("x").transient?).to be false
         expect(described_class::QueryError.new("x").transient?).to be false
+        expect(described_class::TooManyResults.new("x").transient?).to be false
       end
     end
   end

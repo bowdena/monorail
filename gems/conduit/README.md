@@ -164,6 +164,25 @@ after the query, so it leaves an audit event behind. Page 1 is
 always valid: a search that matched nothing answers with an empty
 page, not a failure.
 
+### Searches that match too much are refused
+
+A search matching more than 2000 rows raises
+`Error::TooManyResults`, naming what it matched:
+
+```ruby
+patients.matching(last_name: "a")
+# => Conduit::Error::TooManyResults: 8214 matches; narrow the search
+```
+
+Paging does not get around this, and is not meant to. Pages are cut
+after merge resolution, and resolution covers the whole match set,
+so `per_page` cannot reduce what a search costs. The remedy for a
+search this broad is a narrower one — which is why the message says
+how much it matched.
+
+The count is of matched rows, taken before anything is fetched, so
+being refused costs a single statement.
+
 Archived patients are never returned.
 
 `find_all_by` and `matching` raise `ArgumentError` when every
@@ -243,6 +262,7 @@ rather than dressed up as infrastructure errors.
 | `Error::ConnectionFailed`     | server unreachable / down               |
 | `Error::Timeout`              | connect or statement took too long      |
 | `Error::NotFound`             | a bang query matched no row             |
+| `Error::TooManyResults`       | search matched more than conduit serves |
 | `Error::QueryError`           | statement failed; also the catch-all    |
 
 Rather than listing classes, branch on the remediation predicates:
@@ -259,8 +279,8 @@ rescue Conduit::Error => error
     # ConnectionFailed, Timeout — retrying later may succeed; degrade
     # gracefully.
   else
-    # NotFound is a domain outcome; QueryError is a conduit bug —
-    # report it.
+    # NotFound and TooManyResults are domain outcomes — tell the
+    # user. QueryError is a conduit bug — report it.
   end
 end
 ```

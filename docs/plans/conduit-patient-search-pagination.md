@@ -213,11 +213,11 @@ meaning.
 - Out-of-range: `ArgumentError` or a `Conduit::Error`? → `ArgumentError`,
   consistent with the blank-criteria precedent in `given_criteria`.
 - How does a 2001-row cap cohort get past the seeder's own safety guard?
-  → Unresolved — needed before slice 5. `ConduitSpec::Seeder` refuses to seed
-  any instance whose seeded tables hold more than `MAX_TEST_TABLE_ROWS`
-  (1000), on the reasoning that no seed produces that many, so it must be a
-  real instance. A 2001-row cohort makes that reasoning false and aborts every
-  run after the first.
+  → `MAX_TEST_TABLE_ROWS` raised from 1000 to 5000. The guard exists to stop
+  the seed scripts' `DELETE` reaching production, and it aborts when any
+  seeded table is oversized — a real `PATIENTS` holds millions, so it still
+  trips on the first table it checks. Shrinking the cohort instead was
+  rejected: it would let a test-harness limit decide conduit's public cap.
 - Is the existing `merge_resolver_spec` a safety net for the batching slice?
   → Only partly. It stubs `latest_target` and `active_by_refno` per refno, so
   it is coupled to the collaborators being replaced and has to be rewritten
@@ -320,6 +320,7 @@ their match relation, share a private `paged` helper.
 - `gems/conduit/lib/conduit/errors.rb`
 - `gems/conduit/lib/conduit/ipm/repositories/patients.rb`
 - `gems/conduit/spec/support/mssql_integration_seeds/iPM_REPL/PATIENTS.sql`
+- `gems/conduit/spec/support/mssql_seed_integration_tests.rb`
 - `gems/conduit/spec/conduit/errors_spec.rb`
 - `gems/conduit/spec/integration/patient_matching_spec.rb`
 - `gems/conduit/README.md`
@@ -330,4 +331,7 @@ raises it naming the count, without fetching or resolving the rows; a search
 narrowed to just inside the limit returns a page; the refused search leaves an
 audit event carrying the error.
 
-**Status:** pending
+**Status:** done — an example also pins the deliberate behaviour that passing
+`per_page` does not get around the cap, since that was the design question the
+batching slice came out of. The seeder's own row-count guard had to rise to
+5000 to admit the cohort.

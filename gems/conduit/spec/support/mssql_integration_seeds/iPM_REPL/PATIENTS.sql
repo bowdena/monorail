@@ -237,3 +237,51 @@ SET PATNT_REFNO = 9200000 + n,
 INSERT INTO dbo.PATIENTS SELECT * FROM #paging_cohort;
 DROP TABLE #paging_cohort;
 GO
+
+-- Cap cohort: 2001 Kwok rows, one past conduit's MAX_RESULTS, so a
+-- search across them is refused rather than run. The 2001st is born
+-- a day later than the rest, which gives a narrowed search that
+-- lands exactly on the limit and succeeds. Built the same way as
+-- the paging cohort; the surname is one no other example searches
+-- for. sys.all_objects is cross joined with itself because on its
+-- own it may hold fewer rows than the cohort needs.
+SELECT TOP (0) * INTO #cap_cohort FROM dbo.PATIENTS;
+
+WITH numbers AS (
+  SELECT TOP (2001) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n
+  FROM sys.all_objects AS a CROSS JOIN sys.all_objects AS b
+)
+INSERT INTO #cap_cohort
+SELECT template.*
+FROM dbo.PATIENTS AS template
+CROSS JOIN numbers
+WHERE template.PATNT_REFNO = 1091011;
+
+WITH numbered AS (
+  SELECT PATNT_REFNO, PASID, FORENAME, UPPER_FORENAME, PREFRD_FORENAME,
+         UPPER_PREFRD_FORENAME, SURNAME, UPPER_SURNAME, SEARCH_SURNAME,
+         DTTM_OF_BIRTH, DATE_OF_BIRTH, ARCHV_FLAG,
+         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n
+  FROM #cap_cohort
+)
+UPDATE numbered
+SET PATNT_REFNO = 9300000 + n,
+    PASID = '073' + RIGHT('0000' + CAST(n AS varchar(4)), 4),
+    FORENAME = 'Bea' + RIGHT('0000' + CAST(n AS varchar(4)), 4),
+    UPPER_FORENAME = 'BEA' + RIGHT('0000' + CAST(n AS varchar(4)), 4),
+    PREFRD_FORENAME = 'Bea' + RIGHT('0000' + CAST(n AS varchar(4)), 4),
+    UPPER_PREFRD_FORENAME = 'BEA' + RIGHT('0000' + CAST(n AS varchar(4)), 4),
+    SURNAME = 'Kwok',
+    UPPER_SURNAME = 'KWOK',
+    SEARCH_SURNAME = 'KWOK',
+    DTTM_OF_BIRTH = CASE WHEN n <= 2000
+                         THEN '1970-01-01 00:00:00.000'
+                         ELSE '1970-01-02 00:00:00.000' END,
+    DATE_OF_BIRTH = CASE WHEN n <= 2000
+                         THEN '1970-01-01 00:00:00.000'
+                         ELSE '1970-01-02 00:00:00.000' END,
+    ARCHV_FLAG = 'N';
+
+INSERT INTO dbo.PATIENTS SELECT * FROM #cap_cohort;
+DROP TABLE #cap_cohort;
+GO

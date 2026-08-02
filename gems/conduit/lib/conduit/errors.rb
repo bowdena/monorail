@@ -38,6 +38,7 @@ module Conduit
 
     class NotFound < Error; end
     class QueryError < Error; end
+    class TooManyResults < Error; end
 
     class PermissionDenied < Error
       def configuration? = true

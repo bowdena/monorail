@@ -2,6 +2,13 @@ module Conduit
   module IPM
     module Repositories
       class Patients < Conduit::Repository[:ipm_patients]
+        # Merge resolution asks about a whole match set at once, so
+        # every refno reaches SQL Server in one IN list — and a
+        # statement may carry at most 2100 parameters. This is the
+        # ceiling on what a single search may return, not a budget
+        # for round trips.
+        MAX_RESULTS = 2000
+
         def by_urn(urn)
           one :by_urn, {urn: urn} do
             searched = ipm_patients.by_pasid(urn)
@@ -50,11 +57,25 @@ module Conduit
           Page.validate_request!(page: page, per_page: per_page)
 
           many name, criteria.merge(page: page, per_page: per_page) do
-            resolved = merge_resolver.resolve_all(matches.call.to_a)
+            scope = matches.call
+            refuse_oversized_search scope.count
+            resolved = merge_resolver.resolve_all(scope.to_a)
             Page.of(
               mapper.call_all(resolved), page: page, per_page: per_page
             )
           end
+        end
+
+        # Counted before anything is fetched or resolved, so a search
+        # this broad costs one statement. Paging cannot rescue it:
+        # resolution runs over the whole match set before a page can
+        # be cut, so the remedy is a narrower search.
+        def refuse_oversized_search(count)
+          return if count <= MAX_RESULTS
+
+          raise Error::TooManyResults.new(
+            "#{count} matches; narrow the search", source: :ipm
+          )
         end
 
         def source

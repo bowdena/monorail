@@ -300,6 +300,60 @@ RSpec.describe "Patient matching", :mssql do
     end
   end
 
+  describe "a search matching too many patients" do
+    it "refuses it, naming the count" do
+      expect { Conduit.ipm.patients.matching(last_name: "kwok") }
+        .to raise_error(
+          Conduit::Error::TooManyResults, /2001 matches/
+        )
+    end
+
+    it "refuses an exact search the same way" do
+      expect { Conduit.ipm.patients.find_all_by(last_name: "Kwok") }
+        .to raise_error(Conduit::Error::TooManyResults)
+    end
+
+    # Paging cannot dodge the cap: merge resolution runs over the
+    # whole match set before a page can be cut, so the remedy for a
+    # search this broad is narrowing it.
+    context "when the caller asked for a page" do
+      it "refuses it just the same" do
+        expect do
+          Conduit.ipm.patients.matching(last_name: "kwok", per_page: 25)
+        end.to raise_error(Conduit::Error::TooManyResults)
+      end
+    end
+
+    it "leaves the refusal in the audit trail" do
+      events = []
+      subscription = Conduit.on_query { |query| events << query }
+
+      expect { Conduit.ipm.patients.matching(last_name: "kwok") }
+        .to raise_error(Conduit::Error::TooManyResults)
+
+      expect(events.length).to eq 1
+      expect(events.first.error).to eq "Conduit::Error::TooManyResults"
+      expect(events.first.row_count).to eq 0
+      expect(events.first.record_ids).to eq []
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription)
+    end
+
+    context "when narrowed to just inside the limit" do
+      it "returns a page" do
+        patients = Conduit.ipm.patients.matching(
+          last_name: "kwok", date_of_birth: Date.new(1970, 1, 1),
+          per_page: 25
+        )
+
+        expect(patients.total_count).to eq 2000
+        expect(patients.total_pages).to eq 80
+        expect(patients.length).to eq 25
+        expect(patients.first.first_name).to eq "Bea0001"
+      end
+    end
+  end
+
   # Every user value reaches SQL through Sequel's hash conditions
   # or predicate DSL, which quote literals — nothing is
   # interpolated. These examples are the tripwire: if a finder
