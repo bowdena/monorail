@@ -83,6 +83,13 @@ class ButtonPreview < Lookbook::Preview
     render_with_template(template: "button_preview/in_a_form")
   end
 
+  # A submit button whose form targets a frame it sits outside of. The
+  # response never replaces the button, so the spinner has to stop
+  # itself.
+  def in_a_frame
+    render_with_template(template: "button_preview/in_a_frame")
+  end
+
   def loading
     preview(loading: true, label: "Loading")
   end

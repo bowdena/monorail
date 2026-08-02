@@ -42,4 +42,16 @@ RSpec.describe "Button component", type: :system do
 
     expect(page).to have_current_path(/submitted=yes/, url: true)
   end
+
+  # A form that targets a frame never replaces its own submit button, so
+  # a spinner that only stops on re-render spins for ever.
+  it "stops spinning once a frame submission finishes" do
+    visit "/lookbook/preview/button/in_a_frame"
+
+    click_button "Save"
+
+    expect(page).to have_css("turbo-frame#button_results")
+    expect(page).to have_css("button.btn .btn-spinner.hidden", visible: :all)
+    expect(page).to have_no_css("button.btn[disabled]")
+  end
 end
