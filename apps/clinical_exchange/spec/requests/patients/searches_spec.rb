@@ -111,6 +111,30 @@ RSpec.describe "Patient searches", type: :request do
     end
   end
 
+  # filtered_parameters is what Rails writes to the log for a request.
+  it "keeps the name and date of birth out of the log" do
+    stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+      matching: [ ipm_patient ]))
+
+    post patients_search_path, params: {
+      first_name: "Tori", last_name: "Judd", date_of_birth: "1957-09-29"
+    }
+
+    logged = request.filtered_parameters
+
+    expect(logged["first_name"]).to eq("[FILTERED]")
+    expect(logged["date_of_birth"]).to eq("[FILTERED]")
+  end
+
+  it "leaves the urn readable in the log" do
+    stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+      by_urn: ipm_patient))
+
+    post patients_search_path, params: { urn: "0700003" }
+
+    expect(request.filtered_parameters["urn"]).to eq("0700003")
+  end
+
   # The counter is shared by every example in the run, so each of these
   # starts and ends from a known state.
   context "when searches come too fast" do

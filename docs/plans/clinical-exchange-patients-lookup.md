@@ -290,7 +290,10 @@ examples.
 `spec/requests/patients/searches_spec.rb`
 **Spec:** a search's first name and date of birth are filtered from the
 logged parameters; the URN is not.
-**Status:** pending
+**Note:** asserted through `request.filtered_parameters`, which is what
+Rails writes to the log. Filtering is a partial match, so a later
+`date_of_birth_day` field is covered too.
+**Status:** done
 
 ### Slice 12: Advanced search
 **Commit:** `feat: add advanced patient search`
