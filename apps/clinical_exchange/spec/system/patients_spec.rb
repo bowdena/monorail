@@ -1,8 +1,8 @@
 require "system_helper"
 
-# Nothing serves iPM in the test environment, so a search here always
-# takes the fallback path — which makes this the end-to-end cover for a
-# clinician searching while the replica is unreachable.
+# spec/support/conduit.rb answers for iPM as unreachable, so a search
+# that does not stub it takes the fallback path — which makes this the
+# end-to-end cover for a clinician searching while the replica is down.
 RSpec.describe "Patient lookup", type: :system do
   # The server runs in this process, so conduit can be stubbed for a
   # browser journey the same way it is in a request spec.
