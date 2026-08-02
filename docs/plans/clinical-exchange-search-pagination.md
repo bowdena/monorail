@@ -201,7 +201,13 @@ page 2 still opens them.
 One slice rather than two: paging the model without the controls would ship a
 search that silently drops results.
 
-**Status:** pending
+**Status:** done — the local fallback gained an explicit order as well as
+offset and limit; a paged query without one lets the database repeat a row on
+one page and skip it on another. `params[:page]` is floored at 1 here, so a
+hand-edited page of 0 reads as the beginning rather than raising before slice
+3 lands. `Patient::Results` restates conduit's page maths rather than wrapping
+a `Conduit::Page`, because the local path counts and slices in SQL instead of
+handing over every row it matched.
 
 ### Slice 3: Stale page links land on page 1
 

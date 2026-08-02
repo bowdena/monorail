@@ -95,6 +95,36 @@ RSpec.describe "Patient lookup", type: :system do
     expect(page).to have_css("table.table td", text: "Tori Judd")
   end
 
+  # The whole point of paging: a clinician has to be able to reach, and
+  # act on, a patient who is not on the first page.
+  it "selects a patient from the second page" do
+    30.times do |number|
+      create(:patient, urn: format("07000%02d", number), last_name: "Judd",
+        first_name: format("Ann%02d", number))
+    end
+
+    visit patients_path
+    click_button "Advanced search"
+
+    within "#patients-panel-1" do
+      fill_in "last_name", with: "jud"
+      click_button "Search"
+    end
+
+    expect(page).to have_css("nav[aria-label=Pagination]")
+
+    click_link "2"
+
+    expect(page).to have_css("table.table td", text: "Ann29 Judd")
+
+    within("table.table tbody tr", text: "Ann29 Judd") do
+      click_button "Select"
+    end
+
+    expect(page).to have_text("Ann29 Judd")
+    expect(page).to have_text("UR: 0700029")
+  end
+
   # The forms sit outside the results frame precisely so a search cannot
   # throw the clinician back to the first tab with their criteria gone.
   it "stays on the advanced tab after searching" do

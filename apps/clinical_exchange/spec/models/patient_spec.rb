@@ -16,6 +16,18 @@ RSpec.describe Patient do
     )
   end
 
+  # Conduit's name searches answer with a page, not an array.
+  def ipm_page(records = [ ipm_patient ], page: 1, per_page: nil)
+    Conduit::Page.of(records, page: page, per_page: per_page)
+  end
+
+  def ipm_patients(count)
+    (1..count).map do |number|
+      ipm_patient(urn: format("07%05d", number),
+        first_name: format("Ann%02d", number))
+    end
+  end
+
   # The id reaches the browser as a URL, so it must not be guessable and
   # must not be the URN.
   it "is keyed by a uuid the database generates" do
@@ -224,7 +236,7 @@ RSpec.describe Patient do
 
     it "asks iPM to match the name criteria given" do
       patients = instance_double(Conduit::IPM::Repositories::Patients,
-        matching: [ ipm_patient ])
+        matching: ipm_page)
       stub_ipm(patients)
 
       described_class.search(last_name: "jud",
@@ -232,8 +244,48 @@ RSpec.describe Patient do
 
       expect(patients).to have_received(:matching).with(
         first_name: nil, last_name: "jud",
-        date_of_birth: Date.new(1957, 9, 29)
+        date_of_birth: Date.new(1957, 9, 29), page: 1, per_page: nil
       )
+    end
+
+    it "asks iPM for the page wanted" do
+      patients = instance_double(Conduit::IPM::Repositories::Patients,
+        matching: ipm_page)
+      stub_ipm(patients)
+
+      described_class.search(last_name: "jud", page: 2, per_page: 25)
+
+      expect(patients).to have_received(:matching).with(
+        first_name: nil, last_name: "jud", date_of_birth: nil,
+        page: 2, per_page: 25
+      )
+    end
+
+    it "carries iPM's paging back" do
+      patients = instance_double(Conduit::IPM::Repositories::Patients,
+        matching: ipm_page(ipm_patients(30), page: 2, per_page: 25))
+      stub_ipm(patients)
+
+      results = described_class.search(last_name: "jud", page: 2,
+        per_page: 25)
+
+      expect(results.records.length).to eq(5)
+      expect(results.current_page).to eq(2)
+      expect(results.per_page).to eq(25)
+      expect(results.total_count).to eq(30)
+      expect(results.total_pages).to eq(2)
+    end
+
+    # A urn matches at most one patient, so there is never a second page.
+    it "puts a urn match on a page of its own" do
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        by_urn: ipm_patient))
+
+      results = described_class.search(urn: "0700003")
+
+      expect(results.current_page).to eq(1)
+      expect(results.total_count).to eq(1)
+      expect(results.total_pages).to eq(1)
     end
 
     context "when iPM is unreachable" do
@@ -263,6 +315,44 @@ RSpec.describe Patient do
 
         expect(results.records.map(&:last_name)).to eq([ "Judd" ])
         expect(results).to be_local
+      end
+
+      it "pages the local records too" do
+        30.times do |number|
+          create(:patient, last_name: "Judd",
+            first_name: format("Ann%02d", number))
+        end
+        patients = instance_double(Conduit::IPM::Repositories::Patients)
+        allow(patients).to receive(:matching).and_raise(
+          Conduit::Error::Timeout.new("slow", source: :ipm)
+        )
+        stub_ipm(patients)
+
+        results = described_class.search(last_name: "jud", page: 2,
+          per_page: 25)
+
+        expect(results.records.length).to eq(5)
+        expect(results.total_count).to eq(30)
+        expect(results.total_pages).to eq(2)
+        expect(results).to be_local
+      end
+
+      # Paging a query with no order defined lets the database repeat a
+      # record on one page and skip it on another.
+      it "orders local records as iPM does" do
+        create(:patient, last_name: "Judd", first_name: "Zoe")
+        create(:patient, last_name: "Boyd", first_name: "Ann")
+        create(:patient, last_name: "Judd", first_name: "Ada")
+        patients = instance_double(Conduit::IPM::Repositories::Patients)
+        allow(patients).to receive(:matching).and_raise(
+          Conduit::Error::Timeout.new("slow", source: :ipm)
+        )
+        stub_ipm(patients)
+
+        results = described_class.search(last_name: "d")
+
+        expect(results.records.map(&:first_name))
+          .to eq(%w[ Ann Ada Zoe ])
       end
     end
 

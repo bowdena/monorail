@@ -100,6 +100,17 @@
             </tbody>
           </table>
         </div>
+
+        <% if results.total_pages > 1 %>
+          <div class="mt-4">
+            <p class="sr-only">
+              Page <%= results.current_page %> of <%= results.total_pages %>,
+              <%= pluralize(results.total_count, "patient") %> in total.
+            </p>
+
+            <%= patient_pagination(results) %>
+          </div>
+        <% end %>
       <% end %>
     <% elsif results.local? %>
       <%= render_alert(icon: "icons/alert-circle",
