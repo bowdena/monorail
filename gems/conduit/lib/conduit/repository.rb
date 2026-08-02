@@ -48,7 +48,9 @@ module Conduit
 
     # Wraps a query in one query.conduit event — metadata and
     # record identifiers only, never row data. A classified
-    # failure is recorded on the event and re-raised.
+    # failure is recorded on the event and re-raised, as is a page
+    # the caller asked for and the result set does not have: the
+    # query ran, so the trail should say so.
     def audited(name, params)
       payload = {
         application: Conduit.configuration&.application,
@@ -62,7 +64,7 @@ module Conduit
         payload[:record_ids] =
           records.map { |record| record_identifier(record) }
         records
-      rescue Error => error
+      rescue Error, ArgumentError => error
         payload[:error] = error.class.name
         raise
       end

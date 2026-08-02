@@ -83,8 +83,8 @@ patients.by_urn!("0700003")  # => Patient; raises Error::NotFound
 patients.find_all_by(
   first_name: "Tori", last_name: "Judd",
   date_of_birth: Date.new(1957, 9, 29)
-)                                    # => [Patient]
-patients.matching(last_name: "jud")  # => [Patient]
+)                                    # => Conduit::Page of Patient
+patients.matching(last_name: "jud")  # => Conduit::Page of Patient
 ```
 
 - `by_urn` — one patient by that exact URN, or `nil` when nothing
@@ -92,10 +92,103 @@ patients.matching(last_name: "jud")  # => [Patient]
   pads to the stored width itself. `by_urn!` raises `Error::NotFound`
   rather than returning `nil`.
 - `find_all_by` — exact, case-insensitive name matching (any subset
-  of first name, last name, date of birth); `[]` when nothing
-  matches.
+  of first name, last name, date of birth); an empty page when
+  nothing matches.
 - `matching` — like `find_all_by`, but names match on any fragment.
   Date of birth stays exact — a fuzzy date has no meaning.
+
+### Searches answer with a page
+
+The two name searches return a `Conduit::Page` rather than an array,
+so a caller learns how much matched as well as what matched.
+
+```ruby
+page = patients.matching(last_name: "jud")
+
+page.records        # => [Patient]
+page.total_count    # => 4
+page.total_pages    # => 1
+page.current_page   # => 1
+page.per_page       # => nil
+page.first_page?    # page.last_page?
+page.next_page      # page.previous_page — nil at the ends
+```
+
+A page is `Enumerable` and answers `length` and `empty?`, so it works
+anywhere the array did:
+
+```ruby
+page.map(&:urn)
+page.first
+Array(page)
+```
+
+Counts describe the whole result set — `total_count` and
+`total_pages` — while `length` describes the page in hand.
+
+### Paging through a search
+
+Pass `per_page` to cut the set into pages, and `page` to choose one.
+Both searches take them. Left out, every match is on page 1.
+
+```ruby
+page = patients.matching(last_name: "quinn", page: 2, per_page: 5)
+
+page.records       # => the second five patients
+page.total_count   # => 12
+page.total_pages   # => 3
+page.next_page     # => 3
+```
+
+Walk the set by following `next_page` until it runs out:
+
+```ruby
+page = patients.matching(last_name: "quinn", per_page: 5)
+
+while page.next_page
+  page = patients.matching(
+    last_name: "quinn", page: page.next_page, per_page: 5
+  )
+end
+```
+
+Pages are cut after merge resolution, not in SQL, because resolution
+collapses duplicate rows and re-sorts what survives — so counts are
+patients rather than matched rows, page 2 holds the same patients on
+every request, and no patient appears on two pages.
+
+Asking for a `page` or `per_page` below 1 raises `ArgumentError`
+before any query runs. Asking for a page past the last raises
+`ArgumentError` naming both numbers — that one can only be known
+after the query, so it leaves an audit event behind. Page 1 is
+always valid: a search that matched nothing answers with an empty
+page, not a failure.
+
+### Searches that match too much are refused
+
+A search matching more than 2000 rows raises
+`Error::TooManyResults`, naming what it matched:
+
+```ruby
+patients.matching(last_name: "a")
+# => Conduit::Error::TooManyResults: 8214 matches; narrow the search
+```
+
+Paging does not get around this, and is not meant to. Pages are cut
+after merge resolution, and resolution covers the whole match set,
+so `per_page` cannot reduce what a search costs. The remedy for a
+search this broad is a narrower one — which is why the message says
+how much it matched.
+
+The count is of matched rows, taken before anything is fetched, so
+being refused costs a single statement. It is on the error as well as
+in its message, so a caller can say how much narrowing is needed:
+
+```ruby
+rescue Conduit::Error::TooManyResults => error
+  error.count  # => 8214
+end
+```
 
 Archived patients are never returned.
 
@@ -176,6 +269,8 @@ rather than dressed up as infrastructure errors.
 | `Error::ConnectionFailed`     | server unreachable / down               |
 | `Error::Timeout`              | connect or statement took too long      |
 | `Error::NotFound`             | a bang query matched no row             |
+| `Error::TooManyResults`       | search matched more than conduit serves; |
+|                               | carries `count`                          |
 | `Error::QueryError`           | statement failed; also the catch-all    |
 
 Rather than listing classes, branch on the remediation predicates:
@@ -192,8 +287,8 @@ rescue Conduit::Error => error
     # ConnectionFailed, Timeout — retrying later may succeed; degrade
     # gracefully.
   else
-    # NotFound is a domain outcome; QueryError is a conduit bug —
-    # report it.
+    # NotFound and TooManyResults are domain outcomes — tell the
+    # user. QueryError is a conduit bug — report it.
   end
 end
 ```
@@ -231,6 +326,11 @@ end
 `record_ids`, `error` (class name or nil). `record_ids` identifies
 returned rows by URN; a merge-resolved query runs several statements
 but emits one event, identifying the record actually returned.
+
+For a name search `params` carries the `page` and `per_page` asked
+for alongside the criteria, and `row_count` and `record_ids` describe
+that page rather than the whole result set — the trail records what
+the caller was shown.
 
 Know what the event carries before choosing where to store it:
 `params` records the search criteria verbatim — for the name

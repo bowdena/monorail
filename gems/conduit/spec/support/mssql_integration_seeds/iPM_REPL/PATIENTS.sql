@@ -193,3 +193,95 @@ INSERT INTO iPM_REPL.dbo.PATIENTS (PATNT_REFNO,SEXXX_REFNO,FORENAME,TITLE_REFNO,
 	 (9000007,12194,N'Sam',12478,N'Holt',N'HOLT',14421,11155,'1966-02-02 00:00:00.000',10987,19863,NULL,N'S500',N'H430',N'SAM',N'HOLT',N'N',N'N',N'N',N'Y',NULL,NULL,NULL,19713,20273,10237,NULL,N'N',NULL,'2020-01-15 09:00:00.000','2026-07-01 09:00:00.000',N'EXTRACTS',N'NHSELLIMAY',N'0700007','1966-02-02 00:00:00.000',NULL,NULL,NULL,N'N',NULL,NULL,N'iSOFT Feeder Service',N'N',N'N',N'N',9450,N'N',NULL,11749,'2025-02-27 00:00:00.000',10970,NULL,NULL,NULL,9503,9418,9466,N'Sam',N'SAM',N'S500',NULL,NULL,NULL,NULL,NULL,NULL,10309,10309,10718,N'N',N'03',10972,NULL,N'N',N'N',NULL,NULL,11795,10244,NULL,11758,11794,NULL,12457,N'N',10916,10256,9470,NULL,NULL,NULL,NULL,N'N',N'N',N'N',N'N',NULL,NULL,NULL,10309,NULL,NULL,NULL,10309,NULL,N'Sam',NULL,25501,9390,27037,NULL,12457,NULL,33795,33790,11833,33795,33790,11833,NULL,NULL,N'N',N'PATNT',9000007,21834,12457,35226,NULL,35223,44286,NULL,10309),
 	 (9000008,12196,N'Sam',12478,N'Holtz',N'HOLTZ',14421,11155,'1966-02-02 00:00:00.000',10987,19863,NULL,N'S500',N'H432',N'SAM',N'HOLTZ',N'N',N'N',N'N',N'Y',NULL,NULL,NULL,19713,20273,10237,NULL,N'N',NULL,'2020-01-15 09:00:00.000','2026-07-01 09:00:00.000',N'EXTRACTS',N'NHSELLIMAY',N'0700008','1966-02-02 00:00:00.000',NULL,NULL,NULL,N'Y',NULL,NULL,N'iSOFT Feeder Service',N'N',N'N',N'N',9450,N'N',NULL,11749,'2025-02-27 00:00:00.000',10970,NULL,NULL,NULL,9503,9418,9466,N'Sam',N'SAM',N'S500',NULL,NULL,NULL,NULL,NULL,NULL,10309,10309,10718,N'N',N'03',10972,NULL,N'N',N'N',NULL,NULL,11795,10244,NULL,11758,11794,NULL,12457,N'N',10916,10256,9470,NULL,NULL,NULL,NULL,N'N',N'N',N'N',N'N',NULL,NULL,NULL,10309,NULL,NULL,NULL,10309,NULL,N'Sam',NULL,25501,9390,27037,NULL,12457,NULL,33795,33790,11833,33795,33790,11833,NULL,NULL,N'N',N'PATNT',9000008,21834,12457,35226,NULL,35223,44285,NULL,10309);
 GO
+
+-- Paging cohort: thirteen Quinn rows resolving to twelve patients,
+-- since 0720013 was merged into 0720005 (link in
+-- MERGED_PATIENTS.sql). A paged search over them proves merges
+-- collapse before pages are cut. Forenames sort in refno order, so
+-- page boundaries are predictable. Built by copying a sample row
+-- rather than spelling out 146 columns thirteen times; the surname
+-- and date of birth are ones no other example searches for.
+SELECT TOP (0) * INTO #paging_cohort FROM dbo.PATIENTS;
+
+WITH numbers AS (
+  SELECT TOP (13) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n
+  FROM sys.all_objects
+)
+INSERT INTO #paging_cohort
+SELECT template.*
+FROM dbo.PATIENTS AS template
+CROSS JOIN numbers
+WHERE template.PATNT_REFNO = 1091011;
+
+WITH numbered AS (
+  SELECT PATNT_REFNO, PASID, FORENAME, UPPER_FORENAME, PREFRD_FORENAME,
+         UPPER_PREFRD_FORENAME, SURNAME, UPPER_SURNAME, SEARCH_SURNAME,
+         DTTM_OF_BIRTH, DATE_OF_BIRTH, ARCHV_FLAG,
+         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n
+  FROM #paging_cohort
+)
+UPDATE numbered
+SET PATNT_REFNO = 9200000 + n,
+    PASID = '072' + RIGHT('0000' + CAST(n AS varchar(4)), 4),
+    FORENAME = 'Ann' + RIGHT('00' + CAST(n AS varchar(2)), 2),
+    UPPER_FORENAME = 'ANN' + RIGHT('00' + CAST(n AS varchar(2)), 2),
+    PREFRD_FORENAME = 'Ann' + RIGHT('00' + CAST(n AS varchar(2)), 2),
+    UPPER_PREFRD_FORENAME = 'ANN' + RIGHT('00' + CAST(n AS varchar(2)), 2),
+    SURNAME = 'Quinn',
+    UPPER_SURNAME = 'QUINN',
+    SEARCH_SURNAME = 'QUINN',
+    DTTM_OF_BIRTH = '1966-03-08 00:00:00.000',
+    DATE_OF_BIRTH = '1966-03-08 00:00:00.000',
+    ARCHV_FLAG = 'N';
+
+INSERT INTO dbo.PATIENTS SELECT * FROM #paging_cohort;
+DROP TABLE #paging_cohort;
+GO
+
+-- Cap cohort: 2001 Kwok rows, one past conduit's MAX_RESULTS, so a
+-- search across them is refused rather than run. The 2001st is born
+-- a day later than the rest, which gives a narrowed search that
+-- lands exactly on the limit and succeeds. Built the same way as
+-- the paging cohort; the surname is one no other example searches
+-- for. sys.all_objects is cross joined with itself because on its
+-- own it may hold fewer rows than the cohort needs.
+SELECT TOP (0) * INTO #cap_cohort FROM dbo.PATIENTS;
+
+WITH numbers AS (
+  SELECT TOP (2001) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n
+  FROM sys.all_objects AS a CROSS JOIN sys.all_objects AS b
+)
+INSERT INTO #cap_cohort
+SELECT template.*
+FROM dbo.PATIENTS AS template
+CROSS JOIN numbers
+WHERE template.PATNT_REFNO = 1091011;
+
+WITH numbered AS (
+  SELECT PATNT_REFNO, PASID, FORENAME, UPPER_FORENAME, PREFRD_FORENAME,
+         UPPER_PREFRD_FORENAME, SURNAME, UPPER_SURNAME, SEARCH_SURNAME,
+         DTTM_OF_BIRTH, DATE_OF_BIRTH, ARCHV_FLAG,
+         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n
+  FROM #cap_cohort
+)
+UPDATE numbered
+SET PATNT_REFNO = 9300000 + n,
+    PASID = '073' + RIGHT('0000' + CAST(n AS varchar(4)), 4),
+    FORENAME = 'Bea' + RIGHT('0000' + CAST(n AS varchar(4)), 4),
+    UPPER_FORENAME = 'BEA' + RIGHT('0000' + CAST(n AS varchar(4)), 4),
+    PREFRD_FORENAME = 'Bea' + RIGHT('0000' + CAST(n AS varchar(4)), 4),
+    UPPER_PREFRD_FORENAME = 'BEA' + RIGHT('0000' + CAST(n AS varchar(4)), 4),
+    SURNAME = 'Kwok',
+    UPPER_SURNAME = 'KWOK',
+    SEARCH_SURNAME = 'KWOK',
+    DTTM_OF_BIRTH = CASE WHEN n <= 2000
+                         THEN '1970-01-01 00:00:00.000'
+                         ELSE '1970-01-02 00:00:00.000' END,
+    DATE_OF_BIRTH = CASE WHEN n <= 2000
+                         THEN '1970-01-01 00:00:00.000'
+                         ELSE '1970-01-02 00:00:00.000' END,
+    ARCHV_FLAG = 'N';
+
+INSERT INTO dbo.PATIENTS SELECT * FROM #cap_cohort;
+DROP TABLE #cap_cohort;
+GO

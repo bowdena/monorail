@@ -9,6 +9,7 @@ require "rom-sql"
 
 require "conduit/version"
 require "conduit/errors"
+require "conduit/page"
 require "conduit/query_event"
 require "conduit/sources"
 require "conduit/configuration"

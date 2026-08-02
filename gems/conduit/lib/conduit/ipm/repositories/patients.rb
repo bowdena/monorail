@@ -2,6 +2,13 @@ module Conduit
   module IPM
     module Repositories
       class Patients < Conduit::Repository[:ipm_patients]
+        # Merge resolution asks about a whole match set at once, so
+        # every refno reaches SQL Server in one IN list — and a
+        # statement may carry at most 2100 parameters. This is the
+        # ceiling on what a single search may return, not a budget
+        # for round trips.
+        MAX_RESULTS = 2000
+
         def by_urn(urn)
           one :by_urn, {urn: urn} do
             searched = ipm_patients.by_pasid(urn)
@@ -17,32 +24,59 @@ module Conduit
         end
 
         def find_all_by(first_name: nil, last_name: nil,
-          date_of_birth: nil)
+          date_of_birth: nil, page: 1, per_page: nil)
           criteria = given_criteria(
             first_name: first_name, last_name: last_name,
             date_of_birth: date_of_birth
           )
 
-          many :find_all_by, criteria do
-            matches = ipm_patients.exact_match(criteria).to_a
-            mapper.call_all(merge_resolver.resolve_all(matches))
+          paged :find_all_by, criteria, page, per_page do
+            ipm_patients.exact_match(criteria)
           end
         end
 
         def matching(first_name: nil, last_name: nil,
-          date_of_birth: nil)
+          date_of_birth: nil, page: 1, per_page: nil)
           criteria = given_criteria(
             first_name: first_name, last_name: last_name,
             date_of_birth: date_of_birth
           )
 
-          many :matching, criteria do
-            matches = ipm_patients.fuzzy_match(criteria).to_a
-            mapper.call_all(merge_resolver.resolve_all(matches))
+          paged :matching, criteria, page, per_page do
+            ipm_patients.fuzzy_match(criteria)
           end
         end
 
         private
+
+        # Merge resolution collapses and re-sorts matched rows, so a
+        # page can only be cut once the whole match set is resolved.
+        # A page the caller cannot have is only knowable by then; a
+        # nonsensical one is rejected before the query runs.
+        def paged(name, criteria, page, per_page, &matches)
+          Page.validate_request!(page: page, per_page: per_page)
+
+          many name, criteria.merge(page: page, per_page: per_page) do
+            scope = matches.call
+            refuse_oversized_search scope.count
+            resolved = merge_resolver.resolve_all(scope.to_a)
+            Page.of(
+              mapper.call_all(resolved), page: page, per_page: per_page
+            )
+          end
+        end
+
+        # Counted before anything is fetched or resolved, so a search
+        # this broad costs one statement. Paging cannot rescue it:
+        # resolution runs over the whole match set before a page can
+        # be cut, so the remedy is a narrower search.
+        def refuse_oversized_search(count)
+          return if count <= MAX_RESULTS
+
+          raise Error::TooManyResults.new(
+            "#{count} matches; narrow the search", source: :ipm, count: count
+          )
+        end
 
         def source
           :ipm

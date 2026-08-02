@@ -18,7 +18,7 @@ class Patient < ApplicationRecord
     end
 
     def search(urn: nil, first_name: nil, last_name: nil,
-      date_of_birth: nil)
+      date_of_birth: nil, page: 1, per_page: nil)
       criteria = {
         urn: urn.presence&.rjust(URN_LENGTH, "0"),
         first_name: first_name.presence,
@@ -30,11 +30,7 @@ class Patient < ApplicationRecord
         raise ArgumentError, "at least one criterion is required"
       end
 
-      Results.new(records: found_in_ipm(criteria), source: :ipm)
-    rescue Conduit::Error => error
-      raise unless error.transient?
-
-      Results.new(records: found_locally(criteria), source: :local)
+      found_on_page(criteria, page: page, per_page: per_page)
     end
 
     # A selection is looked up again rather than taken from the page it
@@ -68,22 +64,72 @@ class Patient < ApplicationRecord
     end
 
     private
-      def found_in_ipm(criteria)
+      # Always answers with a page that exists. A link made when the
+      # search had more pages asks for one that has since gone, and the
+      # first page is a better answer than a failure. The results say
+      # which page they hold, so a caller can tell the clinician.
+      #
+      # The two sources disagree on how they refuse: conduit raises,
+      # while a slice past the end of the local table is simply empty.
+      def found_on_page(criteria, page:, per_page:)
+        found = found_anywhere(criteria, page: page, per_page: per_page)
+
+        return found unless page > found.total_pages &&
+          found.total_pages.positive?
+
+        found_anywhere(criteria, page: 1, per_page: per_page)
+      rescue ArgumentError
+        found_anywhere(criteria, page: 1, per_page: per_page)
+      end
+
+      def found_anywhere(criteria, page:, per_page:)
+        found_in_ipm(criteria, page: page, per_page: per_page)
+      rescue Conduit::Error => error
+        raise unless error.transient?
+
+        found_locally(criteria, page: page, per_page: per_page)
+      end
+
+      # A urn matches at most one patient, so it is answered whole and
+      # sits on a page of its own. Only a name search is paged.
+      def found_in_ipm(criteria, page:, per_page:)
         patients = Conduit.ipm.patients
 
         if criteria[:urn]
-          Array(patients.by_urn(criteria[:urn]))
+          only_page(Array(patients.by_urn(criteria[:urn])), source: :ipm)
         else
-          Array(patients.matching(**name_criteria(criteria)))
+          found = patients.matching(**name_criteria(criteria),
+            page: page, per_page: per_page)
+
+          Results.new(records: found.records, source: :ipm,
+            current_page: found.current_page, per_page: found.per_page,
+            total_count: found.total_count)
         end
       end
 
-      def found_locally(criteria)
+      def found_locally(criteria, page:, per_page:)
         if criteria[:urn]
-          Array(by_urn(criteria[:urn]))
+          only_page(Array(by_urn(criteria[:urn])), source: :local)
         else
-          matching(**name_criteria(criteria)).to_a
+          page_of(matching(**name_criteria(criteria)), page: page,
+            per_page: per_page)
         end
+      end
+
+      def only_page(records, source:)
+        Results.new(records: records, source: source, current_page: 1,
+          per_page: nil, total_count: records.length)
+      end
+
+      # Counted and sliced in the database rather than in Ruby: this
+      # table grows by a row for every patient ever looked up here.
+      def page_of(found, page:, per_page:)
+        total_count = found.count
+        records = per_page ? found.offset((page - 1) * per_page)
+          .limit(per_page) : found
+
+        Results.new(records: records.to_a, source: :local,
+          current_page: page, per_page: per_page, total_count: total_count)
       end
 
       def name_criteria(criteria)
@@ -94,8 +140,11 @@ class Patient < ApplicationRecord
         }
       end
 
+      # Ordered as conduit orders iPM's matches, and for the same reason
+      # a paged query needs any order at all: without one the database
+      # may repeat a patient on one page and skip them on another.
       def narrowed_by(criteria)
-        found = all
+        found = order(:last_name, :first_name)
 
         if criteria[:first_name]
           found = found.where(

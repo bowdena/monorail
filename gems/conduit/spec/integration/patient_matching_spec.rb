@@ -15,7 +15,7 @@ RSpec.describe "Patient matching", :mssql do
         first_name: "Tori", last_name: "Boyd"
       )
 
-      expect(patients).to eq []
+      expect(patients).to be_empty
     end
 
     context "when matches resolve to one patient" do
@@ -43,7 +43,7 @@ RSpec.describe "Patient matching", :mssql do
     context "when the only match is archived" do
       it "returns no records" do
         expect(Conduit.ipm.patients.find_all_by(last_name: "Vault"))
-          .to eq []
+          .to be_empty
       end
     end
 
@@ -100,21 +100,256 @@ RSpec.describe "Patient matching", :mssql do
           last_name: "pr", date_of_birth: Date.new(1900, 1, 1)
         )
 
-        expect(patients).to eq []
+        expect(patients).to be_empty
       end
     end
 
     context "when the only match is archived" do
       it "returns no records" do
         expect(Conduit.ipm.patients.matching(last_name: "vau"))
-          .to eq []
+          .to be_empty
       end
     end
 
     context "when the term contains LIKE wildcards" do
       it "treats them as literals" do
         expect(Conduit.ipm.patients.matching(last_name: "%"))
-          .to eq []
+          .to be_empty
+      end
+    end
+  end
+
+  describe "the page a search returns" do
+    it "holds every match as one page" do
+      patients = Conduit.ipm.patients.matching(last_name: "e")
+
+      expect(patients).to be_a Conduit::Page
+      expect(patients.current_page).to eq 1
+      expect(patients.per_page).to be_nil
+      expect(patients.total_count).to eq 5
+      expect(patients.total_pages).to eq 1
+    end
+
+    it "sits at both ends of one page" do
+      patients = Conduit.ipm.patients.find_all_by(last_name: "Pryor")
+
+      expect(patients).to be_a Conduit::Page
+      expect(patients.first_page?).to be true
+      expect(patients.last_page?).to be true
+      expect(patients.next_page).to be_nil
+      expect(patients.previous_page).to be_nil
+    end
+
+    # Searches answered with a bare Array before pages existed, and
+    # consuming apps still treat them as collections.
+    it "stays usable as a collection" do
+      patients = Conduit.ipm.patients.matching(last_name: "e")
+
+      expect(Array(patients).map(&:last_name))
+        .to eq %w[Case Dean Eden Lyle Reed]
+      expect(patients.length).to eq 5
+      expect(patients.first.last_name).to eq "Case"
+    end
+
+    context "when nothing matched" do
+      it "is an empty page" do
+        patients = Conduit.ipm.patients.matching(last_name: "vau")
+
+        expect(patients).to be_empty
+        expect(patients.total_count).to eq 0
+        expect(patients.total_pages).to eq 0
+      end
+    end
+  end
+
+  describe "paging a search" do
+    it "cuts the set into pages" do
+      patients = Conduit.ipm.patients.matching(
+        last_name: "quinn", per_page: 5
+      )
+
+      expect(patients.map(&:first_name))
+        .to eq %w[Ann01 Ann02 Ann03 Ann04 Ann05]
+      expect(patients.current_page).to eq 1
+      expect(patients.per_page).to eq 5
+      expect(patients.total_count).to eq 12
+      expect(patients.total_pages).to eq 3
+    end
+
+    it "reports the totals from any page" do
+      patients = Conduit.ipm.patients.matching(
+        last_name: "quinn", page: 3, per_page: 5
+      )
+
+      expect(patients.map(&:first_name)).to eq %w[Ann11 Ann12]
+      expect(patients.total_count).to eq 12
+      expect(patients.total_pages).to eq 3
+      expect(patients.last_page?).to be true
+    end
+
+    it "pages an exact search too" do
+      patients = Conduit.ipm.patients.find_all_by(
+        last_name: "Quinn", page: 2, per_page: 5
+      )
+
+      expect(patients.map(&:first_name))
+        .to eq %w[Ann06 Ann07 Ann08 Ann09 Ann10]
+    end
+
+    it "walks the whole set exactly once" do
+      patients = Conduit.ipm.patients
+      page = patients.matching(last_name: "quinn", per_page: 5)
+      seen = page.map(&:urn)
+
+      while page.next_page
+        page = patients.matching(
+          last_name: "quinn", page: page.next_page, per_page: 5
+        )
+        seen.concat(page.map(&:urn))
+      end
+
+      expect(seen.length).to eq 12
+      expect(seen.uniq.length).to eq 12
+    end
+
+    # Thirteen Quinn rows match, but 0720013 was merged into
+    # 0720005, so the pages are cut over twelve patients.
+    context "when a matched row was merged away" do
+      it "pages the patients, not the rows" do
+        patients = Conduit.ipm.patients.matching(
+          last_name: "quinn", per_page: 5
+        )
+
+        expect(patients.total_count).to eq 12
+        expect(patients.total_pages).to eq 3
+        expect(patients.map(&:first_name)).not_to include "Ann13"
+      end
+    end
+  end
+
+  describe "an invalid page request" do
+    it "rejects a page below one" do
+      expect { Conduit.ipm.patients.matching(last_name: "quinn", page: 0) }
+        .to raise_error(ArgumentError, /page must be at least 1/)
+    end
+
+    it "rejects a per_page below one" do
+      expect { Conduit.ipm.patients.matching(last_name: "quinn", per_page: 0) }
+        .to raise_error(ArgumentError, /per_page must be at least 1/)
+    end
+
+    context "when the page is past the last" do
+      it "names the page and the total" do
+        expect do
+          Conduit.ipm.patients.matching(
+            last_name: "quinn", page: 4, per_page: 5
+          )
+        end.to raise_error(ArgumentError, "page 4 of 3")
+      end
+    end
+  end
+
+  describe "the audit trail for a paged search" do
+    it "identifies only the page's records" do
+      events = []
+      subscription = Conduit.on_query { |query| events << query }
+
+      patients = Conduit.ipm.patients.matching(
+        last_name: "quinn", page: 2, per_page: 5
+      )
+
+      expect(events.length).to eq 1
+      expect(events.first.params).to include(page: 2, per_page: 5)
+      expect(events.first.row_count).to eq 5
+      expect(events.first.record_ids).to eq patients.map(&:urn)
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription)
+    end
+
+    context "when the request is refused before the query" do
+      it "leaves no trace" do
+        events = []
+        subscription = Conduit.on_query { |query| events << query }
+
+        expect { Conduit.ipm.patients.matching(last_name: "quinn", page: 0) }
+          .to raise_error(ArgumentError)
+
+        expect(events).to be_empty
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription)
+      end
+    end
+
+    context "when the page is past the last" do
+      it "carries the error" do
+        events = []
+        subscription = Conduit.on_query { |query| events << query }
+
+        expect do
+          Conduit.ipm.patients.matching(
+            last_name: "quinn", page: 4, per_page: 5
+          )
+        end.to raise_error(ArgumentError)
+
+        expect(events.length).to eq 1
+        expect(events.first.error).to eq "ArgumentError"
+        expect(events.first.row_count).to eq 0
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription)
+      end
+    end
+  end
+
+  describe "a search matching too many patients" do
+    it "refuses it, naming the count" do
+      expect { Conduit.ipm.patients.matching(last_name: "kwok") }
+        .to raise_error(
+          Conduit::Error::TooManyResults, /2001 matches/
+        ) { |error| expect(error.count).to eq 2001 }
+    end
+
+    it "refuses an exact search the same way" do
+      expect { Conduit.ipm.patients.find_all_by(last_name: "Kwok") }
+        .to raise_error(Conduit::Error::TooManyResults)
+    end
+
+    # Paging cannot dodge the cap: merge resolution runs over the
+    # whole match set before a page can be cut, so the remedy for a
+    # search this broad is narrowing it.
+    context "when the caller asked for a page" do
+      it "refuses it just the same" do
+        expect do
+          Conduit.ipm.patients.matching(last_name: "kwok", per_page: 25)
+        end.to raise_error(Conduit::Error::TooManyResults)
+      end
+    end
+
+    it "leaves the refusal in the audit trail" do
+      events = []
+      subscription = Conduit.on_query { |query| events << query }
+
+      expect { Conduit.ipm.patients.matching(last_name: "kwok") }
+        .to raise_error(Conduit::Error::TooManyResults)
+
+      expect(events.length).to eq 1
+      expect(events.first.error).to eq "Conduit::Error::TooManyResults"
+      expect(events.first.row_count).to eq 0
+      expect(events.first.record_ids).to eq []
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription)
+    end
+
+    context "when narrowed to just inside the limit" do
+      it "returns a page" do
+        patients = Conduit.ipm.patients.matching(
+          last_name: "kwok", date_of_birth: Date.new(1970, 1, 1),
+          per_page: 25
+        )
+
+        expect(patients.total_count).to eq 2000
+        expect(patients.total_pages).to eq 80
+        expect(patients.length).to eq 25
+        expect(patients.first.first_name).to eq "Bea0001"
       end
     end
   end
@@ -131,9 +366,9 @@ RSpec.describe "Patient matching", :mssql do
 
       expect(Conduit.ipm.patients.by_urn(hostile)).to be_nil
       expect(Conduit.ipm.patients.find_all_by(last_name: hostile))
-        .to eq []
+        .to be_empty
       expect(Conduit.ipm.patients.matching(last_name: hostile))
-        .to eq []
+        .to be_empty
 
       searched = Conduit.ipm.patients.by_urn("9025071")
       expect(searched.last_name).to eq "Judd"
@@ -141,7 +376,7 @@ RSpec.describe "Patient matching", :mssql do
 
     it "handles a bare apostrophe in a name" do
       expect(Conduit.ipm.patients.matching(last_name: "O'Brien"))
-        .to eq []
+        .to be_empty
     end
   end
 end

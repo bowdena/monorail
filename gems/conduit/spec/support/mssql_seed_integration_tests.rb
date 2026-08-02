@@ -20,9 +20,10 @@ module ConduitSpec
 
     SEEDS_ROOT = File.expand_path("mssql_integration_seeds", __dir__)
 
-    # No seed leaves a table anywhere near this many rows; a real
-    # database's tables are orders of magnitude past it.
-    MAX_TEST_TABLE_ROWS = 1000
+    # The largest seeded cohort is a couple of thousand rows, sized
+    # to trip conduit's own result cap; a real database's tables are
+    # orders of magnitude past this.
+    MAX_TEST_TABLE_ROWS = 5_000
 
     def seed!
       location = Conduit::Sources.location

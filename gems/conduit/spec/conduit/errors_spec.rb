@@ -25,10 +25,29 @@ RSpec.describe Conduit::Error do
       expect(described_class::Timeout.new("boom")).to be_a(described_class)
       expect(described_class::NotFound.new("boom")).to be_a(described_class)
       expect(described_class::QueryError.new("boom")).to be_a(described_class)
+      expect(described_class::TooManyResults.new("boom"))
+        .to be_a(described_class)
       expect(described_class::PermissionDenied.new("boom"))
         .to be_a(described_class)
       expect(described_class::AuthenticationFailed.new("boom"))
         .to be_a(described_class)
+    end
+
+    # The count is why the guard spends a COUNT(*) rather than probing
+    # with a limit: a caller can say how much narrowing is needed.
+    it "carries how many matched on TooManyResults" do
+      error = described_class::TooManyResults.new(
+        "2001 matches; narrow the search", source: :ipm, count: 2001
+      )
+
+      expect(error.count).to eq 2001
+      expect(error.source).to eq :ipm
+    end
+
+    context "without a count" do
+      it "has a nil count" do
+        expect(described_class::TooManyResults.new("boom").count).to be_nil
+      end
     end
 
     it "keeps source through subclasses" do
@@ -51,11 +70,13 @@ RSpec.describe Conduit::Error do
       end
     end
 
-    context "for ConnectionFailed and QueryError" do
+    context "for ConnectionFailed, QueryError, TooManyResults" do
       it "is false" do
         expect(described_class::ConnectionFailed.new("x").configuration?)
           .to be false
         expect(described_class::QueryError.new("x").configuration?).to be false
+        expect(described_class::TooManyResults.new("x").configuration?)
+          .to be false
       end
     end
   end
@@ -68,11 +89,12 @@ RSpec.describe Conduit::Error do
       end
     end
 
-    context "for NotConfigured, NotFound, QueryError" do
+    context "for NotConfigured, NotFound, QueryError, TooManyResults" do
       it "is false" do
         expect(described_class::NotConfigured.new("x").transient?).to be false
         expect(described_class::NotFound.new("x").transient?).to be false
         expect(described_class::QueryError.new("x").transient?).to be false
+        expect(described_class::TooManyResults.new("x").transient?).to be false
       end
     end
   end

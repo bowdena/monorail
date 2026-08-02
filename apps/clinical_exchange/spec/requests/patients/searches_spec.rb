@@ -17,6 +17,26 @@ RSpec.describe "Patient searches", type: :request do
     )
   end
 
+  # Conduit's name searches answer with a page, not an array.
+  def ipm_page(records = [ ipm_patient ], page: 1, per_page: nil)
+    Conduit::Page.of(records, page: page, per_page: per_page)
+  end
+
+  def ipm_patients(count)
+    (1..count).map do |number|
+      ipm_patient(urn: format("07%05d", number),
+        first_name: format("Ann%03d", number))
+    end
+  end
+
+  # Every name search now names the page it wants, so the criteria a
+  # search reaches conduit with always carry these two.
+  def searched_with(criteria)
+    { first_name: nil, last_name: nil, date_of_birth: nil,
+      page: 1, per_page: Patients::SearchesController::RESULTS_PER_PAGE }
+      .merge(criteria)
+  end
+
   it "lists the patient matching a urn" do
     stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
       by_urn: ipm_patient))
@@ -41,6 +61,19 @@ RSpec.describe "Patient searches", type: :request do
       .to have_css("turbo-frame#patient_results table.table", visible: :all)
   end
 
+  # A name search can match more than a screenful, so its pages have to
+  # be reachable by a link. A urn search matches at most one patient and
+  # stays a POST, keeping the identifier out of the url entirely.
+  it "answers a name search inside the results frame" do
+    stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+      matching: ipm_page))
+
+    get patients_search_path, params: { last_name: "Judd" }
+
+    expect(Capybara.string(response.body))
+      .to have_css("turbo-frame#patient_results table.table", visible: :all)
+  end
+
   it "reports a urn no patient has" do
     stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
       by_urn: nil))
@@ -55,16 +88,16 @@ RSpec.describe "Patient searches", type: :request do
 
   it "lists patients matching name and date of birth" do
     patients = instance_double(Conduit::IPM::Repositories::Patients,
-      matching: [ ipm_patient ])
+      matching: ipm_page)
     stub_ipm(patients)
 
-    post patients_search_path, params: {
+    get patients_search_path, params: {
       first_name: "Tori", last_name: "Judd", date_of_birth: "29/09/1957"
     }
 
     expect(patients).to have_received(:matching).with(
-      first_name: "Tori", last_name: "Judd",
-      date_of_birth: Date.new(1957, 9, 29)
+      searched_with(first_name: "Tori", last_name: "Judd",
+        date_of_birth: Date.new(1957, 9, 29))
     )
     expect(Capybara.string(response.body))
       .to have_css("table.table td", text: "Tori Judd")
@@ -74,31 +107,29 @@ RSpec.describe "Patient searches", type: :request do
   # the order: 3 April, not 4 March.
   it "reads a date of birth day first" do
     patients = instance_double(Conduit::IPM::Repositories::Patients,
-      matching: [ ipm_patient ])
+      matching: ipm_page)
     stub_ipm(patients)
 
-    post patients_search_path, params: {
+    get patients_search_path, params: {
       last_name: "Judd", date_of_birth: "03/04/1957"
     }
 
     expect(patients).to have_received(:matching).with(
-      first_name: nil, last_name: "Judd",
-      date_of_birth: Date.new(1957, 4, 3)
+      searched_with(last_name: "Judd", date_of_birth: Date.new(1957, 4, 3))
     )
   end
 
   it "reads a date of birth written with dashes" do
     patients = instance_double(Conduit::IPM::Repositories::Patients,
-      matching: [ ipm_patient ])
+      matching: ipm_page)
     stub_ipm(patients)
 
-    post patients_search_path, params: {
+    get patients_search_path, params: {
       last_name: "Judd", date_of_birth: "3-4-1957"
     }
 
     expect(patients).to have_received(:matching).with(
-      first_name: nil, last_name: "Judd",
-      date_of_birth: Date.new(1957, 4, 3)
+      searched_with(last_name: "Judd", date_of_birth: Date.new(1957, 4, 3))
     )
   end
 
@@ -119,13 +150,13 @@ RSpec.describe "Patient searches", type: :request do
 
   it "searches on a single criterion" do
     patients = instance_double(Conduit::IPM::Repositories::Patients,
-      matching: [ ipm_patient ])
+      matching: ipm_page)
     stub_ipm(patients)
 
-    post patients_search_path, params: { last_name: "jud" }
+    get patients_search_path, params: { last_name: "jud" }
 
     expect(patients).to have_received(:matching).with(
-      first_name: nil, last_name: "jud", date_of_birth: nil
+      searched_with(last_name: "jud")
     )
   end
 
@@ -133,7 +164,7 @@ RSpec.describe "Patient searches", type: :request do
     it "asks for one and runs no query" do
       allow(Conduit).to receive(:ipm)
 
-      post patients_search_path, params: { first_name: " " }
+      get patients_search_path, params: { first_name: " " }
 
       expect(Conduit).not_to have_received(:ipm)
       expect(Capybara.string(response.body))
@@ -145,13 +176,250 @@ RSpec.describe "Patient searches", type: :request do
     it "says so rather than searching" do
       allow(Conduit).to receive(:ipm)
 
-      post patients_search_path, params: {
+      get patients_search_path, params: {
         last_name: "Judd", date_of_birth: "31/02/1957"
       }
 
       expect(Conduit).not_to have_received(:ipm)
       expect(Capybara.string(response.body))
         .to have_css("[role=alert]", text: "Date of birth")
+    end
+  end
+
+  describe "paging a long result set" do
+    it "shows a page of results and the controls" do
+      per_page = Patients::SearchesController::RESULTS_PER_PAGE
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        matching: ipm_page(ipm_patients(60), per_page: per_page)))
+
+      get patients_search_path, params: { last_name: "jud" }
+
+      page = Capybara.string(response.body)
+
+      expect(page).to have_css("table.table tbody tr", count: per_page)
+      expect(page).to have_css("nav[aria-label=Pagination]")
+      expect(page).to have_link("2")
+    end
+
+    it "asks conduit for the page the url names" do
+      patients = instance_double(Conduit::IPM::Repositories::Patients,
+        matching: ipm_page(ipm_patients(60), page: 2,
+          per_page: Patients::SearchesController::RESULTS_PER_PAGE))
+      stub_ipm(patients)
+
+      get patients_search_path, params: { last_name: "jud", page: "2" }
+
+      expect(patients).to have_received(:matching).with(
+        searched_with(last_name: "jud", page: 2)
+      )
+    end
+
+    # A page link that dropped the criteria would search for everyone.
+    it "carries the criteria into every page link" do
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        matching: ipm_page(ipm_patients(60),
+          per_page: Patients::SearchesController::RESULTS_PER_PAGE)))
+
+      get patients_search_path, params: { last_name: "jud" }
+
+      link = Capybara.string(response.body).find_link("2")
+
+      expect(link[:href]).to include("last_name=jud")
+      expect(link[:href]).to include("page=2")
+    end
+
+    it "marks the page being read" do
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        matching: ipm_page(ipm_patients(60), page: 2,
+          per_page: Patients::SearchesController::RESULTS_PER_PAGE)))
+
+      get patients_search_path, params: { last_name: "jud", page: "2" }
+
+      expect(Capybara.string(response.body))
+        .to have_css("nav[aria-label=Pagination] [aria-current=page]",
+          text: "2")
+    end
+
+    it "offers previous and next where they exist" do
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        matching: ipm_page(ipm_patients(60), page: 2,
+          per_page: Patients::SearchesController::RESULTS_PER_PAGE)))
+
+      get patients_search_path, params: { last_name: "jud", page: "2" }
+
+      page = Capybara.string(response.body)
+
+      expect(page).to have_link(nil, href: /page=1/)
+      expect(page).to have_link(nil, href: /page=3/)
+    end
+
+    # Every page of a thousand would be unreadable, so the window shows
+    # the ends, the current page and its neighbours, and elides the rest.
+    it "elides the middle of a long run of pages" do
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        matching: ipm_page(ipm_patients(500), page: 10, per_page: 5)))
+
+      get patients_search_path, params: { last_name: "jud", page: "10" }
+
+      page = Capybara.string(response.body)
+
+      expect(page).to have_css("nav[aria-label=Pagination] li", maximum: 9)
+      expect(page).to have_text("More pages")
+      expect(page).to have_link("1")
+      expect(page).to have_link("100")
+    end
+
+    context "when everything fits on one page" do
+      it "shows no controls" do
+        stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+          matching: ipm_page(ipm_patients(3),
+            per_page: Patients::SearchesController::RESULTS_PER_PAGE)))
+
+        get patients_search_path, params: { last_name: "jud" }
+
+        page = Capybara.string(response.body)
+
+        expect(page).to have_css("table.table")
+        expect(page).to have_no_css("nav[aria-label=Pagination]")
+      end
+    end
+
+    context "when a urn was searched for" do
+      it "shows no controls" do
+        stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+          by_urn: ipm_patient))
+
+        post patients_search_path, params: { urn: "0700003" }
+
+        expect(Capybara.string(response.body))
+          .to have_no_css("nav[aria-label=Pagination]")
+      end
+    end
+
+    context "when iPM is unreachable" do
+      it "pages the locally kept records too" do
+        per_page = Patients::SearchesController::RESULTS_PER_PAGE
+        (per_page + 5).times do |number|
+          create(:patient, last_name: "Judd",
+            first_name: format("Ann%02d", number))
+        end
+        patients = instance_double(Conduit::IPM::Repositories::Patients)
+        allow(patients).to receive(:matching).and_raise(
+          Conduit::Error::Timeout.new("slow", source: :ipm)
+        )
+        stub_ipm(patients)
+
+        get patients_search_path, params: { last_name: "jud" }
+
+        page = Capybara.string(response.body)
+
+        expect(page).to have_css("table.table tbody tr", count: per_page)
+        expect(page).to have_css("nav[aria-label=Pagination]")
+      end
+    end
+  end
+
+  # A page link is shareable and outlives the search that made it, so a
+  # page that existed when the link was made may not exist now.
+  describe "asking for a page that is no longer there" do
+    def ipm_with_two_pages
+      patients = instance_double(Conduit::IPM::Repositories::Patients)
+      allow(patients).to receive(:matching) do |page:, per_page:, **|
+        if page > 2
+          raise ArgumentError, "page #{page} of 2"
+        end
+
+        ipm_page(ipm_patients(30), page: page, per_page: per_page)
+      end
+      patients
+    end
+
+    it "shows the first page instead" do
+      stub_ipm(ipm_with_two_pages)
+
+      get patients_search_path, params: { last_name: "jud", page: "5" }
+
+      page = Capybara.string(response.body)
+
+      expect(page).to have_css("table.table td", text: "Ann001 Judd")
+      expect(page).to have_css("nav[aria-label=Pagination] [aria-current=page]",
+        text: "1")
+    end
+
+    it "says the results have changed" do
+      stub_ipm(ipm_with_two_pages)
+
+      get patients_search_path, params: { last_name: "jud", page: "5" }
+
+      expect(Capybara.string(response.body))
+        .to have_css("[role=alert]", text: "results have changed")
+    end
+
+    context "when iPM is unreachable" do
+      it "does the same for the locally kept records" do
+        30.times do |number|
+          create(:patient, last_name: "Judd",
+            first_name: format("Ann%02d", number))
+        end
+        patients = instance_double(Conduit::IPM::Repositories::Patients)
+        allow(patients).to receive(:matching).and_raise(
+          Conduit::Error::Timeout.new("slow", source: :ipm)
+        )
+        stub_ipm(patients)
+
+        get patients_search_path, params: { last_name: "jud", page: "5" }
+
+        page = Capybara.string(response.body)
+
+        expect(page).to have_css("table.table td", text: "Ann00 Judd")
+        expect(page).to have_css("[role=alert]", text: "results have changed")
+      end
+    end
+  end
+
+  describe "asking for a page that is there" do
+    it "says nothing about the results changing" do
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        matching: ipm_page(ipm_patients(60), page: 2,
+          per_page: Patients::SearchesController::RESULTS_PER_PAGE)))
+
+      get patients_search_path, params: { last_name: "jud", page: "2" }
+
+      expect(Capybara.string(response.body))
+        .to have_no_css("[role=alert]", text: "results have changed")
+    end
+
+    # Nothing matched is not a page that went away.
+    context "when the search matched nobody" do
+      it "reports no patient rather than a stale page" do
+        stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+          matching: ipm_page([],
+            per_page: Patients::SearchesController::RESULTS_PER_PAGE)))
+
+        get patients_search_path, params: { last_name: "vault" }
+
+        page = Capybara.string(response.body)
+
+        expect(page).to have_css("[role=alert]", text: "No patient found")
+        expect(page).to have_no_css("[role=alert]", text: "results have changed")
+      end
+    end
+
+    # A page below one only arrives from a hand-edited url. It reads as
+    # a request for the beginning, not as results that have changed.
+    context "when the page is below one" do
+      it "shows the first page quietly" do
+        stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+          matching: ipm_page(ipm_patients(60),
+            per_page: Patients::SearchesController::RESULTS_PER_PAGE)))
+
+        get patients_search_path, params: { last_name: "jud", page: "0" }
+
+        page = Capybara.string(response.body)
+
+        expect(page).to have_css("table.table td", text: "Ann001 Judd")
+        expect(page).to have_no_css("[role=alert]", text: "results have changed")
+      end
     end
   end
 
@@ -216,9 +484,9 @@ RSpec.describe "Patient searches", type: :request do
   # filtered_parameters is what Rails writes to the log for a request.
   it "keeps the name and date of birth out of the log" do
     stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
-      matching: [ ipm_patient ]))
+      matching: ipm_page))
 
-    post patients_search_path, params: {
+    get patients_search_path, params: {
       first_name: "Tori", last_name: "Judd", date_of_birth: "29/09/1957"
     }
 
@@ -226,6 +494,21 @@ RSpec.describe "Patient searches", type: :request do
 
     expect(logged["first_name"]).to eq("[FILTERED]")
     expect(logged["date_of_birth"]).to eq("[FILTERED]")
+  end
+
+  # A name search carries its criteria in the query string now, and the
+  # request line is what Rails logs. filtered_path is that line.
+  it "keeps them out of the logged url too" do
+    stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+      matching: ipm_page))
+
+    get patients_search_path, params: {
+      first_name: "Tori", last_name: "Judd", date_of_birth: "29/09/1957"
+    }
+
+    expect(request.filtered_path).not_to include("Tori")
+    expect(request.filtered_path).not_to include("1957")
+    expect(request.filtered_path).to include("Judd")
   end
 
   it "leaves the urn readable in the log" do
@@ -263,6 +546,53 @@ RSpec.describe "Patient searches", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(Capybara.string(response.body)).to have_css("table.table")
+    end
+  end
+
+  # Narrowing is something the clinician can do; reporting a bug is not.
+  context "when the search matched too many patients" do
+    def ipm_refusing(count)
+      patients = instance_double(Conduit::IPM::Repositories::Patients)
+      allow(patients).to receive(:matching).and_raise(
+        Conduit::Error::TooManyResults.new(
+          "#{count} matches; narrow the search", source: :ipm, count: count
+        )
+      )
+      patients
+    end
+
+    it "asks for a narrower search, naming the count" do
+      stub_ipm(ipm_refusing(2001))
+
+      get patients_search_path, params: { last_name: "kwok" }
+
+      page = Capybara.string(response.body)
+
+      expect(page).to have_css("[role=alert]", text: "Too many patients match")
+      expect(page).to have_text("2,001")
+      expect(page).to have_no_css("table.table")
+    end
+
+    it "does not read as a failure to report" do
+      stub_ipm(ipm_refusing(2001))
+
+      get patients_search_path, params: { last_name: "kwok" }
+
+      page = Capybara.string(response.body)
+
+      expect(page).to have_no_css("[role=alert]", text: "Search unavailable")
+      expect(page).to have_no_text("report it")
+    end
+
+    # Conduit resolves the whole match set before cutting a page, so
+    # asking for a smaller page cannot rescue a search this broad.
+    it "refuses a paged search the same way" do
+      stub_ipm(ipm_refusing(2001))
+
+      get patients_search_path, params: { last_name: "kwok", page: "2" }
+
+      expect(Capybara.string(response.body))
+        .to have_css("[role=alert]", text: "Too many patients match")
     end
   end
 

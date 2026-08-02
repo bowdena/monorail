@@ -9,11 +9,17 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  resources :patients, only: %i[ index create show ]
-
+  # Two verbs, one path. A name search is a GET so its pages can be
+  # linked; a urn search stays a POST so the identifier never reaches
+  # the url.
+  #
+  # Declared first: patients#show answers GET /patients/:id, which would
+  # otherwise swallow /patients/search as a patient with that id.
   namespace :patients do
-    resource :search, only: %i[ create ]
+    resource :search, only: %i[ create show ]
   end
+
+  resources :patients, only: %i[ index create show ]
 
   # Defines the root path route ("/")
   root "static_pages#home"

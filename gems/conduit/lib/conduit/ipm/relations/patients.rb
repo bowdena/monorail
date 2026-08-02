@@ -26,9 +26,15 @@ module Conduit
           where(archv_flag: "N")
         end
 
-        # The active patient row for an internal reference, or nil.
-        def active_by_refno(patnt_refno)
-          active.where(patnt_refno: patnt_refno).one
+        # The active patient rows for a set of internal references,
+        # keyed by reference. Archived rows are simply absent.
+        def active_by_refnos(patnt_refnos)
+          return {} if patnt_refnos.empty?
+
+          active
+            .where(patnt_refno: patnt_refnos)
+            .to_a
+            .to_h { |row| [row[:patnt_refno], row] }
         end
 
         # The active patient row for an external URN, or nil.

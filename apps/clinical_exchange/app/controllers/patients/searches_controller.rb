@@ -1,25 +1,49 @@
 class Patients::SearchesController < ApplicationController
   SEARCHES_PER_MINUTE = 20
+  RESULTS_PER_PAGE = 25
 
   rate_limit to: SEARCHES_PER_MINUTE, within: 1.minute,
     with: :report_too_many_searches
 
-  def create
-    criteria = search_criteria
+  # Searching by name, which can match more patients than fit on a page.
+  def show
+    search
+  end
 
-    case
-    when @invalid_date
-      nil
-    when criteria.empty?
-      @unsearchable = true
-    else
-      @results = Patient.search(**criteria)
-    end
-  rescue Conduit::Error => error
-    @failure = error
+  # Searching by urn, which matches at most one patient. It stays a POST
+  # so the identifier never appears in a url.
+  def create
+    search
+
+    render :show
   end
 
   private
+    def search
+      criteria = search_criteria
+
+      case
+      when @invalid_date
+        nil
+      when criteria.empty?
+        @unsearchable = true
+      else
+        @results = Patient.search(**criteria, page: requested_page,
+          per_page: RESULTS_PER_PAGE)
+        @stale_page = @results.current_page != requested_page
+      end
+    rescue Conduit::Error::TooManyResults => error
+      @too_many = error
+    rescue Conduit::Error => error
+      @failure = error
+    end
+
+    # A page below one only arrives from a hand-edited url, and reads as
+    # a request for the beginning.
+    def requested_page
+      [ params[:page].to_i, 1 ].max
+    end
+
     CRITERIA = %i[ urn first_name last_name date_of_birth ].freeze
 
     # Sliced before permitting: a browser also posts the forgery token,
@@ -52,6 +76,6 @@ class Patients::SearchesController < ApplicationController
     def report_too_many_searches
       @throttled = true
 
-      render :create, status: :too_many_requests
+      render :show, status: :too_many_requests
     end
 end
