@@ -228,6 +228,44 @@ card.close
 card.ungild
 ```
 
+## Primary Keys — UUIDv7, and you must say so
+
+Every table is keyed by a version 7 UUID. Records reach the browser as
+URLs, and a sequential id there is an invitation to walk the table.
+Version 7 is time-ordered, so rows still insert at the end of the index
+rather than scattering the way version 4 does.
+
+Postgres 18 generates them natively — `uuidv7()`, no extension.
+
+**Rails will not do this for you.** `create_table id: :uuid` hard-codes
+`gen_random_uuid()`, which is version 4, and Rails 8.1 knows nothing
+about `uuidv7`. The generator config gives you the uuid *type*; naming
+the function is on the migration:
+
+```ruby
+# ✅ Good
+create_table :appointments, id: :uuid, default: -> { "uuidv7()" } do |t|
+  t.references :patient, type: :uuid, foreign_key: true
+  t.timestamps
+end
+
+# ❌ Bad — silently version 4, random, and nothing will tell you
+create_table :appointments, id: :uuid do |t|
+```
+
+Miss the `default:` and the table works fine; the ids are simply random
+and scatter across the index. Nothing fails, so check it in review:
+after migrating, `db/schema.rb` must read
+`id: :uuid, default: -> { "uuidv7()" }` for the new table.
+
+Foreign keys to a uuid-keyed table need `type: :uuid` on the reference,
+or the migration fails with a type mismatch.
+
+There was an initializer that patched the adapter to make this
+automatic. It was dropped deliberately: it overrode a Rails internal
+that could move under us. Explicit migrations, checked in review, are
+the trade.
+
 ## Validation Philosophy
 
 Minimal validations on models. Use contextual validations on form/operation objects:

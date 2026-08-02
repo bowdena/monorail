@@ -10,11 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_01_125047) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_02_041809) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
-  create_table "patients", force: :cascade do |t|
+  create_table "patients", id: :uuid, default: -> { "uuidv7()" }, force: :cascade do |t|
     t.string "atsi_status"
     t.datetime "created_at", null: false
     t.date "date_of_birth"

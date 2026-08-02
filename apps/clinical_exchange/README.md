@@ -1,3 +1,30 @@
+## Database conventions
+
+### Primary keys are UUIDv7
+
+Records appear in URLs, so tables are keyed by a version 7 UUID rather
+than a sequential id — a `/patients/1234` scheme lets anyone walk the
+table. Version 7 is time-ordered, so ids still insert at the end of the
+index instead of scattering as version 4 does.
+
+Postgres 18 provides `uuidv7()` natively; no extension is installed.
+
+Rails does not generate version 7 ids. `create_table id: :uuid` uses
+`gen_random_uuid()` — version 4 — and Rails 8.1 has no knowledge of
+`uuidv7`. `config/initializers/generators.rb` sets the generated key
+*type*; each migration names the function:
+
+```ruby
+create_table :appointments, id: :uuid, default: -> { "uuidv7()" } do |t|
+  t.references :patient, type: :uuid, foreign_key: true
+  t.timestamps
+end
+```
+
+Omitting the `default:` is silent — the table works, the ids are just
+random. After migrating, check `db/schema.rb` shows
+`id: :uuid, default: -> { "uuidv7()" }` for the new table.
+
 ## iPM access through conduit
 
 Patient data is read from the iPM replica through the `conduit` gem. The

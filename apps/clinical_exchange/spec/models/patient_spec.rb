@@ -16,6 +16,25 @@ RSpec.describe Patient do
     )
   end
 
+  # The id reaches the browser as a URL, so it must not be guessable and
+  # must not be the URN.
+  it "is keyed by a uuid the database generates" do
+    patient = create(:patient)
+
+    expect(patient.id).to match(
+      /\A[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/
+    )
+    expect(described_class.new.id).to be_nil
+  end
+
+  # Rails would default a uuid key to gen_random_uuid(), which is version
+  # 4, so the migration names uuidv7() itself.
+  it "takes its uuid from uuidv7" do
+    id = described_class.columns.find { |column| column.name == "id" }
+
+    expect(id.default_function).to eq("uuidv7()")
+  end
+
   describe ".remember" do
     it "keeps the patient conduit returned" do
       found = Conduit::IPM::Patient.new(
