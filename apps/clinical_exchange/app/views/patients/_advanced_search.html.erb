@@ -28,7 +28,13 @@
       <div class="space-y-2">
         <%= form.label :date_of_birth, "Date of birth", class: "label" %>
 
-        <%= form.date_field :date_of_birth, class: "input" %>
+        <%= form.text_field :date_of_birth, placeholder: "dd/mm/yyyy",
+              inputmode: "numeric", maxlength: 10, autocomplete: "off",
+              aria: { describedby: "date_of_birth_hint" }, class: "input" %>
+
+        <p id="date_of_birth_hint" class="text-sm text-muted-foreground">
+          Day first, for example 29/09/1957.
+        </p>
       </div>
     </div>
 

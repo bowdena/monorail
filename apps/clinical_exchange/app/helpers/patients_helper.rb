@@ -4,6 +4,6 @@ module PatientsHelper
   end
 
   def patient_date_of_birth(patient)
-    patient.date_of_birth&.strftime("%d %b %Y")
+    patient.date_of_birth&.strftime("%d/%m/%Y")
   end
 end

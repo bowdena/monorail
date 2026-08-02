@@ -27,7 +27,7 @@ RSpec.describe "Patient searches", type: :request do
 
     expect(page).to have_css("table.table td", text: "Tori Judd")
     expect(page).to have_css("table.table td", text: "0700003")
-    expect(page).to have_css("table.table td", text: "29 Sep 1957")
+    expect(page).to have_css("table.table td", text: "29/09/1957")
     expect(page).to have_css("table.table td", text: "Female")
   end
 
@@ -59,7 +59,7 @@ RSpec.describe "Patient searches", type: :request do
     stub_ipm(patients)
 
     post patients_search_path, params: {
-      first_name: "Tori", last_name: "Judd", date_of_birth: "1957-09-29"
+      first_name: "Tori", last_name: "Judd", date_of_birth: "29/09/1957"
     }
 
     expect(patients).to have_received(:matching).with(
@@ -68,6 +68,38 @@ RSpec.describe "Patient searches", type: :request do
     )
     expect(Capybara.string(response.body))
       .to have_css("table.table td", text: "Tori Judd")
+  end
+
+  # 03/04 is a date either way round, so this is the example that pins
+  # the order: 3 April, not 4 March.
+  it "reads a date of birth day first" do
+    patients = instance_double(Conduit::IPM::Repositories::Patients,
+      matching: [ ipm_patient ])
+    stub_ipm(patients)
+
+    post patients_search_path, params: {
+      last_name: "Judd", date_of_birth: "03/04/1957"
+    }
+
+    expect(patients).to have_received(:matching).with(
+      first_name: nil, last_name: "Judd",
+      date_of_birth: Date.new(1957, 4, 3)
+    )
+  end
+
+  it "reads a date of birth written with dashes" do
+    patients = instance_double(Conduit::IPM::Repositories::Patients,
+      matching: [ ipm_patient ])
+    stub_ipm(patients)
+
+    post patients_search_path, params: {
+      last_name: "Judd", date_of_birth: "3-4-1957"
+    }
+
+    expect(patients).to have_received(:matching).with(
+      first_name: nil, last_name: "Judd",
+      date_of_birth: Date.new(1957, 4, 3)
+    )
   end
 
   # A browser posts the forgery token with every form. Permitting the
@@ -187,7 +219,7 @@ RSpec.describe "Patient searches", type: :request do
       matching: [ ipm_patient ]))
 
     post patients_search_path, params: {
-      first_name: "Tori", last_name: "Judd", date_of_birth: "1957-09-29"
+      first_name: "Tori", last_name: "Judd", date_of_birth: "29/09/1957"
     }
 
     logged = request.filtered_parameters

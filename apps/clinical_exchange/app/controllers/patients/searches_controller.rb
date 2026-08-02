@@ -36,13 +36,13 @@ class Patients::SearchesController < ApplicationController
       criteria.merge(date_of_birth: date_of_birth(criteria)).compact_blank
     end
 
-    # A browser's date field sends an ISO date, but the field is typed
-    # into by hand often enough that a nonsense date has to be named
-    # rather than searched for.
+    # Dates are read day first, as they are written here. A browser's own
+    # date field would render in the machine's locale, which would show
+    # some staff month first for the same stored value.
     def date_of_birth(criteria)
       return if criteria[:date_of_birth].blank?
 
-      Date.parse(criteria[:date_of_birth])
+      Date.strptime(criteria[:date_of_birth].tr("-.", "//"), "%d/%m/%Y")
     rescue Date::Error
       @invalid_date = true
 
