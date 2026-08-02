@@ -1,6 +1,6 @@
 <%#
   locals: (results: nil, urn: nil, failure: nil, throttled: false,
-  unsearchable: false, invalid_date: false)
+  unsearchable: false, invalid_date: false, stale_page: false)
 %>
 <%#
   What a search produced, rendered into the results frame. The forms sit
@@ -14,6 +14,7 @@
     throttled    - true when the search was refused for coming too fast
     unsearchable - true when no criteria were given
     invalid_date - true when the date of birth could not be read
+    stale_page   - true when the page asked for no longer exists
 %>
 
 <div class="space-y-6">
@@ -43,6 +44,13 @@
           title: "Search unavailable") do %>
       Patient records could not be searched. This needs fixing by an
       administrator — report it rather than retrying.
+    <% end %>
+  <% end %>
+
+  <% if stale_page %>
+    <%= render_alert(variant: "warning", icon: "icons/alert-triangle",
+          title: "Those results have changed") do %>
+      The page you asked for is no longer there. Showing the first page instead.
     <% end %>
   <% end %>
 

@@ -319,6 +319,110 @@ RSpec.describe "Patient searches", type: :request do
     end
   end
 
+  # A page link is shareable and outlives the search that made it, so a
+  # page that existed when the link was made may not exist now.
+  describe "asking for a page that is no longer there" do
+    def ipm_with_two_pages
+      patients = instance_double(Conduit::IPM::Repositories::Patients)
+      allow(patients).to receive(:matching) do |page:, per_page:, **|
+        if page > 2
+          raise ArgumentError, "page #{page} of 2"
+        end
+
+        ipm_page(ipm_patients(30), page: page, per_page: per_page)
+      end
+      patients
+    end
+
+    it "shows the first page instead" do
+      stub_ipm(ipm_with_two_pages)
+
+      get patients_search_path, params: { last_name: "jud", page: "5" }
+
+      page = Capybara.string(response.body)
+
+      expect(page).to have_css("table.table td", text: "Ann001 Judd")
+      expect(page).to have_css("nav[aria-label=Pagination] [aria-current=page]",
+        text: "1")
+    end
+
+    it "says the results have changed" do
+      stub_ipm(ipm_with_two_pages)
+
+      get patients_search_path, params: { last_name: "jud", page: "5" }
+
+      expect(Capybara.string(response.body))
+        .to have_css("[role=alert]", text: "results have changed")
+    end
+
+    context "when iPM is unreachable" do
+      it "does the same for the locally kept records" do
+        30.times do |number|
+          create(:patient, last_name: "Judd",
+            first_name: format("Ann%02d", number))
+        end
+        patients = instance_double(Conduit::IPM::Repositories::Patients)
+        allow(patients).to receive(:matching).and_raise(
+          Conduit::Error::Timeout.new("slow", source: :ipm)
+        )
+        stub_ipm(patients)
+
+        get patients_search_path, params: { last_name: "jud", page: "5" }
+
+        page = Capybara.string(response.body)
+
+        expect(page).to have_css("table.table td", text: "Ann00 Judd")
+        expect(page).to have_css("[role=alert]", text: "results have changed")
+      end
+    end
+  end
+
+  describe "asking for a page that is there" do
+    it "says nothing about the results changing" do
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        matching: ipm_page(ipm_patients(60), page: 2,
+          per_page: Patients::SearchesController::RESULTS_PER_PAGE)))
+
+      get patients_search_path, params: { last_name: "jud", page: "2" }
+
+      expect(Capybara.string(response.body))
+        .to have_no_css("[role=alert]", text: "results have changed")
+    end
+
+    # Nothing matched is not a page that went away.
+    context "when the search matched nobody" do
+      it "reports no patient rather than a stale page" do
+        stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+          matching: ipm_page([],
+            per_page: Patients::SearchesController::RESULTS_PER_PAGE)))
+
+        get patients_search_path, params: { last_name: "vault" }
+
+        page = Capybara.string(response.body)
+
+        expect(page).to have_css("[role=alert]", text: "No patient found")
+        expect(page).to have_no_css("[role=alert]", text: "results have changed")
+      end
+    end
+
+    # A page below one only arrives from a hand-edited url. It reads as
+    # a request for the beginning, not as results that have changed.
+    context "when the page is below one" do
+      it "shows the first page quietly" do
+        stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+          matching: ipm_page(ipm_patients(60),
+            per_page: Patients::SearchesController::RESULTS_PER_PAGE)))
+
+        get patients_search_path, params: { last_name: "jud", page: "0" }
+
+        page = Capybara.string(response.body)
+
+        expect(page).to have_css("table.table td", text: "Ann001 Judd")
+        expect(page).to have_no_css("[role=alert]", text: "results have changed")
+      end
+    end
+  end
+
   it "keeps the urn out of the response url" do
     stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
       by_urn: ipm_patient))

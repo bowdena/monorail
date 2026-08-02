@@ -30,6 +30,7 @@ class Patients::SearchesController < ApplicationController
       else
         @results = Patient.search(**criteria, page: requested_page,
           per_page: RESULTS_PER_PAGE)
+        @stale_page = @results.current_page != requested_page
       end
     rescue Conduit::Error => error
       @failure = error

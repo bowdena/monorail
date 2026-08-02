@@ -30,11 +30,7 @@ class Patient < ApplicationRecord
         raise ArgumentError, "at least one criterion is required"
       end
 
-      found_in_ipm(criteria, page: page, per_page: per_page)
-    rescue Conduit::Error => error
-      raise unless error.transient?
-
-      found_locally(criteria, page: page, per_page: per_page)
+      found_on_page(criteria, page: page, per_page: per_page)
     end
 
     # A selection is looked up again rather than taken from the page it
@@ -68,6 +64,32 @@ class Patient < ApplicationRecord
     end
 
     private
+      # Always answers with a page that exists. A link made when the
+      # search had more pages asks for one that has since gone, and the
+      # first page is a better answer than a failure. The results say
+      # which page they hold, so a caller can tell the clinician.
+      #
+      # The two sources disagree on how they refuse: conduit raises,
+      # while a slice past the end of the local table is simply empty.
+      def found_on_page(criteria, page:, per_page:)
+        found = found_anywhere(criteria, page: page, per_page: per_page)
+
+        return found unless page > found.total_pages &&
+          found.total_pages.positive?
+
+        found_anywhere(criteria, page: 1, per_page: per_page)
+      rescue ArgumentError
+        found_anywhere(criteria, page: 1, per_page: per_page)
+      end
+
+      def found_anywhere(criteria, page:, per_page:)
+        found_in_ipm(criteria, page: page, per_page: per_page)
+      rescue Conduit::Error => error
+        raise unless error.transient?
+
+        found_locally(criteria, page: page, per_page: per_page)
+      end
+
       # A urn matches at most one patient, so it is answered whole and
       # sits on a page of its own. Only a name search is paged.
       def found_in_ipm(criteria, page:, per_page:)

@@ -218,10 +218,17 @@ handing over every row it matched.
 - `apps/clinical_exchange/spec/requests/patients/searches_spec.rb`
 
 **Spec:** a page past the last renders page 1 with an alert saying the
-results have changed; a page below 1 does the same; page 1 of a search
-matching nothing is not treated as stale.
+results have changed; the locally kept records behave the same way; page 1 of
+a search matching nothing is not treated as stale; a page below 1 shows the
+first page without a notice.
 
-**Status:** pending
+**Status:** done — a page below 1 gets no notice after all. Slice 2 already
+floors it to 1, and it only ever arrives from a hand-edited url, so "those
+results have changed" would be untrue. The two sources needed handling
+separately: conduit raises for a page past the last, while a slice past the
+end of the local table is simply empty. `Patient.search` now guarantees the
+page it returns exists, and the controller compares that against the page
+asked for rather than `Results` carrying a flag.
 
 ### Slice 4: Too broad a search asks for narrowing
 
