@@ -53,15 +53,21 @@ Conduit.sources  # => [:ipm]
 
 One MSSQL instance hosts a database per source.
 
-- **development / test** — conduit defaults to a local instance on
+- **development** — conduit defaults to a local instance on
   `localhost:1433` with an `iPM_REPL` database, zero configuration.
-  The spec suite seeds the databases it needs.
-- **every other environment** — no defaults exist. The instance
-  location must come from conduit-owned variables
+  This gem's own spec suite runs in this regime and seeds the
+  databases it needs.
+- **every other environment, test included** — no defaults exist.
+  The instance location must come from conduit-owned variables
   (`CONDUIT_MSSQL_HOST`, `CONDUIT_MSSQL_PORT`) plus a database name
   per source (`CONDUIT_IPM_DATABASE`). A missing variable fails at
   boot with `Error::NotConfigured` — a production deploy can never
-  silently connect to `localhost`.
+  silently connect to `localhost`, and neither can a consuming
+  application's test suite.
+
+A consuming application should stub conduit at `Conduit.ipm` in its
+specs and point these variables at an address that cannot resolve, so
+a forgotten stub fails rather than reaching a real instance.
 
 ## Querying
 
