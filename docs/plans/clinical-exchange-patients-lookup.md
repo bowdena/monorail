@@ -271,10 +271,18 @@ fails when it is forgotten — the ids are simply version 4.
 ### Slice 10: Rate limit the search
 **Commit:** `feat: rate limit patient searches`
 **Files:** `app/controllers/patients/searches_controller.rb`,
+`app/views/patients/searches/{_search,create}.html.erb`,
+`config/environments/test.rb`,
 `spec/requests/patients/searches_spec.rb`
-**Spec:** a burst of searches beyond the cap is refused; searching
-within the cap is unaffected.
-**Status:** pending
+**Spec:** a burst of searches beyond the cap is refused with an alert
+and 429; searching up to the cap is unaffected.
+**Note:** 20 searches a minute, keyed on the requesting address, since
+there is no user to key on yet. The test environment's `:null_store`
+discards the counter, so the limit could never fire under test — test
+now uses `:memory_store`, and the throttle examples clear the cache
+either side of themselves so the shared counter cannot leak into other
+examples.
+**Status:** done
 
 ### Slice 11: Keep criteria out of the request log
 **Commit:** `chore: filter patient criteria from the request log`

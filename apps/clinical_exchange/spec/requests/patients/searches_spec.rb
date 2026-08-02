@@ -111,6 +111,41 @@ RSpec.describe "Patient searches", type: :request do
     end
   end
 
+  # The counter is shared by every example in the run, so each of these
+  # starts and ends from a known state.
+  context "when searches come too fast" do
+    it "refuses the ones beyond the cap" do
+      Rails.cache.clear
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        by_urn: ipm_patient))
+
+      (Patients::SearchesController::SEARCHES_PER_MINUTE + 1).times do
+        post patients_search_path, params: { urn: "0700003" }
+      end
+
+      expect(response).to have_http_status(:too_many_requests)
+      expect(Capybara.string(response.body))
+        .to have_css("[role=alert]", text: "Too many searches")
+    ensure
+      Rails.cache.clear
+    end
+
+    it "allows searching up to the cap" do
+      Rails.cache.clear
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        by_urn: ipm_patient))
+
+      Patients::SearchesController::SEARCHES_PER_MINUTE.times do
+        post patients_search_path, params: { urn: "0700003" }
+      end
+
+      expect(response).to have_http_status(:ok)
+      expect(Capybara.string(response.body)).to have_css("table.table")
+    ensure
+      Rails.cache.clear
+    end
+  end
+
   context "when the search fails outright" do
     it "reports the failure instead of results" do
       create(:patient, urn: "0700003")

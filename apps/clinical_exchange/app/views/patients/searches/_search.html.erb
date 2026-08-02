@@ -1,12 +1,13 @@
-<%# locals: (results: nil, urn: nil, failure: nil) %>
+<%# locals: (results: nil, urn: nil, failure: nil, throttled: false) %>
 <%#
   The search form and its results, together inside the turbo frame the
   search replaces.
 
   Params:
-    results - a Patient::Results, or nil before any search has run
-    urn     - the urn searched for, redisplayed in the field
-    failure - a Conduit::Error the search could not recover from
+    results   - a Patient::Results, or nil before any search has run
+    urn       - the urn searched for, redisplayed in the field
+    failure   - a Conduit::Error the search could not recover from
+    throttled - true when the search was refused for coming too fast
 %>
 
 <%= turbo_frame_tag "patient_search" do %>
@@ -28,6 +29,13 @@
         <%= render_button(type: "submit") do %>
           <%= inline_svg_tag "icons/search.svg", class: "size-4" %> Search
         <% end %>
+      <% end %>
+    <% end %>
+
+    <% if throttled %>
+      <%= render_alert(variant: "warning", icon: "icons/alert-triangle",
+            title: "Too many searches") do %>
+        Searching is paused for a minute. Wait, then search again.
       <% end %>
     <% end %>
 
