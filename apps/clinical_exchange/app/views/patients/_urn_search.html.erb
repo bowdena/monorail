@@ -1,0 +1,25 @@
+<%#
+  The URN search form. It posts into the results frame, so the tab the
+  clinician is on and the criteria they typed both survive a search.
+%>
+
+<%= render_card do %>
+  <p class="text-sm text-muted-foreground mb-4">
+    Enter a patient's URN (up to 7 digits). Leading zeros are added
+    automatically.
+  </p>
+
+  <%= form_with url: patients_search_path, class: "flex gap-3",
+        data: { turbo_frame: "patient_results" } do |form| %>
+    <%= form.label :urn, "URN", class: "sr-only" %>
+
+    <%= form.text_field :urn, inputmode: "numeric",
+          maxlength: Patient::URN_LENGTH,
+          placeholder: "Enter URN (e.g. 1234567)",
+          autocomplete: "off", class: "input max-w-xs" %>
+
+    <%= render_button(type: "submit") do %>
+      <%= inline_svg_tag "icons/search.svg", class: "size-4" %> Search
+    <% end %>
+  <% end %>
+<% end %>

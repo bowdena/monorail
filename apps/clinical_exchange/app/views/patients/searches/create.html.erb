@@ -1,6 +1,5 @@
-<% content_for :title, "Patients" %>
-
-<div class="max-w-4xl">
-  <%= render "patients/searches/search", results: @results, urn: @urn,
-        failure: @failure, throttled: @throttled %>
-</div>
+<%= turbo_frame_tag "patient_results" do %>
+  <%= render "patients/searches/results", results: @results, urn: @urn,
+        failure: @failure, throttled: @throttled,
+        unsearchable: @unsearchable, invalid_date: @invalid_date %>
+<% end %>

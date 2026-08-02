@@ -1,5 +1,26 @@
 <% content_for :title, "Patients" %>
 
-<div class="max-w-4xl">
-  <%= render "patients/searches/search" %>
+<% urn_search = capture do %>
+  <%= render "patients/urn_search" %>
+<% end %>
+
+<% advanced_search = capture do %>
+  <%= render "patients/advanced_search" %>
+<% end %>
+
+<div class="max-w-4xl space-y-6">
+  <%= render_tabs(id: "patients", tabs: [
+        { label: safe_join([
+            inline_svg_tag("icons/search.svg",
+              class: "size-4 mr-1 inline-block"),
+            " URN search"
+          ]), content: urn_search },
+        { label: safe_join([
+            inline_svg_tag("icons/filter.svg",
+              class: "size-4 mr-1 inline-block"),
+            " Advanced search"
+          ]), content: advanced_search }
+      ]) %>
+
+  <%= turbo_frame_tag "patient_results" %>
 </div>

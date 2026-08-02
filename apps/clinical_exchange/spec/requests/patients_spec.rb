@@ -12,6 +12,18 @@ RSpec.describe "Patients", type: :request do
     expect(page).to have_button("Search")
   end
 
+  it "offers an advanced search beside the urn search" do
+    get patients_path
+
+    page = Capybara.string(response.body)
+
+    expect(page).to have_css("[role=tab]", text: "URN")
+    expect(page).to have_css("[role=tab]", text: "Advanced")
+    expect(page).to have_field("first_name", visible: :all)
+    expect(page).to have_field("last_name", visible: :all)
+    expect(page).to have_field("date_of_birth", visible: :all)
+  end
+
   it "posts the search rather than putting criteria in the url" do
     get patients_path
 

@@ -31,14 +31,14 @@ RSpec.describe "Patient searches", type: :request do
     expect(page).to have_css("table.table td", text: "Female")
   end
 
-  it "answers inside the search frame" do
+  it "answers inside the results frame" do
     stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
       by_urn: ipm_patient))
 
     post patients_search_path, params: { urn: "0700003" }
 
     expect(Capybara.string(response.body))
-      .to have_css("turbo-frame#patient_search table.table", visible: :all)
+      .to have_css("turbo-frame#patient_results table.table", visible: :all)
   end
 
   it "reports a urn no patient has" do
@@ -51,6 +51,76 @@ RSpec.describe "Patient searches", type: :request do
 
     expect(page).to have_css("[role=alert]", text: "No patient found")
     expect(page).to have_no_css("table.table")
+  end
+
+  it "lists patients matching name and date of birth" do
+    patients = instance_double(Conduit::IPM::Repositories::Patients,
+      matching: [ ipm_patient ])
+    stub_ipm(patients)
+
+    post patients_search_path, params: {
+      first_name: "Tori", last_name: "Judd", date_of_birth: "1957-09-29"
+    }
+
+    expect(patients).to have_received(:matching).with(
+      first_name: "Tori", last_name: "Judd",
+      date_of_birth: Date.new(1957, 9, 29)
+    )
+    expect(Capybara.string(response.body))
+      .to have_css("table.table td", text: "Tori Judd")
+  end
+
+  # A browser posts the forgery token with every form. Permitting the
+  # whole params hash flags it as unpermitted on every search.
+  it "takes no notice of the parameters a browser adds" do
+    stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+      by_urn: ipm_patient))
+    ActionController::Parameters.action_on_unpermitted_parameters = :raise
+
+    expect {
+      post patients_search_path,
+        params: { urn: "0700003", authenticity_token: "a-token" }
+    }.not_to raise_error
+  ensure
+    ActionController::Parameters.action_on_unpermitted_parameters = false
+  end
+
+  it "searches on a single criterion" do
+    patients = instance_double(Conduit::IPM::Repositories::Patients,
+      matching: [ ipm_patient ])
+    stub_ipm(patients)
+
+    post patients_search_path, params: { last_name: "jud" }
+
+    expect(patients).to have_received(:matching).with(
+      first_name: nil, last_name: "jud", date_of_birth: nil
+    )
+  end
+
+  context "when no criterion is given" do
+    it "asks for one and runs no query" do
+      allow(Conduit).to receive(:ipm)
+
+      post patients_search_path, params: { first_name: " " }
+
+      expect(Conduit).not_to have_received(:ipm)
+      expect(Capybara.string(response.body))
+        .to have_css("[role=alert]", text: "Enter something to search for")
+    end
+  end
+
+  context "when the date of birth is not a date" do
+    it "says so rather than searching" do
+      allow(Conduit).to receive(:ipm)
+
+      post patients_search_path, params: {
+        last_name: "Judd", date_of_birth: "31/02/1957"
+      }
+
+      expect(Conduit).not_to have_received(:ipm)
+      expect(Capybara.string(response.body))
+        .to have_css("[role=alert]", text: "Date of birth")
+    end
   end
 
   it "keeps the urn out of the response url" do

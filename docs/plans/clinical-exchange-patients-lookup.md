@@ -299,11 +299,20 @@ Rails writes to the log. Filtering is a partial match, so a later
 **Commit:** `feat: add advanced patient search`
 **Files:** `app/controllers/patients/searches_controller.rb`,
 `app/views/patients/index.html.erb`,
-`spec/requests/patients/searches_spec.rb`
-**Spec:** name and date-of-birth criteria list matching patients; an
-empty advanced search reports that a criterion is required and runs no
-query.
-**Status:** pending
+`app/views/patients/{_urn_search,_advanced_search}.html.erb`,
+`app/views/patients/searches/{_results,create}.html.erb`,
+`spec/requests/patients/searches_spec.rb`,
+`spec/requests/patients_spec.rb`, `spec/system/patients_spec.rb`
+**Spec:** name and date-of-birth criteria list matching patients; a
+single criterion is enough; an empty search asks for one and runs no
+query; an unreadable date of birth is named rather than searched for;
+searching from the advanced tab leaves the clinician on it.
+**Note:** the turbo frame shrank to the results region and both forms
+target it. `render_tabs` always selects the first tab, so swapping the
+whole page region would have thrown the clinician back to the URN tab
+with their criteria gone — changing gesso was the alternative. The
+partial `patients/searches/_search` became `_results`.
+**Status:** done
 
 ### Slice 13: Select and save a patient
 **Commit:** `feat: save a selected patient locally`

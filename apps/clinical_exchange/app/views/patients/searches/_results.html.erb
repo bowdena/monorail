@@ -1,0 +1,100 @@
+<%#
+  locals: (results: nil, urn: nil, failure: nil, throttled: false,
+  unsearchable: false, invalid_date: false)
+%>
+<%#
+  What a search produced, rendered into the results frame. The forms sit
+  outside the frame, so a search leaves the clinician on the tab they
+  used with their criteria still in front of them.
+
+  Params:
+    results      - a Patient::Results, or nil when no query ran
+    urn          - the urn searched for, named in the not-found message
+    failure      - a Conduit::Error the search could not recover from
+    throttled    - true when the search was refused for coming too fast
+    unsearchable - true when no criteria were given
+    invalid_date - true when the date of birth could not be read
+%>
+
+<div class="space-y-6">
+  <% if throttled %>
+    <%= render_alert(variant: "warning", icon: "icons/alert-triangle",
+          title: "Too many searches") do %>
+      Searching is paused for a minute. Wait, then search again.
+    <% end %>
+  <% end %>
+
+  <% if unsearchable %>
+    <%= render_alert(icon: "icons/alert-circle",
+          title: "Enter something to search for") do %>
+      Give a URN, or any part of a name or a date of birth.
+    <% end %>
+  <% end %>
+
+  <% if invalid_date %>
+    <%= render_alert(icon: "icons/alert-circle",
+          title: "Date of birth could not be read") do %>
+      Enter the date of birth as a date, then search again.
+    <% end %>
+  <% end %>
+
+  <% if failure %>
+    <%= render_alert(variant: "critical", icon: "icons/x-circle",
+          title: "Search unavailable") do %>
+      Patient records could not be searched. This needs fixing by an
+      administrator — report it rather than retrying.
+    <% end %>
+  <% end %>
+
+  <% if results&.local? %>
+    <%= render_alert(variant: "warning", icon: "icons/alert-triangle",
+          title: "iPM is unavailable") do %>
+      Showing patients kept from earlier lookups, which may be out of date.
+      Patients never looked up here will not appear.
+    <% end %>
+  <% end %>
+
+  <% if results %>
+    <% if results.records.any? %>
+      <%= render_card(title: "Results") do %>
+        <div class="overflow-x-auto">
+          <table class="table">
+            <caption class="sr-only">Patients matching your search</caption>
+
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>URN</th>
+                <th>Date of birth</th>
+                <th>Gender</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% results.records.each do |patient| %>
+                <tr>
+                  <td class="font-medium"><%= patient_name(patient) %></td>
+                  <td><%= patient.urn %></td>
+                  <td><%= patient_date_of_birth(patient) %></td>
+                  <td><%= patient.gender %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    <% elsif results.local? %>
+      <%= render_alert(icon: "icons/alert-circle",
+            title: "No saved patient matches") do %>
+        No patient kept from an earlier lookup matches
+        <%= urn ? "URN #{urn}" : "those details" %>. Whether iPM holds one
+        cannot be checked until it is reachable.
+      <% end %>
+    <% else %>
+      <%= render_alert(icon: "icons/alert-circle", title: "No patient found") do %>
+        No patient matches <%= urn ? "URN #{urn}" : "those details" %>. Check
+        and search again.
+      <% end %>
+    <% end %>
+  <% end %>
+</div>
