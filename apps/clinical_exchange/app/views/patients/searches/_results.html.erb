@@ -67,6 +67,7 @@
                 <th>URN</th>
                 <th>Date of birth</th>
                 <th>Gender</th>
+                <th><span class="sr-only">Select</span></th>
               </tr>
             </thead>
 
@@ -77,6 +78,23 @@
                   <td><%= patient.urn %></td>
                   <td><%= patient_date_of_birth(patient) %></td>
                   <td><%= patient.gender %></td>
+
+                  <td class="text-right">
+                    <%#
+                      Selecting leaves the frame for a page of its own, so
+                      the form opts out of the frame the search targets.
+                    %>
+
+                    <%= form_with url: patients_path,
+                          data: { turbo_frame: "_top" } do |form| %>
+                      <%= form.hidden_field :urn, value: patient.urn %>
+
+                      <%= render_button(type: "submit", size: "sm",
+                            variant: "outline") do %>
+                        Select
+                      <% end %>
+                    <% end %>
+                  </td>
                 </tr>
               <% end %>
             </tbody>

@@ -317,12 +317,24 @@ partial `patients/searches/_search` became `_results`.
 ### Slice 13: Select and save a patient
 **Commit:** `feat: save a selected patient locally`
 **Files:** `config/routes.rb`, `app/controllers/patients_controller.rb`,
-`app/views/patients/index.html.erb`,
-`app/views/patients/show.html.erb`, `spec/requests/patients_spec.rb`
-**Spec:** selecting a result saves the patient locally and redirects to
-its page, addressed by UUID, which shows the patient info header;
-selecting the same patient twice keeps one record.
-**Status:** pending
+`app/models/patient.rb`, `app/helpers/patients_helper.rb`,
+`app/views/patients/show.html.erb`,
+`app/views/patients/searches/_results.html.erb`,
+`app/views/layouts/application.html.erb`,
+`spec/requests/patients_spec.rb`, `spec/models/patient_spec.rb`,
+`spec/system/patients_spec.rb`
+**Spec:** selecting a result keeps the patient and redirects to its
+page, addressed by UUID and never by URN, showing the patient info
+header; selecting twice keeps one record; a URN nobody has is refused;
+a selection made while iPM is unreachable opens the patient already
+kept.
+**Note:** the selection posts only the URN and the patient is looked up
+again, since a browser can post whatever it likes and what gets kept
+has to be what the source holds. The form opts out of the results frame
+with `turbo_frame: "_top"`, since selecting leaves for a page of its
+own. `create` is rate limited like the search — it reaches iPM too.
+Flash messages now render through gesso's toast in the layout.
+**Status:** done
 
 ### Slice 14: Say when results are local
 **Commit:** `feat: flag results served from local records`

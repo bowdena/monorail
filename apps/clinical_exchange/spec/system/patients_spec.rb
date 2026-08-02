@@ -59,6 +59,24 @@ RSpec.describe "Patient lookup", type: :system do
     expect(page).to have_css("[role=alert]", text: "Enter something")
   end
 
+  it "opens the patient a clinician selects" do
+    create(:patient, urn: "0700003", first_name: "Tori", last_name: "Judd")
+
+    visit patients_path
+
+    within "#patients-panel-0" do
+      fill_in "urn", with: "0700003"
+      click_button "Search"
+    end
+
+    click_button "Select"
+
+    expect(page).to have_text("Tori Judd")
+    expect(page).to have_text("UR: 0700003")
+    expect(page.current_path).to eq(patient_path(Patient.sole))
+    expect(page.current_url).not_to include("0700003")
+  end
+
   it "leaves no patient identifier in the url" do
     visit patients_path
 

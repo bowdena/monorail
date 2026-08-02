@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  resources :patients, only: %i[ index ]
+  resources :patients, only: %i[ index create show ]
 
   namespace :patients do
     resource :search, only: %i[ create ]

@@ -37,6 +37,18 @@ class Patient < ApplicationRecord
       Results.new(records: found_locally(criteria), source: :local)
     end
 
+    # A selection is looked up again rather than taken from the page it
+    # was made on: the browser is free to post any urn, and what gets
+    # kept has to be what the source holds. While iPM is unreachable the
+    # patient is already here, or cannot be confirmed at all.
+    def remembered(urn)
+      found = search(urn: urn).records.first
+
+      raise ActiveRecord::RecordNotFound, "no patient with urn #{urn}" if found.nil?
+
+      found.is_a?(self) ? found : remember(found)
+    end
+
     def by_urn(urn)
       find_by(urn: urn)
     end

@@ -158,6 +158,37 @@ RSpec.describe Patient do
     end
   end
 
+  describe ".remembered" do
+    it "keeps the patient iPM holds for that urn" do
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        by_urn: ipm_patient))
+
+      patient = described_class.remembered("0700003")
+
+      expect(patient).to be_persisted
+      expect(patient.last_name).to eq("Judd")
+    end
+
+    it "returns the patient already kept when iPM is unreachable" do
+      kept = create(:patient, urn: "0700003", last_name: "Judd")
+      patients = instance_double(Conduit::IPM::Repositories::Patients)
+      allow(patients).to receive(:by_urn).and_raise(
+        Conduit::Error::Timeout.new("slow", source: :ipm)
+      )
+      stub_ipm(patients)
+
+      expect(described_class.remembered("0700003")).to eq(kept)
+    end
+
+    it "raises when no patient has that urn" do
+      stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+        by_urn: nil))
+
+      expect { described_class.remembered("0700003") }
+        .to raise_error(ActiveRecord::RecordNotFound)
+    end
+  end
+
   describe ".search" do
     it "answers from iPM, and says so" do
       patients = instance_double(Conduit::IPM::Repositories::Patients,

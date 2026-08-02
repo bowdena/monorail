@@ -61,6 +61,8 @@
       <%= render_header(title: content_for(:title), show_search: false) %>
 
       <main class="flex-1 overflow-auto p-6">
+        <%= render_toast(flash: flash) %>
+
         <%= yield %>
       </main>
     </div>
