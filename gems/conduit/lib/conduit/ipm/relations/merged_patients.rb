@@ -17,15 +17,18 @@ module Conduit
           where(archv_flag: "N")
         end
 
-        # The most recent record a retired record was merged into,
-        # or nil when it has not been merged.
-        def latest_target(prev_patnt_refno)
+        # The record each retired record was merged into, keyed by the
+        # retired record and covering only those that were merged.
+        # Oldest first, so the newest merge for a record is the one
+        # left standing in the hash.
+        def latest_targets(prev_patnt_refnos)
+          return {} if prev_patnt_refnos.empty?
+
           active
-            .where(prev_patnt_refno: prev_patnt_refno)
-            .order { create_dttm.desc }
-            .limit(1)
-            .pluck(:patnt_refno)
-            .first&.to_i
+            .where(prev_patnt_refno: prev_patnt_refnos)
+            .order { create_dttm.asc }
+            .to_a
+            .to_h { |row| [row[:prev_patnt_refno], row[:patnt_refno]] }
         end
       end
     end
