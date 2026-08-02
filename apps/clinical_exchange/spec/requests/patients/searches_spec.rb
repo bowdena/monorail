@@ -41,6 +41,19 @@ RSpec.describe "Patient searches", type: :request do
       .to have_css("turbo-frame#patient_results table.table", visible: :all)
   end
 
+  # A name search can match more than a screenful, so its pages have to
+  # be reachable by a link. A urn search matches at most one patient and
+  # stays a POST, keeping the identifier out of the url entirely.
+  it "answers a name search inside the results frame" do
+    stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+      matching: [ ipm_patient ]))
+
+    get patients_search_path, params: { last_name: "Judd" }
+
+    expect(Capybara.string(response.body))
+      .to have_css("turbo-frame#patient_results table.table", visible: :all)
+  end
+
   it "reports a urn no patient has" do
     stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
       by_urn: nil))
@@ -58,7 +71,7 @@ RSpec.describe "Patient searches", type: :request do
       matching: [ ipm_patient ])
     stub_ipm(patients)
 
-    post patients_search_path, params: {
+    get patients_search_path, params: {
       first_name: "Tori", last_name: "Judd", date_of_birth: "29/09/1957"
     }
 
@@ -77,7 +90,7 @@ RSpec.describe "Patient searches", type: :request do
       matching: [ ipm_patient ])
     stub_ipm(patients)
 
-    post patients_search_path, params: {
+    get patients_search_path, params: {
       last_name: "Judd", date_of_birth: "03/04/1957"
     }
 
@@ -92,7 +105,7 @@ RSpec.describe "Patient searches", type: :request do
       matching: [ ipm_patient ])
     stub_ipm(patients)
 
-    post patients_search_path, params: {
+    get patients_search_path, params: {
       last_name: "Judd", date_of_birth: "3-4-1957"
     }
 
@@ -122,7 +135,7 @@ RSpec.describe "Patient searches", type: :request do
       matching: [ ipm_patient ])
     stub_ipm(patients)
 
-    post patients_search_path, params: { last_name: "jud" }
+    get patients_search_path, params: { last_name: "jud" }
 
     expect(patients).to have_received(:matching).with(
       first_name: nil, last_name: "jud", date_of_birth: nil
@@ -133,7 +146,7 @@ RSpec.describe "Patient searches", type: :request do
     it "asks for one and runs no query" do
       allow(Conduit).to receive(:ipm)
 
-      post patients_search_path, params: { first_name: " " }
+      get patients_search_path, params: { first_name: " " }
 
       expect(Conduit).not_to have_received(:ipm)
       expect(Capybara.string(response.body))
@@ -145,7 +158,7 @@ RSpec.describe "Patient searches", type: :request do
     it "says so rather than searching" do
       allow(Conduit).to receive(:ipm)
 
-      post patients_search_path, params: {
+      get patients_search_path, params: {
         last_name: "Judd", date_of_birth: "31/02/1957"
       }
 
@@ -218,7 +231,7 @@ RSpec.describe "Patient searches", type: :request do
     stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
       matching: [ ipm_patient ]))
 
-    post patients_search_path, params: {
+    get patients_search_path, params: {
       first_name: "Tori", last_name: "Judd", date_of_birth: "29/09/1957"
     }
 
@@ -226,6 +239,21 @@ RSpec.describe "Patient searches", type: :request do
 
     expect(logged["first_name"]).to eq("[FILTERED]")
     expect(logged["date_of_birth"]).to eq("[FILTERED]")
+  end
+
+  # A name search carries its criteria in the query string now, and the
+  # request line is what Rails logs. filtered_path is that line.
+  it "keeps them out of the logged url too" do
+    stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+      matching: [ ipm_patient ]))
+
+    get patients_search_path, params: {
+      first_name: "Tori", last_name: "Judd", date_of_birth: "29/09/1957"
+    }
+
+    expect(request.filtered_path).not_to include("Tori")
+    expect(request.filtered_path).not_to include("1957")
+    expect(request.filtered_path).to include("Judd")
   end
 
   it "leaves the urn readable in the log" do

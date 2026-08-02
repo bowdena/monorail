@@ -8,7 +8,13 @@
 <%= render_card(title: "Advanced search",
       description: "Search by name or date of birth. Fill in any " \
                    "combination of fields.") do %>
-  <%= form_with url: patients_search_path,
+  <%#
+    A GET so that the pages of a long result set can be reached by a
+    link. The criteria travel in the query string; the log filters the
+    first name and date of birth out of it.
+  %>
+
+  <%= form_with url: patients_search_path, method: :get,
         data: { turbo_frame: "patient_results" } do |form| %>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="space-y-2">

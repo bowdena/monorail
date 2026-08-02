@@ -31,18 +31,28 @@ scrolling past a hundred rows or being told to search again.
 
 ## Implementation Notes
 
-### Searching moves from POST to GET
+### The name search moves to GET; the urn search does not
 
 Pagination controls are links, so the search they page has to be reachable by
-one. `Patients::SearchesController#create` becomes `#show`, the route becomes
-`resource :search, only: %i[ show ]`, and both search forms gain
+one. The route becomes `resource :search, only: %i[ create show ]` — one
+path, the verb choosing between them — and only the advanced form gains
 `method: :get`.
 
-The cost was weighed and accepted: a GET puts the criteria in the URL, so a
-patient's name and date of birth reach browser history, any access log, and
-any `Referer` sent onward. The alternatives — `button_to` forms, or holding
-criteria in the session — were rejected in favour of pages that behave like
-pages.
+The split came from an existing spec, `searches_spec.rb` "keeps the urn out
+of the response url", which pinned a deliberate decision that criteria stay
+out of the URL. A urn search matches at most one patient and never needs a
+page, so it keeps its POST and that spec keeps its meaning. Only the name
+search, which is the one that can match more than a screenful, pays the cost.
+
+That cost was weighed and accepted for the name search: its criteria travel
+in the query string, so they reach access logs and any `Referer` sent onward.
+They do not reach the address bar in the ordinary flow — the form targets a
+turbo frame, and Turbo leaves the browser URL alone on a frame navigation
+unless the frame opts in with `data-turbo-action="advance"`.
+
+The namespace has to be declared before `resources :patients`: `patients#show`
+answers `GET /patients/:id`, which otherwise swallows `/patients/search` as a
+patient whose id is "search".
 
 ### Logging is already handled, and deliberately partial
 
@@ -135,9 +145,12 @@ have them until that suite runs again.
 - Does GET need new log filtering? → No. `first_name` and `date_of_birth` are
   already filtered and Rails filters query strings. Whether `last_name`
   should join them is a live question, deliberately left alone.
-- Can the app suite run? → Unresolved, needed before slice 1. Postgres is not
-  running; `bin/rails spec` fails at `spec/rails_helper.rb:34` with
-  `PG::ConnectionBad`. Nothing here can be written test-first until it is up.
+- Can the app suite run? → Yes. Postgres runs on port 5510 under mise, per
+  `apps/clinical_exchange/mise.toml`. A shell that has not activated mise for
+  that directory defaults to 5432 and fails with `PG::ConnectionBad`, so
+  commands need the environment supplied:
+  `PGPORT=5510 PGUSER=postgres PGPASSWORD=postgres bin/rails spec`.
+  Baseline before this feature: 81 examples, 0 failures.
 
 ## Slices
 
@@ -154,13 +167,17 @@ have them until that suite runs again.
 - `apps/clinical_exchange/spec/requests/patients/searches_spec.rb`
 - `apps/clinical_exchange/spec/system/patients_spec.rb`
 
-**Spec:** searching by URN and by name over GET returns the same results into
-the same turbo frame; the criteria survive in the URL; rate limiting still
-refuses a flood; an empty search, an unreadable date, and an unreachable iPM
-all still render what they did. No pagination yet — this slice only changes
-how the search is reached.
+**Spec:** searching by name over GET returns the same results into the same
+turbo frame; the urn search stays a POST and keeps the identifier out of the
+url; the log shows the first name and date of birth as filtered in the query
+string as well as the params; rate limiting still refuses a flood; an empty
+search, an unreadable date, and an unreachable iPM all still render what they
+did. No pagination yet — this slice only changes how the search is reached.
 
-**Status:** pending
+**Status:** done — the urn search kept its POST rather than both forms moving,
+so the existing "keeps the urn out of the response url" spec stays true. The
+search namespace had to move above `resources :patients` to stop
+`GET /patients/:id` claiming `/patients/search`.
 
 ### Slice 2: Page the results
 
