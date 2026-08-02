@@ -258,14 +258,15 @@ across the whole set; `current_page`, `next_page`, `previous_page`,
 numbers; `Enumerable`, `length` and `empty?` behaving like the array it
 replaces.
 
-**Status:** pending
+**Status:** done — a plain class rather than a `Data`, since `Enumerable`
+sits ahead of `Data` in the ancestors and shadows `Data#to_h` with a version
+that raises on anything but pairs.
 
 ### Slice 3: Searches return a page
 
 **Commit:** `feat: return patient searches as a page`
 **Files:**
 - `gems/conduit/lib/conduit/ipm/repositories/patients.rb`
-- `gems/conduit/lib/conduit/repository.rb`
 - `gems/conduit/spec/integration/patient_matching_spec.rb`
 - `gems/conduit/README.md`
 
@@ -275,7 +276,9 @@ merge-collapse, ordering and injection examples reworked off `eq []` onto the
 page's own `empty?`; the audit event still identifies collection results by
 URN through the Enumerable path.
 
-**Status:** pending
+**Status:** done — `Repository#audited` needed no change after all. It reaches
+for `length` and `map`, which `Page` and `Enumerable` already answer, so the
+planned switch to `count` was unnecessary.
 
 ### Slice 4: Page and per-page arguments
 

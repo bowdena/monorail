@@ -83,8 +83,8 @@ patients.by_urn!("0700003")  # => Patient; raises Error::NotFound
 patients.find_all_by(
   first_name: "Tori", last_name: "Judd",
   date_of_birth: Date.new(1957, 9, 29)
-)                                    # => [Patient]
-patients.matching(last_name: "jud")  # => [Patient]
+)                                    # => Conduit::Page of Patient
+patients.matching(last_name: "jud")  # => Conduit::Page of Patient
 ```
 
 - `by_urn` — one patient by that exact URN, or `nil` when nothing
@@ -92,10 +92,40 @@ patients.matching(last_name: "jud")  # => [Patient]
   pads to the stored width itself. `by_urn!` raises `Error::NotFound`
   rather than returning `nil`.
 - `find_all_by` — exact, case-insensitive name matching (any subset
-  of first name, last name, date of birth); `[]` when nothing
-  matches.
+  of first name, last name, date of birth); an empty page when
+  nothing matches.
 - `matching` — like `find_all_by`, but names match on any fragment.
   Date of birth stays exact — a fuzzy date has no meaning.
+
+### Searches answer with a page
+
+The two name searches return a `Conduit::Page` rather than an array,
+so a caller learns how much matched as well as what matched.
+
+```ruby
+page = patients.matching(last_name: "jud")
+
+page.records        # => [Patient]
+page.total_count    # => 4
+page.total_pages    # => 1
+page.current_page   # => 1
+page.per_page       # => nil
+page.first_page?    # page.last_page?
+page.next_page      # page.previous_page — nil at the ends
+```
+
+A page is `Enumerable` and answers `length` and `empty?`, so it works
+anywhere the array did:
+
+```ruby
+page.map(&:urn)
+page.first
+Array(page)
+```
+
+Counts describe the whole result set — `total_count` and
+`total_pages` — while `length` describes the page in hand. Every match
+is on one page for now.
 
 Archived patients are never returned.
 
