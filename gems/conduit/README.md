@@ -124,8 +124,45 @@ Array(page)
 ```
 
 Counts describe the whole result set — `total_count` and
-`total_pages` — while `length` describes the page in hand. Every match
-is on one page for now.
+`total_pages` — while `length` describes the page in hand.
+
+### Paging through a search
+
+Pass `per_page` to cut the set into pages, and `page` to choose one.
+Both searches take them. Left out, every match is on page 1.
+
+```ruby
+page = patients.matching(last_name: "quinn", page: 2, per_page: 5)
+
+page.records       # => the second five patients
+page.total_count   # => 12
+page.total_pages   # => 3
+page.next_page     # => 3
+```
+
+Walk the set by following `next_page` until it runs out:
+
+```ruby
+page = patients.matching(last_name: "quinn", per_page: 5)
+
+while page.next_page
+  page = patients.matching(
+    last_name: "quinn", page: page.next_page, per_page: 5
+  )
+end
+```
+
+Pages are cut after merge resolution, not in SQL, because resolution
+collapses duplicate rows and re-sorts what survives — so counts are
+patients rather than matched rows, page 2 holds the same patients on
+every request, and no patient appears on two pages.
+
+Asking for a `page` or `per_page` below 1 raises `ArgumentError`
+before any query runs. Asking for a page past the last raises
+`ArgumentError` naming both numbers — that one can only be known
+after the query, so it leaves an audit event behind. Page 1 is
+always valid: a search that matched nothing answers with an empty
+page, not a failure.
 
 Archived patients are never returned.
 
@@ -261,6 +298,11 @@ end
 `record_ids`, `error` (class name or nil). `record_ids` identifies
 returned rows by URN; a merge-resolved query runs several statements
 but emits one event, identifying the record actually returned.
+
+For a name search `params` carries the `page` and `per_page` asked
+for alongside the criteria, and `row_count` and `record_ids` describe
+that page rather than the whole result set — the trail records what
+the caller was shown.
 
 Know what the event carries before choosing where to store it:
 `params` records the search criteria verbatim — for the name

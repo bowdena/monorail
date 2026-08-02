@@ -162,6 +162,144 @@ RSpec.describe "Patient matching", :mssql do
     end
   end
 
+  describe "paging a search" do
+    it "cuts the set into pages" do
+      patients = Conduit.ipm.patients.matching(
+        last_name: "quinn", per_page: 5
+      )
+
+      expect(patients.map(&:first_name))
+        .to eq %w[Ann01 Ann02 Ann03 Ann04 Ann05]
+      expect(patients.current_page).to eq 1
+      expect(patients.per_page).to eq 5
+      expect(patients.total_count).to eq 12
+      expect(patients.total_pages).to eq 3
+    end
+
+    it "reports the totals from any page" do
+      patients = Conduit.ipm.patients.matching(
+        last_name: "quinn", page: 3, per_page: 5
+      )
+
+      expect(patients.map(&:first_name)).to eq %w[Ann11 Ann12]
+      expect(patients.total_count).to eq 12
+      expect(patients.total_pages).to eq 3
+      expect(patients.last_page?).to be true
+    end
+
+    it "pages an exact search too" do
+      patients = Conduit.ipm.patients.find_all_by(
+        last_name: "Quinn", page: 2, per_page: 5
+      )
+
+      expect(patients.map(&:first_name))
+        .to eq %w[Ann06 Ann07 Ann08 Ann09 Ann10]
+    end
+
+    it "walks the whole set exactly once" do
+      patients = Conduit.ipm.patients
+      page = patients.matching(last_name: "quinn", per_page: 5)
+      seen = page.map(&:urn)
+
+      while page.next_page
+        page = patients.matching(
+          last_name: "quinn", page: page.next_page, per_page: 5
+        )
+        seen.concat(page.map(&:urn))
+      end
+
+      expect(seen.length).to eq 12
+      expect(seen.uniq.length).to eq 12
+    end
+
+    # Thirteen Quinn rows match, but 0720013 was merged into
+    # 0720005, so the pages are cut over twelve patients.
+    context "when a matched row was merged away" do
+      it "pages the patients, not the rows" do
+        patients = Conduit.ipm.patients.matching(
+          last_name: "quinn", per_page: 5
+        )
+
+        expect(patients.total_count).to eq 12
+        expect(patients.total_pages).to eq 3
+        expect(patients.map(&:first_name)).not_to include "Ann13"
+      end
+    end
+  end
+
+  describe "an invalid page request" do
+    it "rejects a page below one" do
+      expect { Conduit.ipm.patients.matching(last_name: "quinn", page: 0) }
+        .to raise_error(ArgumentError, /page must be at least 1/)
+    end
+
+    it "rejects a per_page below one" do
+      expect { Conduit.ipm.patients.matching(last_name: "quinn", per_page: 0) }
+        .to raise_error(ArgumentError, /per_page must be at least 1/)
+    end
+
+    context "when the page is past the last" do
+      it "names the page and the total" do
+        expect do
+          Conduit.ipm.patients.matching(
+            last_name: "quinn", page: 4, per_page: 5
+          )
+        end.to raise_error(ArgumentError, "page 4 of 3")
+      end
+    end
+  end
+
+  describe "the audit trail for a paged search" do
+    it "identifies only the page's records" do
+      events = []
+      subscription = Conduit.on_query { |query| events << query }
+
+      patients = Conduit.ipm.patients.matching(
+        last_name: "quinn", page: 2, per_page: 5
+      )
+
+      expect(events.length).to eq 1
+      expect(events.first.params).to include(page: 2, per_page: 5)
+      expect(events.first.row_count).to eq 5
+      expect(events.first.record_ids).to eq patients.map(&:urn)
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription)
+    end
+
+    context "when the request is refused before the query" do
+      it "leaves no trace" do
+        events = []
+        subscription = Conduit.on_query { |query| events << query }
+
+        expect { Conduit.ipm.patients.matching(last_name: "quinn", page: 0) }
+          .to raise_error(ArgumentError)
+
+        expect(events).to be_empty
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription)
+      end
+    end
+
+    context "when the page is past the last" do
+      it "carries the error" do
+        events = []
+        subscription = Conduit.on_query { |query| events << query }
+
+        expect do
+          Conduit.ipm.patients.matching(
+            last_name: "quinn", page: 4, per_page: 5
+          )
+        end.to raise_error(ArgumentError)
+
+        expect(events.length).to eq 1
+        expect(events.first.error).to eq "ArgumentError"
+        expect(events.first.row_count).to eq 0
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription)
+      end
+    end
+  end
+
   # Every user value reaches SQL through Sequel's hash conditions
   # or predicate DSL, which quote literals — nothing is
   # interpolated. These examples are the tripwire: if a finder

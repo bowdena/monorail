@@ -17,32 +17,45 @@ module Conduit
         end
 
         def find_all_by(first_name: nil, last_name: nil,
-          date_of_birth: nil)
+          date_of_birth: nil, page: 1, per_page: nil)
           criteria = given_criteria(
             first_name: first_name, last_name: last_name,
             date_of_birth: date_of_birth
           )
 
-          many :find_all_by, criteria do
-            matches = ipm_patients.exact_match(criteria).to_a
-            Page.of(mapper.call_all(merge_resolver.resolve_all(matches)))
+          paged :find_all_by, criteria, page, per_page do
+            ipm_patients.exact_match(criteria)
           end
         end
 
         def matching(first_name: nil, last_name: nil,
-          date_of_birth: nil)
+          date_of_birth: nil, page: 1, per_page: nil)
           criteria = given_criteria(
             first_name: first_name, last_name: last_name,
             date_of_birth: date_of_birth
           )
 
-          many :matching, criteria do
-            matches = ipm_patients.fuzzy_match(criteria).to_a
-            Page.of(mapper.call_all(merge_resolver.resolve_all(matches)))
+          paged :matching, criteria, page, per_page do
+            ipm_patients.fuzzy_match(criteria)
           end
         end
 
         private
+
+        # Merge resolution collapses and re-sorts matched rows, so a
+        # page can only be cut once the whole match set is resolved.
+        # A page the caller cannot have is only knowable by then; a
+        # nonsensical one is rejected before the query runs.
+        def paged(name, criteria, page, per_page, &matches)
+          Page.validate_request!(page: page, per_page: per_page)
+
+          many name, criteria.merge(page: page, per_page: per_page) do
+            resolved = merge_resolver.resolve_all(matches.call.to_a)
+            Page.of(
+              mapper.call_all(resolved), page: page, per_page: per_page
+            )
+          end
+        end
 
         def source
           :ipm

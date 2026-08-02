@@ -212,6 +212,12 @@ meaning.
 - Which queries get paging? → Both `find_all_by` and `matching`.
 - Out-of-range: `ArgumentError` or a `Conduit::Error`? → `ArgumentError`,
   consistent with the blank-criteria precedent in `given_criteria`.
+- How does a 2001-row cap cohort get past the seeder's own safety guard?
+  → Unresolved — needed before slice 5. `ConduitSpec::Seeder` refuses to seed
+  any instance whose seeded tables hold more than `MAX_TEST_TABLE_ROWS`
+  (1000), on the reasoning that no seed produces that many, so it must be a
+  real instance. A 2001-row cohort makes that reasoning false and aborts every
+  run after the first.
 - Is the existing `merge_resolver_spec` a safety net for the batching slice?
   → Only partly. It stubs `latest_target` and `active_by_refno` per refno, so
   it is coupled to the collaborators being replaced and has to be rewritten
@@ -286,9 +292,10 @@ planned switch to `count` was unnecessary.
 **Files:**
 - `gems/conduit/lib/conduit/ipm/repositories/patients.rb`
 - `gems/conduit/lib/conduit/repository.rb`
+- `gems/conduit/lib/conduit/page.rb`
 - `gems/conduit/spec/support/mssql_integration_seeds/iPM_REPL/PATIENTS.sql`
+- `gems/conduit/spec/support/mssql_integration_seeds/iPM_REPL/MERGED_PATIENTS.sql`
 - `gems/conduit/spec/integration/patient_matching_spec.rb`
-- `gems/conduit/spec/conduit/repository_spec.rb`
 - `gems/conduit/README.md`
 
 **Spec:** walking the seeded paging cohort returns each record once, in
@@ -300,7 +307,11 @@ the last raises `ArgumentError` and leaves an event carrying it; the event's
 `params` record the page asked for while `record_ids` names only that page's
 records.
 
-**Status:** pending
+**Status:** done — `Page.validate_request!` became public so the repository can
+refuse a nonsense request before spending a query, which is what makes the
+"leaves no trace" case true. `repository_spec` needed nothing: all three audit
+behaviours are provable end to end. The two searches, by then identical bar
+their match relation, share a private `paged` helper.
 
 ### Slice 5: Cap oversized searches
 

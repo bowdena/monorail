@@ -14,7 +14,7 @@ module Conduit
 
     class << self
       def of(records, page: 1, per_page: nil)
-        validate_request(page, per_page)
+        validate_request!(page: page, per_page: per_page)
 
         paged = new(
           records: sliced(records, page, per_page),
@@ -27,14 +27,16 @@ module Conduit
         paged
       end
 
-      private
-
-      def validate_request(page, per_page)
+      # Public so a caller can reject a nonsense request before
+      # spending the query that a page cannot be cut without.
+      def validate_request!(page:, per_page:)
         raise ArgumentError, "page must be at least 1" if page < 1
         return if per_page.nil? || per_page >= 1
 
         raise ArgumentError, "per_page must be at least 1"
       end
+
+      private
 
       # Page 1 is always valid, so a search that matched nothing
       # answers with an empty page rather than a failure.
