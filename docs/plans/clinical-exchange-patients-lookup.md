@@ -296,12 +296,17 @@ selecting the same patient twice keeps one record.
 
 ### Slice 14: Say when results are local
 **Commit:** `feat: flag results served from local records`
-**Files:** `app/views/patients/index.html.erb`,
-`spec/requests/patients/searches_spec.rb`
-**Spec:** a fallback search renders an alert naming iPM as unavailable
-and the results as previously saved; an iPM-served search renders no
-alert; a configuration failure renders an error instead of results.
-**Status:** pending
+**Brought forward** to follow slice 8 — it completes the search surface
+and depends on nothing later.
+**Files:** `app/controllers/patients/searches_controller.rb`,
+`app/views/patients/searches/{_search,create}.html.erb`,
+`spec/requests/patients/searches_spec.rb`, `spec/system/patients_spec.rb`
+**Spec:** a fallback search renders a warning alert naming iPM as
+unavailable and the results as previously kept; an iPM-served search
+renders no alert; a fallback that matches nothing says no *saved*
+patient matches rather than claiming the patient does not exist; a
+configuration failure renders a critical alert instead of results.
+**Status:** done
 
 ### Slice 15: End-to-end cover
 **Commit:** `test: cover the patients lookup end to end`

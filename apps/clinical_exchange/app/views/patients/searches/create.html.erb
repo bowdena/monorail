@@ -1,5 +1,6 @@
 <% content_for :title, "Patients" %>
 
 <div class="max-w-4xl">
-  <%= render "patients/searches/search", results: @results, urn: @urn %>
+  <%= render "patients/searches/search",
+        results: @results, urn: @urn, failure: @failure %>
 </div>
