@@ -240,7 +240,10 @@ asked for rather than `Results` carrying a flag.
 
 **Spec:** a search conduit refuses for matching too many renders its own
 alert naming the count and asking for more detail, not the "report this"
-failure alert; a search that fails for any other conduit reason still renders
-the failure alert.
+failure alert; a paged search is refused the same way; a search that fails for
+any other conduit reason still renders the failure alert.
 
-**Status:** pending
+**Status:** done — the slice reached into conduit. `TooManyResults` carried
+its count only inside a message string, so naming it in the alert would have
+meant parsing gem wording. The error grew a `count` reader instead, which is
+the number the guard already spends a `COUNT(*)` to learn.

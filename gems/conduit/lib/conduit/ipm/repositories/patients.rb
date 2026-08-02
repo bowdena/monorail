@@ -74,7 +74,7 @@ module Conduit
           return if count <= MAX_RESULTS
 
           raise Error::TooManyResults.new(
-            "#{count} matches; narrow the search", source: :ipm
+            "#{count} matches; narrow the search", source: :ipm, count: count
           )
         end
 

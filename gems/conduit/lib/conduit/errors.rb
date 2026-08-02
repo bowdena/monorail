@@ -38,7 +38,17 @@ module Conduit
 
     class NotFound < Error; end
     class QueryError < Error; end
-    class TooManyResults < Error; end
+
+    # Carries what the refused search matched, so a caller can tell a
+    # user how much narrowing is needed rather than only that they must.
+    class TooManyResults < Error
+      attr_reader :count
+
+      def initialize(message = nil, source: nil, cause: nil, count: nil)
+        super(message, source: source, cause: cause)
+        @count = count
+      end
+    end
 
     class PermissionDenied < Error
       def configuration? = true

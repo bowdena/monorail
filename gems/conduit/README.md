@@ -181,7 +181,14 @@ search this broad is a narrower one — which is why the message says
 how much it matched.
 
 The count is of matched rows, taken before anything is fetched, so
-being refused costs a single statement.
+being refused costs a single statement. It is on the error as well as
+in its message, so a caller can say how much narrowing is needed:
+
+```ruby
+rescue Conduit::Error::TooManyResults => error
+  error.count  # => 8214
+end
+```
 
 Archived patients are never returned.
 
@@ -262,7 +269,8 @@ rather than dressed up as infrastructure errors.
 | `Error::ConnectionFailed`     | server unreachable / down               |
 | `Error::Timeout`              | connect or statement took too long      |
 | `Error::NotFound`             | a bang query matched no row             |
-| `Error::TooManyResults`       | search matched more than conduit serves |
+| `Error::TooManyResults`       | search matched more than conduit serves; |
+|                               | carries `count`                          |
 | `Error::QueryError`           | statement failed; also the catch-all    |
 
 Rather than listing classes, branch on the remediation predicates:

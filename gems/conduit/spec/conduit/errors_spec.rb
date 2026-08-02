@@ -33,6 +33,23 @@ RSpec.describe Conduit::Error do
         .to be_a(described_class)
     end
 
+    # The count is why the guard spends a COUNT(*) rather than probing
+    # with a limit: a caller can say how much narrowing is needed.
+    it "carries how many matched on TooManyResults" do
+      error = described_class::TooManyResults.new(
+        "2001 matches; narrow the search", source: :ipm, count: 2001
+      )
+
+      expect(error.count).to eq 2001
+      expect(error.source).to eq :ipm
+    end
+
+    context "without a count" do
+      it "has a nil count" do
+        expect(described_class::TooManyResults.new("boom").count).to be_nil
+      end
+    end
+
     it "keeps source through subclasses" do
       error = described_class::ConnectionFailed.new(
         "login failed", source: :ipm

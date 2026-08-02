@@ -549,6 +549,53 @@ RSpec.describe "Patient searches", type: :request do
     end
   end
 
+  # Narrowing is something the clinician can do; reporting a bug is not.
+  context "when the search matched too many patients" do
+    def ipm_refusing(count)
+      patients = instance_double(Conduit::IPM::Repositories::Patients)
+      allow(patients).to receive(:matching).and_raise(
+        Conduit::Error::TooManyResults.new(
+          "#{count} matches; narrow the search", source: :ipm, count: count
+        )
+      )
+      patients
+    end
+
+    it "asks for a narrower search, naming the count" do
+      stub_ipm(ipm_refusing(2001))
+
+      get patients_search_path, params: { last_name: "kwok" }
+
+      page = Capybara.string(response.body)
+
+      expect(page).to have_css("[role=alert]", text: "Too many patients match")
+      expect(page).to have_text("2,001")
+      expect(page).to have_no_css("table.table")
+    end
+
+    it "does not read as a failure to report" do
+      stub_ipm(ipm_refusing(2001))
+
+      get patients_search_path, params: { last_name: "kwok" }
+
+      page = Capybara.string(response.body)
+
+      expect(page).to have_no_css("[role=alert]", text: "Search unavailable")
+      expect(page).to have_no_text("report it")
+    end
+
+    # Conduit resolves the whole match set before cutting a page, so
+    # asking for a smaller page cannot rescue a search this broad.
+    it "refuses a paged search the same way" do
+      stub_ipm(ipm_refusing(2001))
+
+      get patients_search_path, params: { last_name: "kwok", page: "2" }
+
+      expect(Capybara.string(response.body))
+        .to have_css("[role=alert]", text: "Too many patients match")
+    end
+  end
+
   context "when the search fails outright" do
     it "reports the failure instead of results" do
       create(:patient, urn: "0700003")

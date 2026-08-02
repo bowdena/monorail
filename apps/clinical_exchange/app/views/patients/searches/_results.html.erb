@@ -1,6 +1,7 @@
 <%#
   locals: (results: nil, urn: nil, failure: nil, throttled: false,
-  unsearchable: false, invalid_date: false, stale_page: false)
+  unsearchable: false, invalid_date: false, stale_page: false,
+  too_many: nil)
 %>
 <%#
   What a search produced, rendered into the results frame. The forms sit
@@ -15,6 +16,7 @@
     unsearchable - true when no criteria were given
     invalid_date - true when the date of birth could not be read
     stale_page   - true when the page asked for no longer exists
+    too_many     - a TooManyResults conduit refused the search with
 %>
 
 <div class="space-y-6">
@@ -44,6 +46,20 @@
           title: "Search unavailable") do %>
       Patient records could not be searched. This needs fixing by an
       administrator — report it rather than retrying.
+    <% end %>
+  <% end %>
+
+  <%#
+    Narrowing is something the clinician can do, so this is advice
+    rather than the failure alert. Paging cannot help: the search is
+    resolved whole before a page is cut from it.
+  %>
+
+  <% if too_many %>
+    <%= render_alert(variant: "warning", icon: "icons/alert-triangle",
+          title: "Too many patients match") do %>
+      <%= number_with_delimiter(too_many.count) %> patients match those details.
+      Add a first name or a date of birth, then search again.
     <% end %>
   <% end %>
 

@@ -2,5 +2,5 @@
   <%= render "patients/searches/results", results: @results, urn: @urn,
         failure: @failure, throttled: @throttled,
         unsearchable: @unsearchable, invalid_date: @invalid_date,
-        stale_page: @stale_page %>
+        stale_page: @stale_page, too_many: @too_many %>
 <% end %>

@@ -32,6 +32,8 @@ class Patients::SearchesController < ApplicationController
           per_page: RESULTS_PER_PAGE)
         @stale_page = @results.current_page != requested_page
       end
+    rescue Conduit::Error::TooManyResults => error
+      @too_many = error
     rescue Conduit::Error => error
       @failure = error
     end

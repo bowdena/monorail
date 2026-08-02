@@ -305,7 +305,7 @@ RSpec.describe "Patient matching", :mssql do
       expect { Conduit.ipm.patients.matching(last_name: "kwok") }
         .to raise_error(
           Conduit::Error::TooManyResults, /2001 matches/
-        )
+        ) { |error| expect(error.count).to eq 2001 }
     end
 
     it "refuses an exact search the same way" do
