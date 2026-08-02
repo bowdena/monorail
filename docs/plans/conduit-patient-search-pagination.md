@@ -239,7 +239,7 @@ single-row `resolve` path still answering `by_urn`. Query counts asserted so
 the N+1 cannot return: resolving many rows issues a number of queries set by
 chain depth, not row count. Integration merge examples must pass unchanged.
 
-**Status:** pending
+**Status:** done
 
 ### Slice 2: Page value object
 
