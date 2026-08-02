@@ -71,6 +71,12 @@ class ButtonPreview < Lookbook::Preview
             aria: { label: "Add to favourites" })
   end
 
+  # An icon beside its label — the label names the action, the icon
+  # speeds recognition.
+  def with_icon
+    render_with_template(template: "button_preview/with_icon")
+  end
+
   def loading
     preview(loading: true, label: "Loading")
   end

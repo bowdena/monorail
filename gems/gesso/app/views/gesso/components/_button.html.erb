@@ -36,5 +36,7 @@
       }
     ) do %>
   <span data-button-target="spinner" class="btn-spinner<%= " hidden" unless loading %>" aria-hidden="true"></span>
-  <span data-button-target="content"><%= yield %></span>
+
+  <%# display:contents lets the button itself lay out an icon and label. %>
+  <span data-button-target="content" class="contents"><%= yield %></span>
 <% end %>
