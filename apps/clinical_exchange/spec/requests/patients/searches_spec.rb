@@ -237,11 +237,10 @@ RSpec.describe "Patient searches", type: :request do
     expect(request.filtered_parameters["urn"]).to eq("0700003")
   end
 
-  # The counter is shared by every example in the run, so each of these
-  # starts and ends from a known state.
+  # The counter lives in Rails.cache, which spec/support/rate_limits.rb
+  # clears before every example.
   context "when searches come too fast" do
     it "refuses the ones beyond the cap" do
-      Rails.cache.clear
       stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
         by_urn: ipm_patient))
 
@@ -252,12 +251,9 @@ RSpec.describe "Patient searches", type: :request do
       expect(response).to have_http_status(:too_many_requests)
       expect(Capybara.string(response.body))
         .to have_css("[role=alert]", text: "Too many searches")
-    ensure
-      Rails.cache.clear
     end
 
     it "allows searching up to the cap" do
-      Rails.cache.clear
       stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
         by_urn: ipm_patient))
 
@@ -267,8 +263,6 @@ RSpec.describe "Patient searches", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(Capybara.string(response.body)).to have_css("table.table")
-    ensure
-      Rails.cache.clear
     end
   end
 

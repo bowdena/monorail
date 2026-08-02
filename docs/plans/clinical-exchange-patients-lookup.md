@@ -352,9 +352,20 @@ configuration failure renders a critical alert instead of results.
 
 ### Slice 15: End-to-end cover
 **Commit:** `test: cover the patients lookup end to end`
-**Files:** `spec/system/patients_spec.rb`
-**Spec:** a clinician opens Patients from the sidebar, searches a URN,
-selects the patient, and lands on the patient page; with iPM down, the
-same patient is found again from local records with the fallback alert
-shown. The search half landed with slice 8.
-**Status:** pending
+**Files:** `spec/system/patients_spec.rb`, `spec/support/rate_limits.rb`,
+`spec/requests/patients/searches_spec.rb`
+**Spec:** a clinician opens Patients from the sidebar, searches a
+shortened URN, selects the patient and lands on their page; a patient
+selected while iPM answered is found again once iPM goes away, with the
+fallback alert shown.
+**Note:** conduit can be stubbed in a system spec because the server
+runs in the same process, so the browser journeys cover the iPM-answers
+path rather than only the fallback the earlier ones exercise.
+
+The rate limit counts through `Rails.cache`, which outlives an example,
+and a full run makes more searches a minute than the cap allows — so
+whichever examples ran last were throttled and failed, depending on
+seed. `spec/support/rate_limits.rb` clears the cache before each
+example, the way the database is cleaned. Confirmed over six seeds,
+including the one that failed.
+**Status:** done

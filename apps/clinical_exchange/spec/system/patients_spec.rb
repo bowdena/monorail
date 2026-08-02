@@ -4,6 +4,76 @@ require "system_helper"
 # takes the fallback path — which makes this the end-to-end cover for a
 # clinician searching while the replica is unreachable.
 RSpec.describe "Patient lookup", type: :system do
+  # The server runs in this process, so conduit can be stubbed for a
+  # browser journey the same way it is in a request spec.
+  def stub_ipm(patients)
+    allow(Conduit).to receive(:ipm)
+      .and_return(instance_double(Conduit::IPM::Repos, patients: patients))
+  end
+
+  def ipm_patient(urn: "0700003", first_name: "Tori", last_name: "Judd")
+    Conduit::IPM::Patient.new(
+      urn: urn, first_name: first_name, last_name: last_name,
+      date_of_birth: Date.new(1957, 9, 29), gender: "Female",
+      atsi_status: nil, merged_from: nil
+    )
+  end
+
+  it "takes a clinician from the sidebar to a patient" do
+    stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+      by_urn: ipm_patient))
+
+    visit root_path
+    click_link "Patients"
+
+    within "#patients-panel-0" do
+      fill_in "urn", with: "700003"
+      click_button "Search"
+    end
+
+    expect(page).to have_css("table.table td", text: "Tori Judd")
+    expect(page).to have_no_css("[role=alert]")
+
+    click_button "Select"
+
+    expect(page).to have_text("Tori Judd")
+    expect(page).to have_text("UR: 0700003")
+    expect(page).to have_text("29/09/1957")
+    expect(Patient.sole.urn).to eq("0700003")
+  end
+
+  it "still finds a kept patient once iPM goes away" do
+    stub_ipm(instance_double(Conduit::IPM::Repositories::Patients,
+      by_urn: ipm_patient))
+
+    visit patients_path
+
+    within "#patients-panel-0" do
+      fill_in "urn", with: "0700003"
+      click_button "Search"
+    end
+
+    click_button "Select"
+
+    expect(page).to have_text("Tori Judd")
+
+    unreachable = instance_double(Conduit::IPM::Repositories::Patients)
+    allow(unreachable).to receive(:by_urn).and_raise(
+      Conduit::Error::ConnectionFailed.new("down", source: :ipm)
+    )
+    stub_ipm(unreachable)
+
+    click_link "Back to search"
+
+    within "#patients-panel-0" do
+      fill_in "urn", with: "0700003"
+      click_button "Search"
+    end
+
+    expect(page).to have_css("[role=alert]", text: "iPM is unavailable")
+    expect(page).to have_css("table.table td", text: "Tori Judd")
+  end
+
   it "searches from the form" do
     visit patients_path
 
