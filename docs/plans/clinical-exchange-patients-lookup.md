@@ -237,17 +237,17 @@ there is a second search to switch to.
 ### Slice 8: Post the search inside a turbo frame
 **Commit:** `feat: post the patient search`
 **Files:** `config/routes.rb`,
-`app/controllers/patient_searches_controller.rb`,
+`app/controllers/patients/searches_controller.rb`,
 `app/views/patients/index.html.erb`,
-`app/views/patient_searches/create.html.erb`,
+`app/views/patients/searches/{_search,create}.html.erb`,
 `app/controllers/patients_controller.rb`,
-`spec/requests/patient_searches_spec.rb`,
+`spec/requests/patients/searches_spec.rb`,
 `spec/requests/patients_spec.rb`, `spec/system/patients_spec.rb`
 **Spec:** the search posts and swaps the results into the frame without
 changing the URL; a URN search lists the matching patient; an unknown
 URN reports that nothing was found; the search page carries no
 identifier in its URL.
-**Status:** pending
+**Status:** done
 
 ### Slice 9: Key records by UUIDv7
 **Commit:** `feat: key patients by uuid`
@@ -260,8 +260,8 @@ the database; the generator default gives new tables the same.
 
 ### Slice 10: Rate limit the search
 **Commit:** `feat: rate limit patient searches`
-**Files:** `app/controllers/patient_searches_controller.rb`,
-`spec/requests/patient_searches_spec.rb`
+**Files:** `app/controllers/patients/searches_controller.rb`,
+`spec/requests/patients/searches_spec.rb`
 **Spec:** a burst of searches beyond the cap is refused; searching
 within the cap is unaffected.
 **Status:** pending
@@ -269,16 +269,16 @@ within the cap is unaffected.
 ### Slice 11: Keep criteria out of the request log
 **Commit:** `chore: filter patient criteria from the request log`
 **Files:** `config/initializers/filter_parameter_logging.rb`,
-`spec/requests/patient_searches_spec.rb`
+`spec/requests/patients/searches_spec.rb`
 **Spec:** a search's first name and date of birth are filtered from the
 logged parameters; the URN is not.
 **Status:** pending
 
 ### Slice 12: Advanced search
 **Commit:** `feat: add advanced patient search`
-**Files:** `app/controllers/patient_searches_controller.rb`,
+**Files:** `app/controllers/patients/searches_controller.rb`,
 `app/views/patients/index.html.erb`,
-`spec/requests/patient_searches_spec.rb`
+`spec/requests/patients/searches_spec.rb`
 **Spec:** name and date-of-birth criteria list matching patients; an
 empty advanced search reports that a criterion is required and runs no
 query.
@@ -297,7 +297,7 @@ selecting the same patient twice keeps one record.
 ### Slice 14: Say when results are local
 **Commit:** `feat: flag results served from local records`
 **Files:** `app/views/patients/index.html.erb`,
-`spec/requests/patient_searches_spec.rb`
+`spec/requests/patients/searches_spec.rb`
 **Spec:** a fallback search renders an alert naming iPM as unavailable
 and the results as previously saved; an iPM-served search renders no
 alert; a configuration failure renders an error instead of results.
