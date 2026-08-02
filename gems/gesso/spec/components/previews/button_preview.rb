@@ -77,6 +77,12 @@ class ButtonPreview < Lookbook::Preview
     render_with_template(template: "button_preview/with_icon")
   end
 
+  # A submit button in a real form — the loading state must never cancel
+  # the submission that started it.
+  def in_a_form
+    render_with_template(template: "button_preview/in_a_form")
+  end
+
   def loading
     preview(loading: true, label: "Loading")
   end

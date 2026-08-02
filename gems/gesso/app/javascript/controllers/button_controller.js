@@ -12,6 +12,10 @@ export default class extends Controller {
 
   loadingValueChanged() {
     this.spinnerTarget.classList.toggle("hidden", !this.loadingValue)
-    this.element.disabled = this.loadingValue
+
+    // Disabling a submit button while its own click is still being
+    // dispatched cancels the submission, so the button stays enabled
+    // until the browser has acted on the click.
+    setTimeout(() => { this.element.disabled = this.loadingValue })
   }
 }

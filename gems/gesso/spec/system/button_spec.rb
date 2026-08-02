@@ -34,4 +34,12 @@ RSpec.describe "Button component", type: :system do
     expect(label["left"]).to be >= icon["right"]
     expect(label_centre).to be_within(1).of(icon_centre)
   end
+
+  it "submits the form it belongs to" do
+    visit "/lookbook/preview/button/in_a_form"
+
+    click_button "Save"
+
+    expect(page).to have_current_path(/submitted=yes/, url: true)
+  end
 end
