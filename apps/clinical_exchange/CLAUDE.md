@@ -73,6 +73,13 @@ before_action :set_message, only: %i[ show edit update destroy ]
       @message = Message.find(params[:id])
     end
 
+# Class methods in a singleton block, never `def self.`
+class << self
+  def remember(found)
+    find_or_initialize_by(urn: found.urn)
+  end
+end
+
 # Expression-less case for conditionals
 case
 when params[:before].present?

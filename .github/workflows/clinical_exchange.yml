@@ -124,6 +124,9 @@ jobs:
       PGPORT: 5432
       PGUSER: postgres
       PGPASSWORD: postgres
+      # Booting Rails decrypts config/credentials/test.yml.enc, whose key
+      # file is gitignored. Rails falls back to this variable.
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
 
     steps:
       - name: Checkout code

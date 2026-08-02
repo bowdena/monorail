@@ -6,3 +6,10 @@
 Rails.application.config.filter_parameters += [
   :passw, :email, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn, :cvv, :cvc
 ]
+
+# Search criteria identify a patient. The URN stays readable — it is the
+# identifier staff quote to each other, and the log is far less useful
+# without it — but a name and date of birth together are enough to
+# recognise someone, so they are blanked. Conduit's own audit line is
+# deliberately left complete: recording what was searched is its job.
+Rails.application.config.filter_parameters += [ :first_name, :date_of_birth ]

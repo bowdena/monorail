@@ -71,6 +71,25 @@ class ButtonPreview < Lookbook::Preview
             aria: { label: "Add to favourites" })
   end
 
+  # An icon beside its label — the label names the action, the icon
+  # speeds recognition.
+  def with_icon
+    render_with_template(template: "button_preview/with_icon")
+  end
+
+  # A submit button in a real form — the loading state must never cancel
+  # the submission that started it.
+  def in_a_form
+    render_with_template(template: "button_preview/in_a_form")
+  end
+
+  # A submit button whose form targets a frame it sits outside of. The
+  # response never replaces the button, so the spinner has to stop
+  # itself.
+  def in_a_frame
+    render_with_template(template: "button_preview/in_a_frame")
+  end
+
   def loading
     preview(loading: true, label: "Loading")
   end

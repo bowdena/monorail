@@ -84,6 +84,17 @@ RSpec.describe Conduit::Sources do
       end
     end
 
+    context "when in test without overrides" do
+      it "fails rather than assuming a local instance" do
+        env = {"RAILS_ENV" => "test"}
+
+        expect { described_class.settings(:ipm, env: env) }
+          .to raise_error(
+            Conduit::Error::NotConfigured, /CONDUIT_MSSQL_HOST/
+          )
+      end
+    end
+
     context "with an unknown source" do
       it "raises an argument error" do
         expect { described_class.settings(:pharmacy, env: {}) }

@@ -1,0 +1,21 @@
+<% content_for :title, patient_name(@patient) %>
+
+<div class="max-w-4xl space-y-6">
+  <%= render_patient_info_header(patient: {
+        first_name: @patient.first_name,
+        last_name: @patient.last_name,
+        gender: patient_gender_code(@patient),
+        urn: @patient.urn,
+        dob: patient_date_of_birth(@patient)
+      }) %>
+
+  <%= render_card(title: "Patient record") do %>
+    <p class="text-sm text-muted-foreground">
+      This patient is kept here so they can still be found when iPM is
+      unreachable. There is nothing else to show yet.
+    </p>
+  <% end %>
+
+  <%= link_to "Back to search", patients_path, class: "btn",
+        data: { variant: "outline" } %>
+</div>

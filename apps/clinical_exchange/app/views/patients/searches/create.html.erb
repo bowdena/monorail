@@ -1,0 +1,5 @@
+<%= turbo_frame_tag "patient_results" do %>
+  <%= render "patients/searches/results", results: @results, urn: @urn,
+        failure: @failure, throttled: @throttled,
+        unsearchable: @unsearchable, invalid_date: @invalid_date %>
+<% end %>

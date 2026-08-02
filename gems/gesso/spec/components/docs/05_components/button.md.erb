@@ -67,6 +67,24 @@ in the same call:
 | `classes` | string | extra CSS classes |
 | `aria` | hash | aria attributes, e.g. `{ label: "Close" }` |
 
+## Icon and label
+
+Put the icon in the block, before the label. The button lays both out
+as one row with the gap its size defines — no wrapper markup, no
+utilities on the caller's side.
+
+<%= embed :button, :with_icon %>
+
+```erb
+<%%= render_button(type: "submit") do %>
+  <%%= inline_svg_tag "icons/search.svg", class: "size-4" %> Search
+<%% end %>
+```
+
+Size the icon with `size-4` (`size-3` alongside an `xs` button). An
+icon *instead of* a label is a different thing: use `size: "icon"` and
+give it an `aria-label`.
+
 ## Loading state
 
 `loading` is owned by a small Stimulus controller (`button`). The

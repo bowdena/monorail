@@ -2,6 +2,22 @@
 
 <html>
   <head>
+    <%#
+      Runs before first paint so a stored dark preference does not flash
+      unstyled. Stimulus cannot do this — it runs after the paint.
+    %>
+
+    <script nonce="<%= content_security_policy_nonce %>">
+      (function() {
+        var t = localStorage.getItem("theme-preference") || "system";
+        if (t === "dark" ||
+            (t === "system" &&
+             window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
+
     <title><%= content_for(:title) || "Clinical Exchange" %></title>
 
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -32,7 +48,23 @@
     <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="flex h-screen overflow-hidden bg-background">
+    <%= render_sidebar(
+          app_name: "Clinical Exchange",
+          nav_items: [
+            { label: "Dashboard", path: "/", icon: "layout-dashboard" },
+            { label: "Patients", path: "/patients", icon: "users" }
+          ]
+        ) %>
+
+    <div class="flex flex-col flex-1 overflow-hidden min-w-0">
+      <%= render_header(title: content_for(:title), show_search: false) %>
+
+      <main class="flex-1 overflow-auto p-6">
+        <%= render_toast(flash: flash) %>
+
+        <%= yield %>
+      </main>
+    </div>
   </body>
 </html>

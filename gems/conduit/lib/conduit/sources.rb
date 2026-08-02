@@ -5,7 +5,9 @@ module Conduit
     }.freeze
 
     LOCAL_LOCATION = {host: "localhost", port: 1433}.freeze
-    LOCAL_ENVIRONMENTS = %w[development test].freeze
+    # Development only: a suite that found an instance on localhost
+    # would be answered by whatever the developer happens to be running.
+    LOCAL_ENVIRONMENTS = %w[development].freeze
 
     class << self
       def names

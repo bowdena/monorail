@@ -1,0 +1,8 @@
+<turbo-frame id="button_results">
+  <p>Nothing searched for yet.</p>
+</turbo-frame>
+
+<form action="/lookbook/preview/button/in_a_frame" method="get"
+  data-turbo-frame="button_results">
+  <%= render_button(type: "submit") { "Save" } %>
+</form>

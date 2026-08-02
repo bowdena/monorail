@@ -1,0 +1,47 @@
+<%#
+  Search by name and date of birth. Any one field is enough; conduit
+  matches names on any fragment and the date of birth exactly.
+
+  There is no phone search: conduit exposes no phone column.
+%>
+
+<%= render_card(title: "Advanced search",
+      description: "Search by name or date of birth. Fill in any " \
+                   "combination of fields.") do %>
+  <%= form_with url: patients_search_path,
+        data: { turbo_frame: "patient_results" } do |form| %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="space-y-2">
+        <%= form.label :first_name, "First name", class: "label" %>
+
+        <%= form.text_field :first_name, placeholder: "Enter first name",
+              autocomplete: "off", class: "input" %>
+      </div>
+
+      <div class="space-y-2">
+        <%= form.label :last_name, "Last name", class: "label" %>
+
+        <%= form.text_field :last_name, placeholder: "Enter last name",
+              autocomplete: "off", class: "input" %>
+      </div>
+
+      <div class="space-y-2">
+        <%= form.label :date_of_birth, "Date of birth", class: "label" %>
+
+        <%= form.text_field :date_of_birth, placeholder: "dd/mm/yyyy",
+              inputmode: "numeric", maxlength: 10, autocomplete: "off",
+              aria: { describedby: "date_of_birth_hint" }, class: "input" %>
+
+        <p id="date_of_birth_hint" class="text-sm text-muted-foreground">
+          Day first, for example 29/09/1957.
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <%= render_button(type: "submit") do %>
+        <%= inline_svg_tag "icons/search.svg", class: "size-4" %> Search
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
