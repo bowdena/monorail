@@ -3,6 +3,14 @@
 # your test database is "scratch space" for the test suite and is wiped
 # and recreated between test runs. Don't rely on the data there!
 
+# Conduit has no defaults outside development, and the suite stubs iPM
+# at Conduit.ipm rather than querying it. The .invalid domain can never
+# resolve, so a forgotten stub fails instead of reaching an instance a
+# developer happens to be running.
+ENV["CONDUIT_MSSQL_HOST"] ||= "ipm.invalid"
+ENV["CONDUIT_MSSQL_PORT"] ||= "1433"
+ENV["CONDUIT_IPM_DATABASE"] ||= "iPM_REPL"
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
