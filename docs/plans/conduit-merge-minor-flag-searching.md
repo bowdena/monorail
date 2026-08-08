@@ -92,6 +92,53 @@ Findings from the production MERGED_PATIENTS extract (2.3M rows,
   anyway as the honest description; say the word and it becomes
   `refactor:`.
 
+## Validation before release
+
+Everything here rests on `MERGE_MINOR_FLAG = 'Y'` meaning "this record
+was merged away". That equivalence is proven on 29 positives in a
+77-patient sample, not across production. Run this against a full
+production `PATIENTS` extract before shipping, and carry the result in
+the PR description.
+
+```sql
+SELECT COUNT(*) AS survivors_wrongly_flagged
+FROM PATIENTS p
+WHERE p.MERGE_MINOR_FLAG = 'Y'
+  AND p.ARCHV_FLAG = 'N'
+  AND NOT EXISTS (
+    SELECT 1 FROM MERGED_PATIENTS m
+    WHERE m.PREV_PATNT_REFNO = p.PATNT_REFNO
+      AND m.ARCHV_FLAG = 'N'
+  );
+```
+
+**Looking for zero.** Any other number counts patients the gem would
+treat as merged away while `MERGED_PATIENTS` offers nowhere to resolve
+them to. Those patients still return their own record — slice 4's
+fallback — so a non-zero result is not a failure, but it does mean the
+flag and the merge table disagree in production, and the count is how
+badly. A handful is data noise worth naming in the PR. Thousands would
+mean the flag carries a meaning this feature has not accounted for,
+and the name-search exclusion in slice 2 would be hiding live patients
+from search — stop and re-examine before merging.
+
+The inverse is worth a look too, though it is not a blocker: patients
+with an active `MERGED_PATIENTS` row whose own record is *not* flagged
+would mean the flag misses real merges, which name searches would then
+return as duplicates.
+
+```sql
+SELECT COUNT(*) AS merged_but_unflagged
+FROM PATIENTS p
+WHERE p.MERGE_MINOR_FLAG <> 'Y'
+  AND p.ARCHV_FLAG = 'N'
+  AND EXISTS (
+    SELECT 1 FROM MERGED_PATIENTS m
+    WHERE m.PREV_PATNT_REFNO = p.PATNT_REFNO
+      AND m.ARCHV_FLAG = 'N'
+  );
+```
+
 ## Slices
 
 ### Slice 1: Flag the merged-away seed fixtures
