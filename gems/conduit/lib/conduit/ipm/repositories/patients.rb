@@ -41,39 +41,45 @@ module Conduit
 
         private
 
-        # The record a searched row leads to now. A row that was
-        # merged away resolves to the record it was merged into and
-        # reports the URN that was searched; nil when the trail ends
-        # somewhere no longer active.
+        # The patient a searched row leads to now, reporting the URN
+        # that was searched when resolution moved to another record.
+        # Nil when the trail ends somewhere no longer active.
         def current_record_for(searched)
-          refno = current_refno(searched)
-          if refno == searched[:patnt_refno]
-            return mapper.call(searched, merged_from: nil)
-          end
+          current = current_row(searched)
+          return nil unless current
 
-          current = ipm_patients.active_by_refno(refno)
-          current && mapper.call(current, merged_from: searched[:urn])
+          moved_on = current[:urn] != searched[:urn]
+          mapper.call(current, merged_from: moved_on ? searched[:urn] : nil)
         end
 
-        # Follows the merge trail to the reference at its end. An
-        # unflagged row is already current, so the trail is never
-        # read for one. Merges chain, so one hop is not enough;
+        # The searched row itself unless it was merged away and the
+        # trail leads somewhere, in which case the row it ends at.
+        def current_row(searched)
+          return searched unless merged_away?(searched)
+
+          refno = merge_trail_end(searched[:patnt_refno])
+          refno ? ipm_patients.active_by_refno(refno) : searched
+        end
+
+        # The reference the merge trail ends at, or nil when nothing
+        # points onwards. Merges chain, so one hop is not enough;
         # corrupt data can point in a circle, so a reference already
         # seen ends the walk.
-        def current_refno(searched)
-          return searched[:patnt_refno] unless merged_away?(searched)
-
-          seen = [searched[:patnt_refno]]
+        def merge_trail_end(patnt_refno)
+          seen = [patnt_refno]
           while (target = merged_patients.target_for(seen.last))
             break if seen.include?(target)
             seen << target
           end
+          return nil if seen.length == 1
+
           seen.last
         end
 
         # iPM flags the losing side of a merge and leaves it active.
+        # Compared case-insensitively to match the column's collation.
         def merged_away?(searched)
-          searched[:merge_minor_flag] == "Y"
+          searched[:merge_minor_flag].casecmp?("Y")
         end
 
         def source

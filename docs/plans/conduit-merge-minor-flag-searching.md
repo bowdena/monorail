@@ -323,4 +323,19 @@ asymmetry documented and alone.
 **Spec:** `ur_search_spec.rb` and `patient_matching_spec.rb` are the
 harness, unchanged. Track B: targeted specs, then the full suite,
 then lint.
-**Status:** pending
+**Status:** done — harness 28 examples, full suite 96, 0 failures;
+rubocop clean.
+
+Case mismatch resolved: `casecmp?`, folded in without a lowercase
+fixture.
+
+`merge_trail_end` now returns nil when nothing points onwards, which
+removed the refno comparison from its caller rather than relocating
+it. Refnos appear in `merge_trail_end` and the relation methods
+named for them; everything above compares URNs.
+
+Gap worth naming: no fixture covers a flagged row with no merge rows,
+so the fallback that returns the record itself is unspecified. Unlike
+the two-target case, that state is plausible in production — it is
+what the `survivors_wrongly_flagged` check counts. A seed fixture and
+an example would close it.
