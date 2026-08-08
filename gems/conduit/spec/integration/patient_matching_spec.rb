@@ -18,8 +18,10 @@ RSpec.describe "Patient matching", :mssql do
       expect(patients).to eq []
     end
 
-    context "when matches resolve to one patient" do
-      it "returns the current record once" do
+    # Ava Prior 0700001 and Pryor 0700002 share this date of birth
+    # with Prior 0700003, having been merged into it.
+    context "when merged-away records share the criteria" do
+      it "returns only the current record" do
         patients = Conduit.ipm.patients.find_all_by(
           date_of_birth: Date.new(1962, 5, 14)
         )
@@ -30,13 +32,10 @@ RSpec.describe "Patient matching", :mssql do
       end
     end
 
-    context "when a match is reachable only via merge" do
-      it "carries the merged row's URN" do
-        patients = Conduit.ipm.patients.find_all_by(last_name: "Pryor")
-
-        expect(patients.length).to eq 1
-        expect(patients.first.urn).to eq "0700003"
-        expect(patients.first.merged_from).to eq "0700002"
+    context "when the only match is a name the patient no longer has" do
+      it "returns no records" do
+        expect(Conduit.ipm.patients.find_all_by(last_name: "Pryor"))
+          .to eq []
       end
     end
 
@@ -57,11 +56,11 @@ RSpec.describe "Patient matching", :mssql do
 
   describe "Conduit.ipm.patients.matching" do
     it "matches partial names, ignoring case" do
-      patients = Conduit.ipm.patients.matching(last_name: "PRY")
+      patients = Conduit.ipm.patients.matching(last_name: "uDD")
 
       expect(patients.length).to eq 1
-      expect(patients.first.urn).to eq "0700003"
-      expect(patients.first.merged_from).to eq "0700002"
+      expect(patients.first.urn).to eq "9025071"
+      expect(patients.first.last_name).to eq "Judd"
     end
 
     it "orders by surname then forename" do
@@ -84,13 +83,24 @@ RSpec.describe "Patient matching", :mssql do
       ActiveSupport::Notifications.unsubscribe(subscription)
     end
 
-    context "when merged rows match alongside the current row" do
-      it "collapses them to the current record" do
+    # Prior 0700001, Pryor 0700002 and Prior 0700003 all match, and
+    # the first two were merged into the third.
+    context "when merged-away rows match alongside the current row" do
+      it "returns the current record alone" do
         patients = Conduit.ipm.patients.matching(last_name: "pr")
 
         expect(patients.length).to eq 1
         expect(patients.first.urn).to eq "0700003"
         expect(patients.first.merged_from).to be_nil
+      end
+    end
+
+    # Ivy Knot is the only match and was merged away, so there is no
+    # current record for the search to return.
+    context "when every match is a merged-away record" do
+      it "returns no records" do
+        expect(Conduit.ipm.patients.matching(last_name: "kno"))
+          .to eq []
       end
     end
 

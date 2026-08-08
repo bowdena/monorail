@@ -20,10 +20,21 @@ module Conduit
           attribute :ethgr_refno, Types::Decimal,
             read: Types.Constructor(Integer, &:to_i)
           attribute :archv_flag, Types::String
+          attribute :merge_minor_flag, Types::String
         end
 
         def active
           where(archv_flag: "N")
+        end
+
+        # Active records that are nobody's superseded identity. iPM
+        # flags the superseded side of a merge and leaves it active,
+        # so active alone still includes records a patient has moved
+        # on from. Ordered for the callers that return collections.
+        def current
+          active
+            .exclude(merge_minor_flag: "Y")
+            .order(:upper_surname, :upper_forename)
         end
 
         # The active patient row for an internal reference, or nil.
@@ -31,16 +42,19 @@ module Conduit
           active.where(patnt_refno: patnt_refno).one
         end
 
-        # The active patient row for an external URN, or nil.
-        def by_pasid(urn)
+        # The active patient row for an external URN, or nil. Stays
+        # on active rather than current: a URN that was merged away
+        # must still be found, so that it can be resolved.
+        def find_by_urn(urn)
           active.where(pasid: urn).one
         end
 
         # Exact, case-insensitive name matching via the upper_
         # columns iPM maintains; date of birth matches the stored
-        # midnight datetime. Blank criteria are ignored.
+        # midnight datetime. Blank criteria are ignored. Searches
+        # current records only — a former name finds nothing.
         def exact_match(criteria)
-          scope = active
+          scope = current
           if (first_name = criteria[:first_name])
             scope = scope.where(upper_forename: first_name.upcase)
           end
@@ -56,7 +70,7 @@ module Conduit
         # Like exact_match, but names match on any fragment. Date of
         # birth stays exact — a fuzzy date has no meaning.
         def fuzzy_match(criteria)
-          scope = active
+          scope = current
           if (first_name = criteria[:first_name])
             term = like_term(first_name)
             scope = scope.where { upper_forename.like(term) }

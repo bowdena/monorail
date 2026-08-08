@@ -115,15 +115,20 @@ rescue Conduit::Error => error
 end
 ```
 
-### Merge resolution is always on
+### Merge resolution applies to URN lookups
 
 iPM merges duplicate patient records; the replica keeps the trail in
-`MERGED_PATIENTS`. Every query follows that chain to the current
+`MERGED_PATIENTS` and flags the superseded record with
+`MERGE_MINOR_FLAG`. `by_urn` follows that chain to the current
 record — searching a merged-away URN returns the patient it merged
-into, and rows resolving to the same patient collapse to one record.
-When resolution crossed a merge, `merged_from` on the returned
-record carries the searched or matched URN, so a caller can never
-mistake merge resolution for a wrong result.
+into — and carries the searched URN back as `merged_from`, so a
+caller can never mistake merge resolution for a wrong result.
+
+Name searches are different: `find_all_by` and `matching` look at
+current records only, so a superseded identity is never returned and
+`merged_from` on their results is always nil. A patient whose name
+has changed is found by the name they hold now, not one they used to
+hold — searching a former name returns nothing.
 
 Need data conduit doesn't expose? Add a named query to the relevant
 resource in this gem — apps never reach past the public API.
@@ -229,8 +234,9 @@ end
 `query.to_h` has exactly nine keys: `application`, `source`,
 `resource`, `name`, `params`, `duration` (ms), `row_count`,
 `record_ids`, `error` (class name or nil). `record_ids` identifies
-returned rows by URN; a merge-resolved query runs several statements
-but emits one event, identifying the record actually returned.
+returned rows by URN; a URN lookup that crosses a merge runs several
+statements but emits one event, identifying the record actually
+returned.
 
 Know what the event carries before choosing where to store it:
 `params` records the search criteria verbatim — for the name

@@ -9,7 +9,6 @@ module Conduit
             read: Types.Constructor(Integer, &:to_i)
           attribute :prev_patnt_refno, Types::Decimal,
             read: Types.Constructor(Integer, &:to_i)
-          attribute :create_dttm, Types::Time
           attribute :archv_flag, Types::String
         end
 
@@ -17,13 +16,17 @@ module Conduit
           where(archv_flag: "N")
         end
 
-        # The most recent record a retired record was merged into,
-        # or nil when it has not been merged.
-        def latest_target(prev_patnt_refno)
+        # The record a superseded one was merged into, or nil when
+        # it has not been merged. iPM writes one row per record
+        # moved, so a single merge repeats once per record it
+        # touched — thousands of times for a long-lived patient.
+        # Distinct collapses them back to the one merge they
+        # describe.
+        def survivor_for(superseded_refno)
           active
-            .where(prev_patnt_refno: prev_patnt_refno)
-            .order { create_dttm.desc }
-            .limit(1)
+            .where(prev_patnt_refno: superseded_refno)
+            .select(:patnt_refno)
+            .distinct
             .pluck(:patnt_refno)
             .first&.to_i
         end

@@ -78,6 +78,41 @@ RSpec.describe "UR search", :mssql do
         expect(Conduit.ipm.patients.by_urn("0000000")).to be_nil
       end
     end
+
+    # Guards an assumption, not a behaviour — the patient returns
+    # either way. That MERGE_MINOR_FLAG agrees with MERGED_PATIENTS
+    # is sampled from production, not proven. The second example
+    # keeps the first honest: a dead capture would satisfy it free.
+    context "when the patient was never merged away" do
+      it "skips MERGED_PATIENTS, on an assumption about the flag" do
+        sql = capture_sql { Conduit.ipm.patients.by_urn("9025071") }
+
+        expect(sql).to match(/FROM \[PATIENTS\]/i)
+        expect(sql).not_to match(/MERGED_PATIENTS/i)
+      end
+    end
+
+    context "when the patient was merged away" do
+      it "reads MERGED_PATIENTS, as the flag says it must" do
+        sql = capture_sql { Conduit.ipm.patients.by_urn("0700002") }
+
+        expect(sql).to match(/MERGED_PATIENTS/i)
+      end
+    end
+  end
+
+  # Audit events fire per call, not per statement, so only Sequel's
+  # own log distinguishes a skipped query from one that ran.
+  def capture_sql
+    buffer = StringIO.new
+    logger = Logger.new(buffer)
+    Sequel::DATABASES.each { |database| database.loggers << logger }
+
+    yield
+
+    buffer.string
+  ensure
+    Sequel::DATABASES.each { |database| database.loggers.delete(logger) }
   end
 
   describe "Conduit.ipm.patients.by_urn!" do

@@ -20,10 +20,10 @@ module Conduit
         )
       end
 
-      def call_all(resolutions)
-        resolutions.map do |tuple, merged_from|
-          call(tuple, merged_from: merged_from)
-        end
+      # Collection finders search current records only, so no row
+      # they return was reached by crossing a merge.
+      def call_all(tuples)
+        tuples.map { |tuple| call(tuple, merged_from: nil) }
       end
 
       private
