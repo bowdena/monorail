@@ -53,11 +53,11 @@ RSpec.describe Conduit::IPM::PatientMapper do
   end
 
   describe "#call_all" do
-    it "maps each [tuple, merged_from] resolution" do
-      patients = mapper.call_all([[tuple, "0700002"], [tuple, nil]])
+    it "maps every tuple without a merge origin" do
+      patients = mapper.call_all([tuple, tuple])
 
-      expect(patients.map(&:merged_from)).to eq ["0700002", nil]
       expect(patients.map(&:urn)).to eq %w[0700003 0700003]
+      expect(patients.map(&:merged_from)).to eq [nil, nil]
     end
   end
 end

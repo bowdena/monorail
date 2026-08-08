@@ -24,8 +24,7 @@ module Conduit
           )
 
           many :find_all_by, criteria do
-            matches = ipm_patients.exact_match(criteria).to_a
-            mapper.call_all(merge_resolver.resolve_all(matches))
+            mapper.call_all(ipm_patients.exact_match(criteria).to_a)
           end
         end
 
@@ -37,8 +36,7 @@ module Conduit
           )
 
           many :matching, criteria do
-            matches = ipm_patients.fuzzy_match(criteria).to_a
-            mapper.call_all(merge_resolver.resolve_all(matches))
+            mapper.call_all(ipm_patients.fuzzy_match(criteria).to_a)
           end
         end
 

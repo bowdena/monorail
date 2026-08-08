@@ -188,7 +188,15 @@ only via merge" becomes a former-name search returning no results, and
 "matches partial names, ignoring case" moves to a term that hits a
 current record. Ordering and archived-exclusion examples must keep
 passing untouched.
-**Status:** pending
+**Status:** done — 102 examples, 0 failures; rubocop clean.
+
+Also updated `README.md`, whose "Merge resolution is always on"
+section described the behaviour this slice changes, and
+`PatientMapper#call_all`, which took `[tuple, merged_from]` pairs
+from `resolve_all` and now takes plain tuples.
+
+Note for anyone writing scopes here: `where { flag !~ "Y" }` compiles
+to a literal `(1 = 0)` and silently matches nothing. Use `exclude`.
 
 ### Slice 3: Fold merge resolution into the repository
 **Commit:** `refactor: fold merge resolution into repository`
