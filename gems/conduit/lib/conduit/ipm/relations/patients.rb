@@ -28,7 +28,7 @@ module Conduit
         end
 
         # Active records that are nobody's superseded identity. iPM
-        # flags the losing side of a merge and leaves it unarchived,
+        # flags the superseded side of a merge and leaves it active,
         # so active alone still includes records a patient has moved
         # on from. Ordered for the callers that return collections.
         def current
@@ -45,7 +45,7 @@ module Conduit
         # The active patient row for an external URN, or nil. Stays
         # on active rather than current: a URN that was merged away
         # must still be found, so that it can be resolved.
-        def by_pasid(urn)
+        def find_by_urn(urn)
           active.where(pasid: urn).one
         end
 

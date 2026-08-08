@@ -4,8 +4,7 @@ module Conduit
       class Patients < Conduit::Repository[:ipm_patients]
         def by_urn(urn)
           one :by_urn, {urn: urn} do
-            searched = ipm_patients.by_pasid(urn)
-            searched && current_record_for(searched)
+            resolve_patient(ipm_patients.find_by_urn(urn))
           end
         end
 
@@ -41,45 +40,52 @@ module Conduit
 
         private
 
-        # The patient a searched row leads to now, reporting the URN
-        # that was searched when resolution moved to another record.
-        # Nil when the trail ends somewhere no longer active.
-        def current_record_for(searched)
-          current = current_row(searched)
-          return nil unless current
+        # The patient a requested row leads to now, reporting the URN
+        # that was requested when resolution moved to another record.
+        # Nil when nothing was found, or when the merges end
+        # somewhere no longer active.
+        def resolve_patient(requested_patient)
+          return nil unless requested_patient
 
-          moved_on = current[:urn] != searched[:urn]
-          mapper.call(current, merged_from: moved_on ? searched[:urn] : nil)
+          survivor = surviving_patient(requested_patient)
+          return nil unless survivor
+
+          same_patient = requested_patient[:urn] == survivor[:urn]
+          merged_from = same_patient ? nil : requested_patient[:urn]
+
+          mapper.call(survivor, merged_from: merged_from)
         end
 
-        # The searched row itself unless it was merged away and the
-        # trail leads somewhere, in which case the row it ends at.
-        def current_row(searched)
-          return searched unless merged_away?(searched)
+        # The given patient unless they were superseded and their
+        # merges lead somewhere, in which case the patient at the end
+        # of them.
+        def surviving_patient(patient)
+          return patient unless superseded?(patient)
 
-          refno = merge_trail_end(searched[:patnt_refno])
-          refno ? ipm_patients.active_by_refno(refno) : searched
+          refno = surviving_refno(patient[:patnt_refno])
+          refno ? ipm_patients.active_by_refno(refno) : patient
         end
 
-        # The reference the merge trail ends at, or nil when nothing
-        # points onwards. Merges chain, so one hop is not enough;
-        # corrupt data can point in a circle, so a reference already
-        # seen ends the walk.
-        def merge_trail_end(patnt_refno)
-          seen = [patnt_refno]
-          while (target = merged_patients.target_for(seen.last))
-            break if seen.include?(target)
-            seen << target
+        # The reference a chain of merges ends at, or nil when
+        # nothing points onwards. Merges chain, so one hop is not
+        # enough; corrupt data can point in a circle, so a reference
+        # already seen ends the walk.
+        def surviving_refno(superseded_refno)
+          seen = [superseded_refno]
+          while (next_refno = merged_patients.survivor_for(seen.last))
+            break if seen.include?(next_refno)
+            seen << next_refno
           end
           return nil if seen.length == 1
 
           seen.last
         end
 
-        # iPM flags the losing side of a merge and leaves it active.
-        # Compared case-insensitively to match the column's collation.
-        def merged_away?(searched)
-          searched[:merge_minor_flag].casecmp?("Y")
+        # iPM calls the superseded side of a merge the minor record,
+        # hence the column name, and leaves it active. Compared
+        # case-insensitively to match the column's collation.
+        def superseded?(patient)
+          patient[:merge_minor_flag].casecmp?("Y")
         end
 
         def source

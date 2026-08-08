@@ -16,14 +16,15 @@ module Conduit
           where(archv_flag: "N")
         end
 
-        # The record a retired record was merged into, or nil when it
-        # has not been merged. iPM writes one row per record moved,
-        # so a single merge repeats once per record it touched —
-        # thousands of times for a long-lived patient. Distinct
-        # collapses them back to the one merge they describe.
-        def target_for(prev_patnt_refno)
+        # The record a superseded one was merged into, or nil when
+        # it has not been merged. iPM writes one row per record
+        # moved, so a single merge repeats once per record it
+        # touched — thousands of times for a long-lived patient.
+        # Distinct collapses them back to the one merge they
+        # describe.
+        def survivor_for(superseded_refno)
           active
-            .where(prev_patnt_refno: prev_patnt_refno)
+            .where(prev_patnt_refno: superseded_refno)
             .select(:patnt_refno)
             .distinct
             .pluck(:patnt_refno)
