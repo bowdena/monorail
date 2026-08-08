@@ -64,7 +64,7 @@ module Conduit
           return searched[:patnt_refno] unless merged_away?(searched)
 
           seen = [searched[:patnt_refno]]
-          while (target = merged_patients.latest_target(seen.last))
+          while (target = merged_patients.target_for(seen.last))
             break if seen.include?(target)
             seen << target
           end

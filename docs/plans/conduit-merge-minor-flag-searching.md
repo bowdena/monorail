@@ -272,7 +272,15 @@ equivalent while no patient has two active targets — none of the
 **Spec:** existing `ur_search_spec.rb` examples cover it, including
 the archived-row fixture that must still be ignored. No new spec
 unless the rewrite exposes a gap.
-**Status:** pending
+**Status:** done — 96 examples, 0 failures; rubocop clean.
+
+Verified the emitted SQL rather than trusting a green spec:
+`SELECT DISTINCT [MERGED_PATIENTS].[PATNT_REFNO] ... WHERE ARCHV_FLAG
+= 'N' AND PREV_PATNT_REFNO = ?`, no ORDER BY, and the archived
+re-merge fixture is still ignored on the archive filter alone.
+
+Also dropped `create_dttm` from the relation schema — the sort was
+its only reader.
 
 ### Slice 6: Keep patient references inside the merge walk
 **Commit:** `refactor: keep patient references in the merge walk`
