@@ -5,8 +5,7 @@ module Conduit
         def by_urn(urn)
           one :by_urn, {urn: urn} do
             searched = ipm_patients.by_pasid(urn)
-            resolved, merged_from = merge_resolver.resolve(searched)
-            resolved ? mapper.call(resolved, merged_from: merged_from) : nil
+            searched && current_record_for(searched)
           end
         end
 
@@ -42,6 +41,32 @@ module Conduit
 
         private
 
+        # The record a searched row leads to now. A row that was
+        # merged away resolves to the record it was merged into and
+        # reports the URN that was searched; nil when the trail ends
+        # somewhere no longer active.
+        def current_record_for(searched)
+          refno = current_refno(searched[:patnt_refno])
+          if refno == searched[:patnt_refno]
+            return mapper.call(searched, merged_from: nil)
+          end
+
+          current = ipm_patients.active_by_refno(refno)
+          current && mapper.call(current, merged_from: searched[:urn])
+        end
+
+        # Follows the merge trail to the reference at its end. Merges
+        # chain, so one hop is not enough; corrupt data can point in a
+        # circle, so a reference already seen ends the walk.
+        def current_refno(patnt_refno)
+          seen = [patnt_refno]
+          while (target = merged_patients.latest_target(seen.last))
+            break if seen.include?(target)
+            seen << target
+          end
+          seen.last
+        end
+
         def source
           :ipm
         end
@@ -66,11 +91,6 @@ module Conduit
           @mapper ||= PatientMapper.new(
             ReferenceLookup.new(relation(:ipm_reference_values))
           )
-        end
-
-        def merge_resolver
-          @merge_resolver ||=
-            MergeResolver.new(ipm_patients, merged_patients)
         end
 
         # Blank criteria are ignored; all blank is a caller bug —

@@ -122,6 +122,20 @@ mean the flag carries a meaning this feature has not accounted for,
 and the name-search exclusion in slice 2 would be hiding live patients
 from search — stop and re-examine before merging.
 
+Confirm too that `MERGE_MINOR_FLAG` is still `NOT NULL` on the real
+database. The tracked schema dump says it is, and the name-search
+exclusion depends on it: a NULL flag evaluates UNKNOWN against
+`!= 'Y'`, so those patients would disappear from every name search
+with no error raised. `ARCHV_FLAG` is nullable, but `= 'N'` and
+`!= 'Y'` both drop NULLs, so the existing filter is unaffected.
+
+```sql
+SELECT COLUMN_NAME, IS_NULLABLE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'PATIENTS'
+  AND COLUMN_NAME IN ('MERGE_MINOR_FLAG', 'ARCHV_FLAG');
+```
+
 The inverse is worth a look too, though it is not a blocker: patients
 with an active `MERGED_PATIENTS` row whose own record is *not* flagged
 would mean the flag misses real merges, which name searches would then
@@ -217,7 +231,10 @@ no flag use yet; that is slice 4.
 
 **Spec:** none written or changed. Targeted `ur_search_spec.rb`, then
 the full suite, then lint.
-**Status:** pending
+**Status:** done — harness 10 examples green before and after; full
+suite 94 examples, 0 failures; rubocop clean. Coverage was already
+adequate, so no `test:` commit was needed. Example count drops from
+102 because the resolver's 8 unit examples went with it.
 
 ### Slice 4: Skip the merge lookup for unflagged patients
 **Commit:** `feat: skip merge lookup for unmerged patients`
