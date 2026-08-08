@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "yarn@4.18.0",
   "devDependencies": {
-    "@herb-tools/formatter": "^0.10.2",
+    "@herb-tools/formatter": "^0.10.3",
     "@herb-tools/linter": "^0.10.2",
     "esbuild": "^0.28.1"
   },
