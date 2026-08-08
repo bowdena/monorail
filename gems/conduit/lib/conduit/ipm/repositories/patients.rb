@@ -46,7 +46,7 @@ module Conduit
         # reports the URN that was searched; nil when the trail ends
         # somewhere no longer active.
         def current_record_for(searched)
-          refno = current_refno(searched[:patnt_refno])
+          refno = current_refno(searched)
           if refno == searched[:patnt_refno]
             return mapper.call(searched, merged_from: nil)
           end
@@ -55,16 +55,25 @@ module Conduit
           current && mapper.call(current, merged_from: searched[:urn])
         end
 
-        # Follows the merge trail to the reference at its end. Merges
-        # chain, so one hop is not enough; corrupt data can point in a
-        # circle, so a reference already seen ends the walk.
-        def current_refno(patnt_refno)
-          seen = [patnt_refno]
+        # Follows the merge trail to the reference at its end. An
+        # unflagged row is already current, so the trail is never
+        # read for one. Merges chain, so one hop is not enough;
+        # corrupt data can point in a circle, so a reference already
+        # seen ends the walk.
+        def current_refno(searched)
+          return searched[:patnt_refno] unless merged_away?(searched)
+
+          seen = [searched[:patnt_refno]]
           while (target = merged_patients.latest_target(seen.last))
             break if seen.include?(target)
             seen << target
           end
           seen.last
+        end
+
+        # iPM flags the losing side of a merge and leaves it active.
+        def merged_away?(searched)
+          searched[:merge_minor_flag] == "Y"
         end
 
         def source

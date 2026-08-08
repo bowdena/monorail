@@ -247,12 +247,15 @@ returns immediately unless it is `'Y'`. MERGED_PATIENTS is never
 touched for the ~62% of patients who were never merged away.
 
 **Spec:** a guardrail example asserting no MERGED_PATIENTS query is
-issued for an unflagged patient, via `Conduit.on_query`. Its `it`
-block should say plainly that it guards an assumption rather than a
-behaviour — nothing a caller can observe changes if it regresses, and
-the flag/merge-table agreement it leans on is asserted from a sample,
-not proven for all production data. Wording to be agreed when written.
-**Status:** pending
+issued for an unflagged patient. `Conduit.on_query` cannot see this —
+it fires once per call, not per statement — so the example captures
+Sequel's own statement log instead.
+**Status:** done — 96 examples, 0 failures; rubocop clean.
+
+The skip lives in `current_refno`: an unflagged row's current
+reference is itself, so the trail is never read. A second example
+asserts a flagged patient *does* read MERGED_PATIENTS — without it a
+capture that caught nothing would satisfy the guardrail for free.
 
 ### Slice 5: Collapse duplicate rows in the hop query
 **Commit:** `perf: collapse duplicate rows in merge hop query`
