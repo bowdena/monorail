@@ -273,3 +273,46 @@ equivalent while no patient has two active targets — none of the
 the archived-row fixture that must still be ignored. No new spec
 unless the rewrite exposes a gap.
 **Status:** pending
+
+### Slice 6: Keep patient references inside the merge walk
+**Commit:** `refactor: keep patient references in the merge walk`
+**Files:**
+- `lib/conduit/ipm/repositories/patients.rb`
+
+`MERGED_PATIENTS` links by `PATNT_REFNO` alone — no PASID, and its
+`EXTERNAL_KEY` is NULL throughout production — so the walk cannot be
+expressed in URNs without translating every hop back through
+`PATIENTS`. The internal reference stays, but stops leaking:
+`current_record_for` currently compares refnos and then reports a
+URN, mixing both identifiers in one method.
+
+Have the walk return a row rather than a reference, so
+`current_record_for` compares `urn` and refnos appear only inside
+`current_refno` and the relation methods named for them.
+
+Preserve carefully: the existing `refno == searched[:patnt_refno]`
+comparison is what makes a flagged row with no merge rows return
+`merged_from: nil` instead of pointing at itself, and it avoids a
+second lookup of a row already in hand. A `urn` comparison keeps the
+first property; keep the early return for the second.
+
+Also settle the case mismatch found in review. `MERGE_MINOR_FLAG` is
+`COLLATE Latin1_General_CI_AS`, so `exclude(merge_minor_flag: "Y")`
+drops `'y'` as well as `'Y'`, while `merged_away?` compares in Ruby
+and is case-sensitive. A row holding `'y'` would be absent from name
+searches yet treated by `by_urn` as never merged — the two halves of
+this feature disagreeing about one patient. Production holds only
+`'N'` and `'Y'`, so nothing is broken today.
+
+Open point for when this slice starts: `casecmp?` is a behaviour
+change, not a refactor, so it wants its own `fix:` commit — and
+specifying it needs a lowercase fixture that contradicts all
+production data, the same kind of invented fixture already declined
+for ambiguous merges. Decide then between a separate `fix:` with that
+fixture, folding the normalisation in unspecified, or leaving the
+asymmetry documented and alone.
+
+**Spec:** `ur_search_spec.rb` and `patient_matching_spec.rb` are the
+harness, unchanged. Track B: targeted specs, then the full suite,
+then lint.
+**Status:** pending
